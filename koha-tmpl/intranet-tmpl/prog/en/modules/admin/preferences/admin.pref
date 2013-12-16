@@ -156,6 +156,39 @@ Administration:
             - "Google OpenID Connect Restrict to domain (or subdomain of this domain): "
             - pref: GoogleOpenIDConnectDomain
             - Leave blank for all google domains
+    Interlibrary Loans:
+        -
+            - pref: ILLModule
+              default: 0
+              choices:
+                  yes: Enable
+                  no: Disable
+            - the interlibrary loans module (master switch).
+        -
+            - pref: OpacILLRequests
+              default: 0
+              choices:
+                  yes: Enable
+                  no: Disable
+            - OPAC based interlibrary loan requests.
+        -
+            - pref: UnmediatedILL
+              default: 0
+              choices:
+                  yes: Enable
+                  no: Disable
+            - unmediated interlibrary loan requests.
+        -
+            - pref: GenericILLModule
+              default: 0
+              choices:
+                  yes: Enable
+                  no: Disable
+            - peer to peer ILL lending via email requests.
+        -
+            - pref: GenericILLPartners
+            - "The borrower category to use to identify ILL partners:"
+            - default: ILLLIBS
     Share anonymous usage statistics:
         -
             - "Share anonymous Koha usage data with the Koha community: "

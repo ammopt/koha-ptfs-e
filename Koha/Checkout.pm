@@ -29,6 +29,9 @@ use Koha::Items;
 
 use base qw(Koha::Object);
 
+use Koha::Borrower::Categories;
+use Koha::Borrower::ILLRequests;
+
 =head1 NAME
 
 Koha::Checkout - Koha Checkout object class
@@ -96,9 +99,38 @@ sub _type {
     return 'Issue';
 }
 
+=head3 Category
+
+Returns the related Koha::Borrower::Category object for this Borrower
+
+=cut
+
+sub Category {
+    my ($self) = @_;
+
+    $self->{Category} ||= Koha::Borrower::Categories->new()->find( $self->categorycode() );
+
+    return $self->{Category};
+}
+
+=head3 ILLRequests
+
+Returns the related Koha::Borrower::ILLRequests object for this Borrower
+
+=cut
+
+sub ILLRequests {
+    my ($self) = @_;
+
+    $self->{ILLRequests} ||= Koha::Borrower::ILLRequests->new()->search( { 'borrowernumber' => $self->borrowernumber() } );
+
+    return $self->{ILLRequests};
+}
+
 =head1 AUTHOR
 
 Kyle M Hall <kyle@bywatersolutions.com>
+Martin Renvoize <martin.renvoize@ptfs-europe.com>
 
 Jonathan Druart <jonathan.druart@bugs.koha-community.org>
 
