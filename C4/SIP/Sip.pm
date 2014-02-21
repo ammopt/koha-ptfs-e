@@ -19,13 +19,13 @@ use C4::SIP::Sip::Checksum qw(checksum);
 use base qw(Exporter);
 
 our @EXPORT_OK = qw(y_or_n timestamp add_field maybe_add add_count
-    denied sipbool boolspace write_msg
+    denied sipbool boolspace write_msg hr_datetime
     $error_detection $protocol_version $field_delimiter
     $last_response);
 
 our %EXPORT_TAGS = (
     all => [qw(y_or_n timestamp add_field maybe_add
-        add_count denied sipbool boolspace write_msg
+        add_count denied sipbool boolspace write_msg hr_datetime
         $error_detection $protocol_version
         $field_delimiter $last_response)]);
 
@@ -52,6 +52,17 @@ sub timestamp {
     return strftime(SIP_DATETIME, localtime($time));
 }
 
+sub hr_datetime {
+    my $time = $_[0] || time();
+    if ( ref $time eq 'DateTime') {
+        return $time->dmy();
+    } elsif ($time=~m/^(\d{4})\-(\d{2})\-(\d{2})/) {
+        # passing a db returned date as is + bogus time
+        return sprintf( '%02d-%02d-%04d', $3, $2, $1);
+    }
+    # In practice we should always be passed a date
+    return q{};
+}
 #
 # add_field(field_id, value)
 #    return constructed field value

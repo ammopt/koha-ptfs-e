@@ -538,7 +538,7 @@ sub handle_checkout {
         $resp .= add_field( FID_ITEM_ID,   $item_id );
         $resp .= add_field( FID_TITLE_ID,  $item->title_id );
         if ( $item->due_date ) {
-            $resp .= add_field( FID_DUE_DATE, timestamp( $item->due_date ) );
+            $resp .= add_field(FID_DUE_DATE, hr_datetime($item->due_date));
         } else {
             $resp .= add_field( FID_DUE_DATE, q{} );
         }
