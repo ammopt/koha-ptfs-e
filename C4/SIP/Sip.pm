@@ -55,7 +55,11 @@ sub timestamp {
 sub hr_datetime {
     my $time = $_[0] || time();
     if ( ref $time eq 'DateTime') {
-        return $time->dmy();
+        my $disp_date = $time->dmy();
+        $disp_date .= '  ';
+        $disp_date .= $time->hms();
+        $disp_date=~s/:\d\d$//;
+        return $disp_date;
     } elsif ($time=~m/^(\d{4})\-(\d{2})\-(\d{2})/) {
         # passing a db returned date as is + bogus time
         return sprintf( '%02d-%02d-%04d', $3, $2, $1);
