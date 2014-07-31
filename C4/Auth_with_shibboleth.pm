@@ -47,6 +47,7 @@ sub shib_ok {
     return 0;
 }
 
+
 # Logout from Shibboleth
 sub logout_shib {
     my ($query) = @_;
@@ -112,21 +113,33 @@ sub checkpw_shib {
 sub _get_uri {
 
     my $protocol = "https://";
+    my $interface = C4::Context->interface;
+    $debug and warn "shibboleth interface: " . $interface;
 
-    my $uri = C4::Context->preference('OPACBaseURL') // '';
-    if ($uri eq '') {
-        $debug and warn 'OPACBaseURL not set!';
+    my $return;
+    my $uri;
+    if ( $interface eq 'intranet' ) {
+
+        $uri = C4::Context->preference('staffClientBaseURL') // '';
+        if ($uri eq '') {
+            $debug and warn 'staffClientBaseURL not set!';
+        }
+    } else {
+        $uri = C4::Context->preference('OPACBaseURL') // '';
+        if ($uri eq '') {
+            $debug and warn 'OPACBaseURL not set!';
+        }
     }
+
     if ($uri =~ /(.*):\/\/(.*)/) {
         my $oldprotocol = $1;
         if ($oldprotocol ne 'https') {
             $debug
                 and warn
-                  'Shibboleth requires OPACBaseURL to use the https protocol!';
+                  'Shibboleth requires OPACBaseURL/staffClientBaseURL to use the https protocol!';
         }
         $uri = $2;
     }
-
     my $return = $protocol . $uri;
     return $return;
 }
