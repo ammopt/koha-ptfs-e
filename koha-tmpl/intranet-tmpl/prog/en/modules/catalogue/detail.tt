@@ -341,6 +341,7 @@
                 [% IF ( itemdata_uri ) %]<th>URL</th>[% END %]
                 [% IF ( itemdata_copynumber ) %]<th>Copy number</th>[% END %]
                 [% IF ( itemdata_stocknumber ) %]<th>Inventory number</th>[% END %]
+                [% IF ( itemdata_more_subfields_xml ) %]<th>Private Notes</th>[% END %]
                 [% IF materials %]<th>Materials specified</th>[% END %]
                 [% IF ( itemdata_itemnotes ) %]<th>Public notes</th>[% END %]
                 [% IF ( itemdata_nonpublicnotes ) %]<th>Non-public notes</th>[% END %]
@@ -467,7 +468,7 @@
 
                     </td>
                     <td class="datelastseen">[% item.datelastseen | $KohaDates %]</td>
-                    <td><a href="/cgi-bin/koha/catalogue/moredetail.pl?type=[% item.type %]&amp;itemnumber=[% item.itemnumber %]&amp;biblionumber=[% item.biblionumber %]&amp;bi=[% item.biblioitemnumber %]#item[% item.itemnumber %]">[% item.barcode %]</a></td>
+                    <td class="hpbarcode"><a href="/cgi-bin/koha/catalogue/moredetail.pl?type=[% item.type %]&amp;itemnumber=[% item.itemnumber %]&amp;biblionumber=[% item.biblionumber %]&amp;bi=[% item.biblioitemnumber %]#item[% item.itemnumber %]">[% item.barcode %]</a></td>
                     [% IF ( volinfo ) %]
                         <td class="enumchron">
                             [% IF ( itemdata_enumchron ) %]
@@ -497,6 +498,7 @@
                     [% IF ( itemdata_stocknumber ) %]
                         <td class="stocknumber">[% item.stocknumber %]</td>
                     [% END %]
+                    [% IF ( itemdata_more_subfields_xml ) %]<td class="hpnote">[% item.more_subfields_xml %]</td>[% END %]
                     [% IF materials %]
                         <td class="materials"> [% item.materials %] </td>
                     [% END %]
