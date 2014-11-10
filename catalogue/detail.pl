@@ -253,7 +253,7 @@ foreach my $item (@items) {
     $item->{'ccode'} = $collections->{$ccode} if ( defined( $ccode ) && defined($collections) && exists( $collections->{$ccode} ) );
     my $copynumber = $item->{'copynumber'};
     $item->{'copynumber'} = $copynumbers->{$copynumber} if ( defined($copynumber) && defined($copynumbers) && exists( $copynumbers->{$copynumber} ) );
-    foreach (qw(ccode enumchron copynumber stocknumber itemnotes itemnotes_nonpublic uri)) {
+    foreach (qw(ccode enumchron copynumber stocknumber itemnotes itemnotes_nonpublic uri more_subfields_xml )) {
         $itemfields{$_} = 1 if ( $item->{$_} );
     }
 
@@ -363,6 +363,7 @@ $template->param(
 	itemdata_uri        => $itemfields{uri},
 	itemdata_copynumber => $itemfields{copynumber},
 	itemdata_stocknumber => $itemfields{stocknumber},
+        itemdata_more_subfields_xml => $itemfields{more_subfields_xml},
 	volinfo				=> $itemfields{enumchron},
         itemdata_itemnotes  => $itemfields{itemnotes},
         itemdata_nonpublicnotes => $itemfields{itemnotes_nonpublic},
