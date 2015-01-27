@@ -47,7 +47,6 @@ sub shib_ok {
     return 0;
 }
 
-
 # Logout from Shibboleth
 sub logout_shib {
     my ($query) = @_;
@@ -289,6 +288,30 @@ Returns the shibboleth login attribute should it be found present in the http se
 Given a database handle and a shib_login attribute, this routine checks for a matching local user and if found returns true, their cardnumber and their userid.  If a match is not found, then this returns false.
 
   my ( $retval, $retcard, $retuserid ) = C4::Auth_with_shibboleth::checkpw_shib( $shib_login );
+
+=head2 _get_uri
+
+  _get_uri();
+
+A sugar function to that simply returns the current page URI with appropriate protocal attached
+
+This routine is NOT exported
+
+=head2 _get_shib_config
+
+  my $config = _get_shib_config();
+
+A sugar function that checks for a valid sibboleth configuration, and if found returns a hashref of it's contents
+
+This routine is NOT exported
+
+=head2 _autocreate
+
+  my ( $retval, $retcard, $retuserid ) = _autocreate( $config, $match );
+
+Given a shibboleth attribute reference and a userid this internal routine will add the given user to Koha and return their user credentials.
+
+This routine is NOT exported
 
 =head1 SEE ALSO
 
