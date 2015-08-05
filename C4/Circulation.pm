@@ -937,6 +937,12 @@ sub CanBookBeIssued {
         }
     }
 
+    # Additional Materials Check
+    my $no_of_parts = $item->{'materials'};
+    if ( $no_of_parts > 0 ) {
+        $needsconfirmation{additional_materials} = $no_of_parts;
+    }
+
     #
     # CHECK IF BOOK ALREADY ISSUED TO THIS BORROWER
     #

@@ -169,8 +169,10 @@ $(document).ready(function () {
 [% END %]
 
 [% IF additional_materials %]
-    <div class="dialog message" id="materials">Note about the accompanying materials: <br />
-    [% additional_materials %]
+    <div class="dialog alert" id="materials">Note about the accompanying materials: [% additional_materials %]</br>
+    [% IF needs_confirm == 1 %]
+    <p>Please confirm all parts are present to complete return: <a href="/cgi-bin/koha/circ/returns.pl?barcode=[% itembarcode %]&multiple_confirm=1">Confirm</a></p>
+    [% END %]
     </div>
 [% END %]
 

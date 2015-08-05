@@ -255,9 +255,8 @@ if ($barcode) {
     $barcode = barcodedecode($barcode) if C4::Context->preference('itemBarcodeInputFilter');
     $itemnumber = GetItemnumberFromBarcode($barcode);
 
-#
-# save the return
-#
+    my $homeorholdingbranchreturn = C4::Context->preference('HomeOrHoldingBranchReturn');
+    $homeorholdingbranchreturn ||= 'homebranch';
 
     # get biblio description
     my $biblio = GetBiblioFromItemNumber($itemnumber);
@@ -280,7 +279,7 @@ if ($barcode) {
 
     my $materials = $biblio->{'materials'};
     my $descriptions = Koha::AuthorisedValues->get_description_by_koha_field({frameworkcode => '', kohafield =>'items.materials', authorised_value => $materials });
-    $materials = $descriptions->{lib} // '';
+    $materials = $descriptions->{lib} // $materials;
 
     $template->param(
         title            => $biblio->{'title'},
@@ -303,9 +302,43 @@ if ($barcode) {
         barcode => $barcode,
     );
 
-    # do the return
-    ( $returned, $messages, $issueinformation, $borrower ) =
-      AddReturn( $barcode, $userenv_branch, $exemptfine, $dropboxmode, $return_date_override, $dropboxdate );
+    # Block return if multi-part and confirm has not been recieved
+    my $needs_confirm = 0;
+    if ( 1 == 1 ) {
+        warn "Inside check_additionalItems";
+        warn "Items: " . $biblio->{'materials'};
+        if ( $biblio->{'materials'} > 0 ) {
+            if ( $query->param('multiple_confirm') ) {
+                warn "multiple_confirm found";
+                #
+                # save the return
+                #
+                ( $returned, $messages, $issueinformation, $borrower ) =
+                  AddReturn( $barcode, $userenv_branch, $exemptfine, $dropboxmode, $return_date_override, $dropboxdate );
+            }
+            else {
+                #
+                # request confirmation
+                #
+                warn "AddReturn not called, needs_confirm set";
+                $needs_confirm = 1;
+            }
+        }
+        else {
+                #
+                # save the return
+                #
+                ( $returned, $messages, $issueinformation, $borrower ) =
+                  AddReturn( $barcode, $userenv_branch, $exemptfine, $dropboxmode, $return_date_override, $dropboxdate );
+        }
+    }
+    else {
+        #
+        # save the return
+        #
+        ( $returned, $messages, $issueinformation, $borrower ) =
+          AddReturn( $barcode, $userenv_branch, $exemptfine, $dropboxmode, $return_date_override, $dropboxdate );
+    }
 
     if ($returned) {
         my $time_now = DateTime->now( time_zone => C4::Context->tz )->truncate( to => 'minute');
@@ -348,13 +381,18 @@ if ($barcode) {
                 );
             }
         }
-    } elsif ( C4::Context->preference('ShowAllCheckins') and !$messages->{'BadBarcode'} ) {
+    } elsif ( C4::Context->preference('ShowAllCheckins') and !$messages->{'BadBarcode'} and !$needs_confirm ) {
         $input{duedate}   = 0;
         $returneditems{0} = $barcode;
         $riduedate{0}     = 0;
         push( @inputloop, \%input );
     }
     $template->param( privacy => $borrower->{privacy} );
+
+    if ( $needs_confirm ) {
+        warn "needs_confirm set";
+        $template->param( needs_confirm => $needs_confirm );
+    }
 }
 $template->param( inputloop => \@inputloop );
 
