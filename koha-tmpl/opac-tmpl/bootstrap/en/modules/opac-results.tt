@@ -27,7 +27,7 @@
             <li><a href="/cgi-bin/koha/opac-main.pl">Home</a> <span class="divider">&rsaquo;</span></li>
             <li>
                 [% IF ( searchdesc ) %]
-                    <a href="#">Results of search [% IF ( query_desc ) %]for '[% query_desc | html%]'[% END %][% IF ( limit_desc ) %]&nbsp;with limit(s):&nbsp;'[% limit_desc | html %]'[% END %]</a>
+                    <a class="querycrumb" href="#">Results of search [% IF query_desc %]for '[% query_desc | html%]'[% END %][% IF limit_desc %]&nbsp;with limit(s):&nbsp;'[% limit_desc | html %]'[% END %]</a>
                 [% ELSE %]
                     <a href="#">You did not specify any search criteria</a>
                 [% END %]
