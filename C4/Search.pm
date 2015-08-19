@@ -586,6 +586,13 @@ sub getRecords {
                                     $facet_label_value = $av->count ? $av->next->opac_description : '';
                                 }
 
+               # also, if it's a collection code, use the name instead of the code
+                                if ( $link_value =~ /ccode/ ) {
+                                    $facet_label_value =
+                                      GetKohaAuthorisedValueLib( 'CCODE',
+                                        $one_facet, $opac );
+                                }
+
                 # but we're down with the whole label being in the link's title.
                                 push @this_facets_array,
                                   {

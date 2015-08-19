@@ -517,6 +517,11 @@ sub getFacets {
                 label => 'Location',
                 tags => [ qw / 952c / ],
             },
+            {
+                idx => 'ccode',
+                label => 'Ccode',
+                tags => [ qw / 9528 / ],
+            },
             ];
 
             unless ( Koha::Libraries->search->count == 1 )
