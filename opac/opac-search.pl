@@ -847,13 +847,13 @@ for (my $i=0;$i<@servers;$i++) {
                 $previous_page_offset = $offset - $results_per_page;
             }
             my $next_page_offset = $offset + $results_per_page;
-            # If we're within the first 10 pages, keep it simple
+            # If we're within the first 5 pages, keep it simple
             #warn "current page:".$current_page_number;
-            if ($current_page_number < 10) {
-                # just show the first 10 pages
+            if ($current_page_number < 5) {
+                # just show the first 5 pages
                 # Loop through the pages
-                my $pages_to_show = 10;
-                $pages_to_show = $pages if $pages<10;
+                my $pages_to_show = 5;
+                $pages_to_show = $pages if $pages<5;
                 for ($i=1; $i<=$pages_to_show;$i++) {
                     # the offset for this page
                     my $this_offset = (($i*$results_per_page)-$results_per_page);
