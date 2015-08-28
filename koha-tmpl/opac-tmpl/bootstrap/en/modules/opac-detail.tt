@@ -986,6 +986,7 @@
                                             [% END %]
                                             <td><a href="/cgi-bin/koha/opac-detail.pl?biblionumber=[% XISBN.biblionumber %]">[% XISBN.title |html %]</a>
                                                 [% XISBN.editionstatement %] [% IF XISBN.author %] by [% XISBN.author |html %][% END %]
+                                                [% IF   XISBN.url %]<p><a href="[% XISBN.url %]">Electronic version</a></p>[% END %]
                                                 [% IF ( XISBN.copyrightdate ) %] &copy;[% XISBN.copyrightdate %][% END %]
                                                 [% IF ( XISBN.publishercode ) %]
                                                     <p>[% XISBN.publishercode |html %]
