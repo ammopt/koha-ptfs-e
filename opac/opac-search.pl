@@ -872,9 +872,9 @@ for (my $i=0;$i<@servers;$i++) {
             }
             # now, show twenty pages, with the current one smack in the middle
             else {
-                for ($i=$current_page_number; $i<=($current_page_number + 20 );$i++) {
-                    my $this_offset = ((($i-9)*$results_per_page)-$results_per_page);
-                    my $this_page_number = $i-9;
+                for ($i=$current_page_number; $i<=($current_page_number + 10 );$i++) {
+                    my $this_offset = ((($i-4)*$results_per_page)-$results_per_page);
+                    my $this_page_number = $i-4;
                     if ( $this_page_number <= $pages ) {
                         push @page_numbers,
                           { offset    => $this_offset,
