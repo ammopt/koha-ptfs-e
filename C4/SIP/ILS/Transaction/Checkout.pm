@@ -95,8 +95,11 @@ sub do_checkout {
                 if ($self->{fee_ack} ne 'Y') {
                     $noerror = 0;
                 }
+            } elsif ($confirmation eq 'TOO_MANY') {
+                $noerror = 0;
+                $self->screen_msg('Too many items on loan. Loan blocked');
             } else {
-                $self->screen_msg($needsconfirmation->{$confirmation});
+                $self->screen_msg("Loan blocked:$confirmation");
                 $noerror = 0;
                 syslog('LOG_DEBUG', "Blocking checkout Reason:$confirmation");
             }
