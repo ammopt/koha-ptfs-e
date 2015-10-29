@@ -588,8 +588,9 @@ sub quote_item {
         listprice          => $item->price,
         quantity           => $order_quantity,
         quantityreceived   => 0,
-        order_vendornote   => q{},
-        order_internalnote => $order_note,
+        # ual these two notes are reversed
+        order_vendornote   => $order_note,
+        order_internalnote => q{},
         rrp                => $item->price,
         ecost => _discounted_price( $quote->vendor->discount, $item->price ),
         uncertainprice => 0,
@@ -623,14 +624,16 @@ sub quote_item {
             $txt .= $si;
             ++$occ;
         }
-        $order_hash->{order_vendornote} = $txt;
+        # UAL add to internalnote as vendor note holding FTX+LIN
+        $order_hash->{order_internalnote} = $txt;
     }
 
     if ( $item->internal_notes() ) {
-        if ( $order_hash->{order_internalnote} ) {    # more than ''
-            $order_hash->{order_internalnote} .= q{ };
+        # UAL customization set sort1 not order_internalnote
+        if ( $order_hash->{sort1} ) {    # more than ''
+            $order_hash->{sort1} .= q{ };
         }
-        $order_hash->{order_internalnote} .= $item->internal_notes;
+        $order_hash->{sort1} .= $item->internal_notes;
     }
 
     my $budget = _get_budget( $schema, $item->girfield('fund_allocation') );

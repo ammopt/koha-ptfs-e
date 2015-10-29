@@ -399,9 +399,10 @@ sub order_line {
     }
     my $budget = GetBudget( $orderline->budget_id );
     my $ol_fields = { budget_code => $budget->{budget_code}, };
-    if ( $orderline->order_vendornote ) {
-        $ol_fields->{servicing_instruction} = $orderline->order_vendornote;
-    }
+    # UAL suppress servicing instructions as currently in use for FTX+LIN`
+    #if ( $orderline->order_vendornote ) {
+    #    $ol_fields->{servicing_instruction} = $orderline->order_vendornote;
+    #}
     $self->add_seg( gir_segments( $ol_fields, @items ) );
 
     # TBD what if #items exceeds quantity
