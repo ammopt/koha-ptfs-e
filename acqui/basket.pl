@@ -446,6 +446,7 @@ sub get_order_infos {
     $line{order_received} = ( $qty == $order->{'quantityreceived'} && ( $basket->{is_standing} ? $qty : 1 ) );
     $line{basketno}       = $basketno;
     $line{budget_name}    = $budget->{budget_name};
+    $line{sort1_authcat}    = $budget->{sort1_authcat};
 
     $line{total_tax_included} = $line{ecost_tax_included} * $line{quantity};
     $line{total_tax_excluded} = $line{ecost_tax_excluded} * $line{quantity};
