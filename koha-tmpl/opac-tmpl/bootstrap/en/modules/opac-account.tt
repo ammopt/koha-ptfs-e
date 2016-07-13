@@ -64,7 +64,6 @@
                     [% END %]
 
                     <h3>Fines and charges</h3>
-
                     [% IF ( ACCOUNT_LINES ) %]
                         <form method="post" action="opac-account-pay.pl" class="form-horizontal">
                         <table class="table table-bordered table-striped" id="finestable">
@@ -75,6 +74,36 @@
                                     <th>Description</th>
                                     <th>Fine amount</th>
                                     <th>Amount outstanding</th>
+                                    [% IF Koha.Preference( 'OnlinePayments' ) == 1 && Koha.Preference( 'OnlinePaymentsSelective' ) == 1 %]
+                                    <th>
+                                        <div class="btn-group btn-group-mini">
+                                            <button id="checkAll" class="btn btn-mini" >All</button>
+                                            [% FOREACH type IN types %]
+                                                [% SWITCH type %]
+                                                  [% CASE 'Pay' %]
+                                                  [% CASE 'Pay00'%]
+                                                  [% CASE 'Pay01' %]
+                                                  [% CASE 'Pay02' %]
+                                                  [% CASE 'W' %]
+                                                  [% CASE 'FOR' %]
+                                                  [% CASE 'LR' %]
+                                                  [% CASE 'PAY' %]
+                                                  [% CASE 'WO' %]
+                                                  [% CASE 'C' %]
+                                                  [% CASE 'CR' %]
+                                                  [% CASE 'N' %]<button id="check[% type %]" class="btn btn-mini" data-attr="[% type %]">New card</button>
+                                                  [% CASE 'F' %]<button id="check[% type %]" class="btn btn-mini" data-attr="[% type %]">Fine</button>
+                                                  [% CASE 'A' %]<button id="check[% type %]" class="btn btn-mini" data-attr="[% type %]">Account management fee</button>
+                                                  [% CASE 'M' %]<button id="check[% type %]" class="btn btn-mini" data-attr="[% type %]">Sundry</button>
+                                                  [% CASE 'L' %]<button id="check[% type %]" class="btn btn-mini" data-attr="[% type %]">Lost item</button>
+                                                  [% CASE 'FU' %]<button id="check[% type %]" class="btn btn-mini" data-attr="[% type %]">Accruing fine</button>
+                                                  [% CASE 'Rent' %]<button id="check[% type %]" class="btn btn-mini" data-attr="[% type %]">Rental fee</button>
+                                                  [% CASE %]<button id="check[% type %]" class="btn btn-mini" data-attr="[% type %]">[% type %]</button>
+                                                [%- END -%]
+                                            [% END %]
+                                        </div>
+                                    </th>
+                                    [% END %]
                                 </tr>
                             </thead>
 
@@ -86,13 +115,16 @@
                                     [%- SET COLSPAN = 3 -%]
                                 [%- END -%]
                                 <th class="sum" colspan="[% COLSPAN %]">Total due</th>
-                                <td class="sum">[% total | $Price %]</td>
+                                <td class="sum">[% total | $Price %][% IF Koha.Preference( 'OnlinePayments' ) == 1 && Koha.Preference( 'OnlinePaymentsSelective' ) != 1 %]<button type="submit" id="paynow" name="paynow" class="btn btn-primary pull-right">Pay Now</button>[% END %]</td>
+                                [% IF Koha.Preference( 'OnlinePayments' ) == 1 && Koha.Preference( 'OnlinePaymentsSelective' ) == 1 %]
+                                <td><button type="submit" id="payselected" name="payselected" class="btn btn-primary">Pay Selected</button></td>
+                                [% END %]
                             </tr>
                             </tfoot>
 
                             <tbody>
                                 [% FOREACH ACCOUNT_LINE IN ACCOUNT_LINES %]
-                                    [% IF ( ACCOUNT_LINE.odd ) %]<tr class="highlight">[% ELSE %]<tr>[% END %]
+                                [% IF ( ACCOUNT_LINE.odd ) %]<tr class="highlight[% IF ( ACCOUNT_LINE.amountoutstanding > 0.00 ) %] outstanding[% END %]" data-accountline="[% ACCOUNT_LINE.accountlines_id %]">[% ELSE %]<tr [% IF ( ACCOUNT_LINE.amountoutstanding > 0.00 ) %]class="outstanding"[% END %] data-accountline="[% ACCOUNT_LINE.accountlines_id %]">[% END %]
                                         [% IF ENABLE_OPAC_PAYMENTS %]
                                             <td>
                                                 [% IF ACCOUNT_LINE.amountoutstanding > 0 %]
@@ -131,6 +163,7 @@
                                         </td>
                                         [% IF ( ACCOUNT_LINE.amountcredit ) %]<td class="credit">[% ELSE %]<td class="debit">[% END %][% ACCOUNT_LINE.amount | $Price %]</td>
                                         [% IF ( ACCOUNT_LINE.amountoutstandingcredit ) %]<td class="credit">[% ELSE %]<td class="debit">[% END %][% ACCOUNT_LINE.amountoutstanding | $Price %]</td>
+                                            [% IF Koha.Preference( 'OnlinePayments' ) == 1 && Koha.Preference( 'OnlinePaymentsSelective' ) == 1 %]<td>[% IF ( ACCOUNT_LINE.amountoutstanding > 0.00 ) %]<input class="cb [% ACCOUNT_LINE.accounttype %]" type="checkbox" checked="checked" name="incl_par_2" data-accountline="[% ACCOUNT_LINE.accountlines_id %]">[% END %]</td>[% END %]
                                     </tr>
                                 [% END %]
                             </tbody>
@@ -169,6 +202,9 @@
                     [% ELSE %]
                         <h4>You have no fines or charges</h4>
                     [% END %]
+                    <form id="wpmform" name="wpmform" method="post" action="[% Koha.Preference( 'WPMPathway' ) %]">
+                       <input type="hidden" name="xml" id="wpm_xml">
+                    </form>
                 </div> <!-- / #useraccount -->
             </div> <!-- / .span10 -->
         </div> <!-- / .row-fluid -->
@@ -212,6 +248,80 @@ $( document ).ready(function() {
             $("#amount-to-pay-label").hide();
         }
     });
+        [% IF Koha.Preference( 'OnlinePayments' ) == 1 && Koha.Preference( 'OnlinePaymentsSelective' ) == 1 %]
+        // Check/Uncheck All
+        $("#checkAll").attr("data-type", "check");
+        $("#checkAll").click(function()
+        {
+            if ($("#checkAll").attr("data-type") === "check")
+            {
+                $(".cb").prop("checked", true);
+                $("#checkAll").attr("data-type", "uncheck");
+            }
+            else
+            {
+                $(".cb").prop("checked", false);
+                $("#checkAll").attr("data-type", "check");
+            }
+        })
+
+        // Check/Uncheck by type
+        [% FOREACH type IN types %]
+        $("#check[% type %]").attr("data-type", "check");
+        $("#check[% type %]").click(function()
+        {
+            if ($("#check[% type%]").attr("data-type") === "check")
+            {
+                $(".cb.[% type %]").prop("checked", true);
+                $("#check[% type %]").attr("data-type", "uncheck");
+            }
+            else
+            {
+                $(".cb.[% type %]").prop("checked", false);
+                $("#check[% type %]").attr("data-type", "check");
+            }
+        })
+
+        [% END %]
+
+        $("#payselected").click(function() {
+            var output = $.map($('.cb:checkbox:checked'), function(n, i){
+                return $(n).attr("data-accountline");
+            }).join(',');
+            $.ajax({
+                type: "GET",
+                url: "/cgi-bin/koha/svc/online_payment?lines=" + output,
+                dataType: "text",
+                success: function(data){
+                    $('#wpm_xml').val(data);
+                    $('#wpmform').submit();
+                },
+                error: function(reply) {
+                    console.log("failed");
+                }
+            });
+        });
+        [% END %]
+
+        [% IF Koha.Preference( 'OnlinePayments' ) == 1 && Koha.Preference( 'OnlinePaymentsSelective' ) != 1 %]
+        $("#paynow").click(function() {
+            var accounts = $.map($('tr.outstanding'), function(n, i){
+                return $(n).attr("data-accountline");
+            }).join(',');
+            $.ajax({
+                type: "GET",
+                url: "/cgi-bin/koha/svc/online_payment?lines=" + accounts,
+                dataType: "text",
+                success: function(data){
+                    $('#wpm_xml').val(data);
+                    $('#wpmform').submit();
+                },
+                error: function(reply) {
+                    console.log("failed");
+                }
+            });
+        });
+        [% END %]
 });
 </script>
 [% END %]

@@ -1,0 +1,143 @@
+#!/usr/bin/perl
+
+# Copyright 2015 PTFS Europe
+#
+# This file is part of Koha.
+#
+# Koha is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 3 of the License, or (at your option) any later
+# version.
+#
+# Koha is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with Koha; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+use Modern::Perl;
+
+use CGI qw( -utf8 );
+use XML::LibXML;
+use DateTime;
+use Digest::MD5 qw(md5_base64);
+
+use C4::Accounts qw(makepayment);
+use C4::Circulation qw(CheckIfIssuedToPatron AddRenewal);
+use C4::Context;
+
+use Data::Dumper;
+
+# Parse XML
+binmode STDIN, ':encoding(UTF-8)';
+my $xml_string;
+while (<STDIN>) {
+    $xml_string .= $_;
+}
+my $xml;
+eval { $xml = XML::LibXML->load_xml( string => $xml_string ); };
+warn "error: " . $@ if $@;
+
+my @rootNode    = $xml->findnodes('/wpmpaymentrequest');
+my $transaction = $xml->findnodes('/wpmpaymentrequest/transactionreference');
+my $success     = $xml->findnodes('/wpmpaymentrequest/transaction/success');
+
+my $schema = Koha::Database->new()->schema();
+
+if ( $success eq '1' ) {
+
+    # Make payments (associating them to a transaction)
+    my @accountlines = $schema->resultset('AcTransactionAccount')
+      ->search( { transaction_id => $transaction } )->all;
+    # FIXME: These should really be grouped into one 'Pay' line in accountlines
+    for my $account (@accountlines) {
+        my $dump = { $account->get_columns };
+
+        # Make Payment
+        my $paymentID = makepayment(
+            $account->accountline_id,
+            $account->accountline->borrowernumber->borrowernumber,
+            $account->accountline->accountno,
+            $account->accountline->amount
+        );
+
+        # Update Transaction (2 = success)
+        $account->update( { status => '2' } );
+
+        # Add payment accountline to transaction group
+        my $transactionAccount_result =
+          $schema->resultset('AcTransactionAccount')->create(
+            {
+              accountline_id => $paymentID,
+              transaction_id => $transaction,
+              status         => 2
+            }
+        );
+
+        # Renew if required
+        if ( defined($account->accountline->accounttype) && $account->accountline->accounttype eq "FU" ) {
+            if (
+                CheckIfIssuedToPatron(
+                    $account->accountline->borrowernumber->borrowernumber,
+                    $account->accountline->itemnumber->biblionumber
+                )
+              )
+            {
+                my $datedue = AddRenewal(
+                    $account->accountline->borrowernumber->borrowernumber,
+                    $account->accountline->itemnumber->itemnumber
+                );
+                C4::Circulation::_FixOverduesOnReturn($account->accountline->borrowernumber->borrowernumber, $account->accountline->itemnumber->itemnumber);
+            }
+        }
+    }
+
+    # Respond with OK
+    my $response = new CGI;
+    my $reply = XML::LibXML::Document->new( '1.0', 'utf-8' );
+    my $root = $reply->createElement("wpmmessagevalidation");
+    my $md5 = $rootNode[0]->getAttribute('msgid');
+    $root->setAttribute( 'msgid' => "$md5" );
+
+    my $validation = $reply->createElement( 'validation' );
+    $validation->appendTextNode("1");
+    $root->appendChild($validation);
+
+    my $validationmessage = $reply->createElement( 'validationmessage' );
+    my $success = XML::LibXML::CDATASection->new("Success");
+    $validationmessage->appendChild($success);
+    $root->appendChild($validationmessage);
+
+    $reply->setDocumentElement($root);
+
+    print CGI->header('text/xml');
+    print $reply->toString();;
+}
+else {
+    # Update transaction status
+    #
+    # Respond OK
+
+    my $reply = XML::LibXML::Document->new( '1.0', 'utf-8' );
+    my $root = $reply->createElement("wpmmessagevalidation");
+    my $md5 = $rootNode[0]->getAttribute('msgid');
+    $root->setAttribute( 'msgid' => "$md5" );
+
+    my $validation = $reply->createElement( 'validation' );
+    $validation->appendTextNode("1");
+    $root->appendChild($validation);
+
+    my $validationmessage = $reply->createElement( 'validationmessage' );
+    my $success = XML::LibXML::CDATASection->new("Success");
+    $validationmessage->appendChild($success);
+    $root->appendChild($validationmessage);
+
+    $reply->setDocumentElement($root);
+
+    print CGI->header('text/xml');
+    print $reply->toString();;
+}
+
+1;

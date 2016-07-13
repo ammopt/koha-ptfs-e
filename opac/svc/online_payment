@@ -1,0 +1,308 @@
+#!/usr/bin/perl
+
+# Copyright 2015 PTFS Europe
+#
+# This file is part of Koha.
+#
+# Koha is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 3 of the License, or (at your option) any later
+# version.
+#
+# Koha is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with Koha; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+use Modern::Perl;
+
+use CGI;
+use XML::LibXML;
+use DateTime;
+use Digest::MD5 qw(md5_hex);
+
+use C4::Circulation;
+use C4::Context;
+use C4::Auth qw(check_cookie_auth);
+
+use Koha::DateUtils qw(output_pref dt_from_string);
+
+my $input = new CGI;
+
+# Check user is authenticated
+my ( $auth_status, $sessionID ) =
+  check_cookie_auth( $input->cookie('CGISESSID') );
+
+if ( $auth_status ne "ok" ) {
+    exit 0;
+}
+
+# Get borrowernumber
+my $borrowernumber;
+my $userenv = C4::Context->userenv;
+if ( defined($userenv) && ref($userenv) eq 'HASH' && $userenv->{number} ) {
+    $borrowernumber = $userenv->{number};
+}
+
+unless ( defined($borrowernumber) ) {
+    exit 0;
+}
+
+my $schema = Koha::Database->new()->schema();
+
+# Get accountlines
+my @accounts = split( /,/, $input->param('lines') );
+my $accountlines_rs = $schema->resultset('Accountline')
+  ->search( { accountlines_id => \@accounts } );
+my @accountlines = $accountlines_rs->all;
+
+# Create 'transaction'
+my $transaction_result =
+  $schema->resultset('AcTransaction')->create( { updated => DateTime->now } );
+my $transaction_id = $transaction_result->transaction_id;
+
+# Get borrower
+my $borrower_result =
+  $schema->resultset('Borrower')->find( { borrowernumber => $borrowernumber } );
+
+# Build XML for POST
+my $wpm_clientid     = C4::Context->preference('WPMClientID');
+my $wpm_requesttype  = '1';
+my $wpm_pathwayid    = C4::Context->preference('WPMPathwayID');
+my $wpm_departmentid = C4::Context->preference('WPMDepartmentID');
+my $redirect_url = C4::Context->preference('OPACBaseURL') . '/cgi-bin/koha/opac-account.pl?paid=1';
+my $callback_url = C4::Context->preference('OPACBaseURL') . '/cgi-bin/koha/svc/online_payment_confirm';
+my $cancel_url = C4::Context->preference('OPACBaseURL') . '/cgi-bin/koha/opac-account.pl?paid=0';
+
+my $post = XML::LibXML::Document->new( '1.0', 'utf-8' );
+my $root = $post->createElement("wpmpaymentrequest");
+
+my @fields = (
+    { name => 'clientid', value => { value => $wpm_clientid, cdata => 0 } },
+    {
+        name  => 'requesttype',
+        value => { value => $wpm_requesttype, cdata => 0 }
+    },
+    { name => 'pathwayid', value => { value => $wpm_pathwayid, cdata => 0 } },
+    {
+        name  => 'departmentid',
+        value => { value => $wpm_departmentid, cdata => 0 }
+    },
+    { name => 'staffid',    value => { value => undef,           cdata => 0 } },
+    { name => 'customerid', value => { value => $borrowernumber, cdata => 0 } }
+    ,    #studentnumber
+    {
+        name  => 'title',
+        value => { value => $borrower_result->title, cdata => 1 }
+    },
+    {
+        name  => 'firstname',
+        value => { value => $borrower_result->firstname, cdata => 1 }
+    },
+    {
+        name  => 'middlename',
+        value => { value => $borrower_result->othernames, cdata => 1 }
+    },
+    {
+        name  => 'lastname',
+        value => { value => $borrower_result->surname, cdata => 1 }
+    },
+    {
+        name  => 'emailfrom',
+        value => {
+            value => C4::Context->preference('KohaAdminEmailAddress'),
+            cdata => 1
+        }
+    },
+    {
+        name  => 'toemail',
+        value => { value => $borrower_result->email, cdata => 1 }
+    },
+    { name => 'ccemail', value => { value => undef, cdata => 1 } },
+    {
+        name  => 'transactionreference',
+        value => { value => $transaction_id, cdata => 1 }
+    },
+    { name => 'redirecturl', value => { value => $redirect_url, cdata => 1 } },
+    { name => 'callbackurl', value => { value => $callback_url, cdata => 1 } },
+    { name => 'cancelurl',   value => { value => $cancel_url,   cdata => 1 } },
+    {
+        name  => 'billaddress1',
+        value => { value => $borrower_result->streetnumber, cdata => 1 }
+    },
+    {
+        name  => 'billaddress2',
+        value => { value => $borrower_result->address, cdata => 1 }
+    },
+    {
+        name  => 'billaddress3',
+        value => { value => $borrower_result->address2, cdata => 1 }
+    },
+    {
+        name  => 'billtown',
+        value => { value => $borrower_result->city, cdata => 1 }
+    },
+    {
+        name  => 'billcounty',
+        value => { value => $borrower_result->state, cdata => 1 }
+    },
+    {
+        name  => 'billpostcode',
+        value => { value => $borrower_result->zipcode, cdata => 1 }
+    },
+    {
+        name  => 'billcountry',
+        value => { value => $borrower_result->country, cdata => 1 }
+    },
+    { name => 'customfield1', value => undef },
+    { name => 'customfield2', value => undef },
+    { name => 'customfield3', value => undef },
+    { name => 'customfield4', value => undef },
+    { name => 'customfield5', value => undef },
+    { name => 'customfield6', value => undef },
+    { name => 'customfield7', value => undef },
+    { name => 'customfield8', value => undef },
+    { name => 'customfield9', value => undef },
+    { name  => 'customfield10', value => undef }
+);
+
+for my $field (@fields) {
+    my $tag   = $post->createElement( $field->{name} );
+    my $value = $field->{value};
+    if ( defined( $value->{'value'} ) && $value->{'value'} ne '' ) {
+        if ( $value->{'cdata'} ) {
+            my $data = XML::LibXML::CDATASection->new("$value->{'value'}");
+            $tag->appendChild($data);
+        }
+        else {
+            $tag->appendTextNode( $value->{'value'} );
+        }
+    }
+    $root->appendChild($tag);
+}
+
+my $wpm_type          = 'PN';
+my $pay_count         = 0;
+my $now               = DateTime->now;
+my $dateoftransaction = $now->ymd('-') . ' ' . $now->hms(':');
+my $sum               = 0;
+for my $accountline (@accountlines) {
+
+    # Check user is only attempting to pay their own accountlines
+
+    # Build payments blocks
+    $pay_count++;
+    my $amount = sprintf "%.2f", $accountline->amountoutstanding;
+    $sum = $sum + $amount;
+    my $payments = $post->createElement("payments");
+    $payments->setAttribute( 'id'        => "$pay_count" );
+    $payments->setAttribute( 'type'      => 'PN' );
+    $payments->setAttribute( 'payoption' => $accountline->accounttype );
+
+    my $description = $post->createElement("description");
+    if ( defined( $accountline->description )
+        && $accountline->description ne '' )
+    {
+        my $data = XML::LibXML::CDATASection->new( $accountline->description );
+        $description->appendChild($data);
+    }
+    $payments->appendChild($description);
+
+    my $payment = $post->createElement("payment");
+    $payment->setAttribute( 'payid' => "$pay_count" );
+
+    my $payment_code;
+    my $branchcode = defined($accountline->itemnumber) ? $accountline->itemnumber->get_column('holdingbranch') : $accountline->borrowernumber->get_column('branchcode');
+    if ( $branchcode eq 'CHE' ) {
+        $payment_code = '10061100';
+    }
+    if ( $branchcode eq 'LCF' ) {
+        $payment_code = '10067100';
+    }
+    if ( $branchcode eq 'CSM' ) {
+        $payment_code = '10058100';
+    }
+    if ( $branchcode eq 'LCC' ) {
+        $payment_code = '10070100';
+    }
+    if ( $branchcode eq 'CCA' ) {
+        $payment_code = '10063100';
+    }
+    if ( $branchcode eq 'WCA' ) {
+        $payment_code = '10065100';
+    }
+    my $customfield1 = $post->createElement("customfield1");
+    $customfield1->appendTextNode($payment_code);
+    $payment->appendChild($customfield1);
+
+    my $amounttopay = $post->createElement("amounttopay");
+    $amounttopay->appendTextNode($amount);
+    $payment->appendChild($amounttopay);
+
+    my $amounttopayvat = $post->createElement("amounttopayvat");
+    $amounttopayvat->appendTextNode('0');
+    $payment->appendChild($amounttopayvat);
+
+    my $amounttopayexvat = $post->createElement("amounttopayexvat");
+    $amounttopayexvat->appendTextNode($amount);
+    $payment->appendChild($amounttopayexvat);
+
+    my $vatdesc = $post->createElement("vatdesc");
+    $vatdesc->appendTextNode('Exempt');
+    $payment->appendChild($vatdesc);
+
+    my $vatcode = $post->createElement("vatcode");
+    $vatcode->appendTextNode('SO');
+    $payment->appendChild($vatcode);
+
+    my $vatrate = $post->createElement("vatrate");
+    $vatrate->appendTextNode('0');
+    $payment->appendChild($vatrate);
+
+    my $dateofpayment = $post->createElement("dateofpayment");
+    $dateofpayment->appendTextNode($dateoftransaction);
+    $payment->appendChild($dateofpayment);
+
+    my $editable = $post->createElement("editable");
+    $editable->setAttribute( 'minamount' => "0" );
+    $editable->setAttribute( 'maxamount' => "0" );
+    $editable->appendTextNode(0);
+    $payment->appendChild($editable);
+
+    my $mandatory = $post->createElement("mandatory");
+    $mandatory->appendTextNode(1);
+    $payment->appendChild($mandatory);
+
+    # Add 'payment' to 'payments' block
+    $payments->appendChild($payment);
+
+    # Add 'payments' to 'root' block
+    $root->appendChild($payments);
+
+   #
+   # Link Accountline to Transaction [Set status '1' to reperesent request sent]
+    my $transactionAccount_result =
+      $schema->resultset('AcTransactionAccount')->create(
+        {
+            accountline_id => $accountline->accountlines_id,
+            transaction_id => $transaction_id,
+            status         => 1
+        }
+      );
+
+}
+
+# Sign the message
+my $secret = C4::Context->config('wpm_secret');
+$sum = sprintf "%.2f", $sum;
+my $concat = $wpm_clientid . $transaction_id . $sum . $secret;
+my $md5 = md5_hex( $wpm_clientid . $transaction_id . $sum . $secret );
+$root->setAttribute( 'msgid' => "$md5" );
+
+$post->setDocumentElement($root);
+binmode STDOUT, ":encoding(UTF-8)";
+print $input->header( -type => 'application/xml', -charset => 'UTF-8' );
+print $post->toString();
