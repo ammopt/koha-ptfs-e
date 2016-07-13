@@ -70,8 +70,8 @@ sub new {
 	my ($class, $item_id) = @_;
 	my $type = ref($class) || $class;
 	my $self;
-    my $itemnumber = GetItemnumberFromBarcode($item_id);
-	my $item = GetBiblioFromItemNumber($itemnumber);    # actually biblio.*, biblioitems.* AND items.*  (overkill)
+    my $itemnumber = _GetItemnumberFromBarcode($item_id);
+	my $item = _GetBiblioFromItemNumber($itemnumber);    # actually biblio.*, biblioitems.* AND items.*  (overkill)
 	if (! $item) {
 		syslog("LOG_DEBUG", "new ILS::Item('%s'): not found", $item_id);
 		warn "new ILS::Item($item_id) : No item '$item_id'.";
@@ -366,6 +366,53 @@ sub fill_reserve {
         $hold->{$_} or return;
     }
     return ModReserveFill($hold);
+}
+
+sub _GetItemnumberFromBarcode {
+    my ($barcode) = @_;
+    my $dbh = C4::Context->dbh;
+    if (!$dbh->ping) {
+        $dbh = C4::Context->dbh( { new => 1 });
+        syslog( 'LOG_ERR', 'Forced a new DBI Handle');
+    }
+
+    my $rq =
+      $dbh->prepare('SELECT itemnumber FROM items WHERE items.barcode=?');
+    if ( $rq->execute($barcode) ) {
+        my ($result) = $rq->fetchrow;
+        return $result;
+    }
+    else {
+        my $msg = 'DB Query failed :' . $dbh->errstr;
+        syslog( 'LOG_ERR', $msg );
+        return;
+    }
+}
+
+sub _GetBiblioFromItemNumber {
+    my ($itemnumber) = @_;
+    my $dbh = C4::Context->dbh;
+    my $sth;
+    if ($itemnumber) {
+        my $sth = $dbh->prepare(
+            'SELECT * FROM items
+            LEFT JOIN biblio ON biblio.biblionumber = items.biblionumber
+            LEFT JOIN biblioitems ON biblioitems.biblioitemnumber = items.biblioitemnumber
+             WHERE items.itemnumber = ?'
+        );
+        if ( $sth->execute($itemnumber) ) {
+            my $data = $sth->fetchrow_hashref;
+            $sth->finish;
+            return $data;
+        }
+        else {
+            my $msg = 'DB Bib Query failed: ' . $dbh->errstr;
+            syslog( 'LOG_ERR', $msg );
+            return;
+        }
+    }
+    syslog( 'LOG_ERR', 'No itemnumber passed to GetBiblio' );
+    return;
 }
 1;
 __END__

@@ -14,6 +14,7 @@ use Sys::Syslog qw(syslog);
 use C4::SIP::Sip qw(:all);
 use C4::SIP::Sip::Constants qw(:all);
 use C4::SIP::Sip::Checksum qw(verify_cksum);
+use C4::SIP::Sip::CheckDB qw(is_database_ok);
 
 use Data::Dumper;
 use CGI qw ( -utf8 );
@@ -1590,6 +1591,11 @@ sub patron_status_string {
 
 sub api_auth {
     my ( $username, $password, $branch ) = @_;
+    if (! is_database_ok() ) {
+        syslog('LOG_ERR', 'Database connection stuffed');
+        return 'db problem';
+    }
+
     $ENV{REMOTE_USER} = $username;
     my $query = CGI->new();
     $query->param( userid   => $username );
