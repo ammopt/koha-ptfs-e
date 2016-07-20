@@ -1,9 +1,11 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl
 
 use strict;
-use Lingua::Ispell;
+use warnings;
+use Text::SpellChecker;
 use JSON;
 use CGI;
+use Data::Dumper;
 
 # Keep taint mode happy
 $ENV{PATH} = "/bin";
@@ -14,10 +16,11 @@ my $qs = $q->param('spellcheck');
 
 my %misses = ();
 
-for my $r(Lingua::Ispell::spellcheck( $qs )) {
-	if ($r->{'type'} eq 'miss') {
-		$misses{$r->{'term'}} = \@{$r->{'misses'}};
-	}
+my $checker = Text::SpellChecker->new(text => $qs);
+
+while (my $word = $checker->next_word) {
+  my $sugg = $checker->suggestions;
+  $misses{$word} = $sugg;
 }
 
 my $json = JSON::encode_json({ suggestions => \%misses });
