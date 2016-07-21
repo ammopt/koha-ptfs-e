@@ -51,6 +51,7 @@ use C4::Koha;
 use C4::Tags qw(get_tags);
 use C4::SocialData;
 use C4::External::OverDrive;
+use Koha::External::BDS;
 
 use Koha::ItemTypes;
 use Koha::LibraryCategories;
@@ -641,6 +642,7 @@ for (my $i=0;$i<@servers;$i++) {
         }
         $hits = 0 unless @newresults;
 
+        my $bds_isbns;
         foreach my $res (@newresults) {
 
             # must define a value for size if not present in DB
@@ -655,7 +657,8 @@ for (my $i=0;$i<@servers;$i++) {
                 my $record = GetMarcBiblio({ biblionumber => $res->{'biblionumber'} });
                 $res->{coins} = GetCOinSBiblio($record);
             }
-            if ( C4::Context->preference( "Babeltheque" ) and $res->{normalized_isbn} ) {
+            if ( ( C4::Context->preference("Babeltheque") || C4::Context->preference('BDSEnabled')
+                    && C4::Context->preference('BDSCovers')) and $res->{normalized_isbn}) {
                 if( my $isbn = Business::ISBN->new( $res->{normalized_isbn} ) ) {
                     $isbn = $isbn->as_isbn13->as_string;
                     $isbn =~ s/-//g;
@@ -667,6 +670,11 @@ for (my $i=0;$i<@servers;$i++) {
                                 $res->{score_int} = sprintf("%.0f", $$social_datas{score_avg} );
                             }
                         }
+                    }
+                    if (   C4::Context->preference('BDSEnabled')
+                        && C4::Context->preference('BDSCovers') )
+                    {
+                        push @{$bds_isbns}, $isbn;
                     }
                 }
             }
@@ -695,6 +703,22 @@ for (my $i=0;$i<@servers;$i++) {
                 my $ratings = Koha::Ratings->search({ biblionumber => $res->{biblionumber} });
                 $res->{ratings} = $ratings;
                 $res->{my_rating} = $borrowernumber ? $ratings->search({ borrowernumber => $borrowernumber })->next : undef;
+            }
+
+        }
+
+        if (   C4::Context->preference('BDSEnabled')
+            && ( C4::Context->preference('BDSCovers') || C4::Context->preference('BDSDescrip') ) )
+        {
+            my $bds_results = Koha::External::BDS::fetch($bds_isbns);
+            for my $res (@newresults) {
+                if ( my $isbn = Business::ISBN->new( $res->{normalized_isbn} ) )
+                {
+                    $isbn = $isbn->as_isbn13->as_string;
+                    $isbn =~ s/-//g;
+                    $res->{'bds_cover_url'} = $bds_results->{$isbn}->{jacket_l} if $bds_results->{$isbn};
+                    $res->{'bds_descrip'} = $bds_results->{$isbn}->{descrip} if $bds_results->{$isbn};
+                }
             }
         }
 
