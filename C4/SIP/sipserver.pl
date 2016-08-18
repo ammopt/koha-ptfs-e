@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-package sipserver;
+package C4::SIP::sipserver;
 
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ require UNIVERSAL::require;
 use C4::SIP::Sip::Constants qw(:all);
 use C4::SIP::Sip::Configuration;
 use C4::SIP::Sip::Checksum qw(checksum verify_cksum);
-use C4::SIP::Sip::MsgType;
+use C4::SIP::Sip::MsgType qw( handle login_core );
 
 use base qw(Net::Server::Fork);
 
@@ -34,7 +34,7 @@ my @parms;
 #
 # Ports to bind
 #
-foreach my $svc ( keys %{ $config->{listeners} } ) {
+foreach my $svc (keys %{$config->{listeners}}) {
     push @parms, "port=" . $svc;
 }
 
@@ -53,9 +53,9 @@ foreach my $svc ( keys %{ $config->{listeners} } ) {
 # recognize, and complains about invalid values for parameters
 # that it does.
 #
-if ( defined( $config->{'server-params'} ) ) {
-    while ( my ( $key, $val ) = each %{ $config->{'server-params'} } ) {
-        push @parms, $key . '=' . $val;
+if (defined($config->{'server-params'})) {
+    while (my ($key, $val) = each %{$config->{'server-params'}}) {
+		push @parms, $key . '=' . $val;
     }
 }
 
@@ -121,13 +121,21 @@ sub process_request {
 
 sub raw_transport {
     my $self = shift;
-    my ($input);
+    my $input;
     my $service = $self->{service};
+    # If using Net::Server::PreFork you may already have account set from a previous session
+    # Ensure you dont
+    if ($self->{account}) {
+        delete $self->{account};
+    }
 
-    while ( !$self->{account} ) {
-        local $SIG{ALRM} = sub { die "raw_transport Timed Out!\n"; };
-        syslog( "LOG_DEBUG", "raw_transport: timeout is %d",
-            $service->{timeout} );
+    # Timeout the while loop if we get stuck in it
+    # In practice it should only iterate once but be prepared
+    local $SIG{ALRM} = sub { die 'raw transport Timed Out!' };
+    my $timeout = $self->get_timeout({ transport => 1 });
+    syslog('LOG_DEBUG', "raw_transport: timeout is $timeout");
+    alarm $timeout;
+    while (!$self->{account}) {
         $input = read_request();
         if ( !$input ) {
 
@@ -136,8 +144,22 @@ sub raw_transport {
                 "raw_transport: shutting down: EOF during login" );
             return;
         }
-        $input =~ s/[\r\n]+$//sm;    # Strip off trailing line terminator(s)
-        last if C4::SIP::Sip::MsgType::handle( $input, $self, LOGIN );
+        $input =~ s/[\r\n]+$//sm; # Strip off trailing line terminator(s)
+        my $reg = qr/^${\(LOGIN)}/;
+        last if $input !~ $reg ||
+            C4::SIP::Sip::MsgType::handle($input, $self, LOGIN);
+    }
+    alarm 0;
+
+    syslog("LOG_DEBUG", "raw_transport: uname/inst: '%s/%s'",
+        $self->{account}->{id},
+        $self->{account}->{institution});
+    if (! $self->{account}->{id}) {
+        syslog("LOG_ERR","Login failed shutting down");
+        return;
+    }
+    if ( $self->{overrideinst} ) {
+        $self->{account}->{institution} = $self->{overrideinst};
     }
 
     syslog(
@@ -151,103 +173,88 @@ sub raw_transport {
 }
 
 sub get_clean_string {
-    my $string = shift;
-    if ( defined $string ) {
-        syslog( "LOG_DEBUG", "get_clean_string  pre-clean(length %s): %s",
-            length($string), $string );
-        chomp($string);
-        $string =~ s/^[^A-z0-9]+//;
-        $string =~ s/[^A-z0-9]+$//;
-        syslog( "LOG_DEBUG", "get_clean_string post-clean(length %s): %s",
-            length($string), $string );
-    }
-    else {
-        syslog( "LOG_INFO", "get_clean_string called on undefined" );
-    }
-    return $string;
+	my $string = shift;
+	if (defined $string) {
+		syslog("LOG_DEBUG", "get_clean_string  pre-clean(length %s): %s", length($string), $string);
+		chomp($string);
+		$string =~ s/^[^A-z0-9]+//;
+		$string =~ s/[^A-z0-9]+$//;
+		syslog("LOG_DEBUG", "get_clean_string post-clean(length %s): %s", length($string), $string);
+	} else {
+		syslog("LOG_INFO", "get_clean_string called on undefined");
+	}
+	return $string;
 }
 
 sub get_clean_input {
-    local $/ = "\012";
-    my $in = <STDIN>;
-    $in = get_clean_string($in);
-    while ( my $extra = <STDIN> ) {
-        syslog( "LOG_ERR", "get_clean_input got extra lines: %s", $extra );
-    }
-    return $in;
+	local $/ = "\012";
+	my $in = <STDIN>;
+	$in = get_clean_string($in);
+	while (my $extra = <STDIN>){
+		syslog("LOG_ERR", "get_clean_input got extra lines: %s", $extra);
+	}
+	return $in;
 }
 
 sub telnet_transport {
     my $self = shift;
-    my ( $uid, $pwd );
+    my ($uid, $pwd);
     my $strikes = 3;
     my $account = undef;
     my $input;
-    my $config = $self->{config};
-    my $timeout = $self->{service}->{timeout} || $config->{timeout} || 600;
-    syslog( "LOG_DEBUG", "telnet_transport: timeout is %s", $timeout );
+    my $config  = $self->{config};
+    my $timeout = $self->get_timeout({ transport => 1 });
+    syslog("LOG_DEBUG", "telnet_transport: timeout is $timeout");
 
     eval {
-        local $SIG{ALRM} =
-          sub { die "telnet_transport: Timed Out ($timeout seconds)!\n"; };
-        local $| = 1;    # Unbuffered output
-        $/ = "\015";     # Internet Record Separator (lax version)
-                         # Until the terminal has logged in, we don't trust it
-                         # so use a timeout to protect ourselves from hanging.
+	local $SIG{ALRM} = sub { die "telnet_transport: Timed Out ($timeout seconds)!\n"; };
+	local $| = 1;			# Unbuffered output
+	$/ = "\015";		# Internet Record Separator (lax version)
+    # Until the terminal has logged in, we don't trust it
+    # so use a timeout to protect ourselves from hanging.
 
-        while ( $strikes-- ) {
-            print "login: ";
-            alarm $timeout;
+	while ($strikes--) {
+	    print "login: ";
+		alarm $timeout;
+		# $uid = &get_clean_input;
+		$uid = <STDIN>;
+	    print "password: ";
+	    # $pwd = &get_clean_input || '';
+		$pwd = <STDIN>;
+		alarm 0;
 
-            # $uid = &get_clean_input;
-            $uid = <STDIN>;
-            print "password: ";
+		syslog("LOG_DEBUG", "telnet_transport 1: uid length %s, pwd length %s", length($uid), length($pwd));
+		$uid = get_clean_string ($uid);
+		$pwd = get_clean_string ($pwd);
+		syslog("LOG_DEBUG", "telnet_transport 2: uid length %s, pwd length %s", length($uid), length($pwd));
 
-            # $pwd = &get_clean_input || '';
-            $pwd = <STDIN>;
-            alarm 0;
-
-            syslog( "LOG_DEBUG",
-                "telnet_transport 1: uid length %s, pwd length %s",
-                length($uid), length($pwd) );
-            $uid = get_clean_string($uid);
-            $pwd = get_clean_string($pwd);
-            syslog( "LOG_DEBUG",
-                "telnet_transport 2: uid length %s, pwd length %s",
-                length($uid), length($pwd) );
-
-            if ( exists( $config->{accounts}->{$uid} )
-                && ( $pwd eq $config->{accounts}->{$uid}->password() ) )
-            {
-                $account = $config->{accounts}->{$uid};
-                C4::SIP::Sip::MsgType::login_core( $self, $uid, $pwd ) and last;
+	    if (exists ($config->{accounts}->{$uid})
+		&& ($pwd eq $config->{accounts}->{$uid}->{password})) {
+			$account = $config->{accounts}->{$uid};
+			if ( C4::SIP::Sip::MsgType::login_core($self,$uid,$pwd) ) {
+                last;
             }
-            syslog(
-                "LOG_WARNING",
-                "Invalid login attempt: '%s'",
-                ( $uid || '' )
-            );
-            print("Invalid login$CRLF");
-        }
-    };    # End of eval
+	    }
+		syslog("LOG_WARNING", "Invalid login attempt: '%s'", ($uid||''));
+		print("Invalid login$CRLF");
+	}
+    }; # End of eval
 
     if ($@) {
-        syslog( "LOG_ERR", "telnet_transport: Login timed out" );
-        die "Telnet Login Timed out";
-    }
-    elsif ( !defined($account) ) {
-        syslog( "LOG_ERR", "telnet_transport: Login Failed" );
-        die "Login Failure";
-    }
-    else {
-        print "Login OK.  Initiating SIP$CRLF";
+		syslog("LOG_ERR", "telnet_transport: Login timed out");
+		die "Telnet Login Timed out";
+    } elsif (!defined($account)) {
+		syslog("LOG_ERR", "telnet_transport: Login Failed");
+		die "Login Failure";
+    } else {
+		print "Login OK.  Initiating SIP$CRLF";
     }
 
     $self->{account} = $account;
     syslog( "LOG_DEBUG", "telnet_transport: uname/inst: '%s/%s'",
         $account->{id}, $account->{institution} );
     $self->sip_protocol_loop();
-    syslog( "LOG_INFO", "telnet_transport: shutting down" );
+    syslog("LOG_INFO", "telnet_transport: shutting down");
     return;
 }
 
@@ -272,23 +279,13 @@ sub sip_protocol_loop {
     # Using the SIP "raw" login process, rather than telnet,
     # requires the LOGIN message and forces SIP 2.00.  In that
     # case, the LOGIN message has already been processed (above).
-    #
-    # In short, we'll take any valid message here.
-    #my $expect = SC_STATUS;
-    eval {
-        local $SIG{ALRM} = sub {
-            syslog( 'LOG_DEBUG', "Inactive timed out" );
-            die "Timed Out!\n";
-        };
-        my $timeout = 600;    # 10 mins
 
-#        my $previous_alarm = alarm($timeout);
+    # In short, we'll take any valid message here.
 
         while ( my $inputbuf = read_request() ) {
             if ( !defined $inputbuf ) {
-                return;       # EOF
+                return;    #EOF
             }
-#            alarm($timeout);
 
             unless ($inputbuf) {
                 syslog( "LOG_ERR", "sip_protocol_loop: empty input skipped" );
@@ -296,7 +293,6 @@ sub sip_protocol_loop {
                 next;
             }
 
-            # end cheap input hacks
             my $status = C4::SIP::Sip::MsgType::handle( $inputbuf, $self, q{} );
             if ( !$status ) {
                 syslog(
@@ -307,12 +303,6 @@ sub sip_protocol_loop {
             }
             next if $status eq REQUEST_ACS_RESEND;
         }
-#        alarm($previous_alarm);
-        return;
-    };
-    if ( $@ =~ m/timed out/i ) {
-        return;
-    }
     return;
 }
 
@@ -321,15 +311,14 @@ sub read_request {
     local $/ = "\015";
 
     # proper SPEC: (octal) \015 = (hex) x0D = (dec) 13 = (ascii) carriage return
-    my $buffer = <STDIN>;
-    if ( defined $buffer ) {
-        STDIN->flush();    # clear an extra linefeed
-        chomp $buffer;
-        syslog( "LOG_INFO", "read_SIP_packet, INPUT MSG: '$buffer'" );
-        $raw_length = length $buffer;
-        $buffer =~ s/^\s*[^A-z0-9]+//s
-          ; # Every line must start with a "real" character.  Not whitespace, control chars, etc.
-        $buffer =~ s/[^A-z0-9]+$//s;
+      my $buffer = <STDIN>;
+      if ( defined $buffer ) {
+          STDIN->flush();    # clear an extra linefeed
+          chomp $buffer;
+          $raw_length = length $buffer;
+          $buffer =~ s/^\s*[^A-z0-9]+//s;
+# Every line must start with a "real" character.  Not whitespace, control chars, etc.
+          $buffer =~ s/[^A-z0-9]+$//s;
 
 # Same for the end.  Note this catches the problem some clients have sending empty fields at the end, like |||
         $buffer =~ s/\015?\012//g;    # Extra line breaks must die
@@ -337,19 +326,61 @@ sub read_request {
         $buffer =~ s/\015*\012*$//s;
 
     # treat as one line to include the extra linebreaks we are trying to remove!
-    }
-    else {
-        syslog( 'LOG_DEBUG', 'EOF returned on read' );
-        return;
-    }
-    my $len = length $buffer;
-    if ( $len != $raw_length ) {
-        my $trim = $raw_length - $len;
-        syslog( "LOG_DEBUG", "read_SIP_packet, trimmed $trim character(s) " );
-    }
+      }
+      else {
+          syslog( 'LOG_DEBUG', 'EOF returned on read' );
+          return;
+      }
+      my $len = length $buffer;
+      if ( $len != $raw_length ) {
+          my $trim = $raw_length - $len;
+          syslog( 'LOG_DEBUG', "read_request trimmed $trim character(s) " );
+      }
 
-    syslog( "LOG_INFO", "INPUT MSG: '$buffer'" );
-    return $buffer;
+      syslog( 'LOG_INFO', "INPUT MSG: '$buffer'" );
+      return $buffer;
+}
+
+# $server->get_timeout({ $type => 1, fallback => $fallback });
+#     where $type is transport | client | policy
+#
+# Centralizes all timeout logic.
+# Transport refers to login process, client to active connections.
+# Policy timeout is transaction timeout (used in ACS status message).
+#
+# Fallback is optional. If you do not pass transport, client or policy,
+# you will get fallback or hardcoded default.
+
+sub get_timeout {
+    my ( $server, $params ) = @_;
+    my $fallback = $params->{fallback} || 30;
+    my $service = $server->{service} // {};
+    my $config = $server->{config} // {};
+
+    if( $params->{transport} ||
+        ( $params->{client} && !exists $service->{client_timeout} )) {
+        # We do not allow zero values here.
+        # Note: config/timeout seems to be deprecated.
+        return $service->{timeout} || $config->{timeout} || $fallback;
+
+    } elsif( $params->{client} ) {
+        # We know that client_timeout exists now.
+        # We do allow zero values here to indicate no timeout.
+        return 0 if $service->{client_timeout} =~ /^0+$|\D/;
+        return $service->{client_timeout};
+
+    } elsif( $params->{policy} ) {
+        my $policy = $server->{policy} // {};
+        my $rv = sprintf( "%03d", $policy->{timeout} // 0 );
+        if( length($rv) != 3 ) {
+            syslog( "LOG_ERR", "Policy timeout has wrong size: '%s'", $rv );
+            return '000';
+        }
+        return $rv;
+
+    } else {
+        return $fallback;
+    }
 }
 
 1;
