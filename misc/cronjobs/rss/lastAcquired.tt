@@ -20,7 +20,7 @@
 
 [% FOREACH i IN ITEMS %]
  <item>
-  <title>[% i.TITLE %], by [% i.AUTHOR %]</title>
+  <title>[% i.title %], by [% i.author %]</title>
   <link>[% OPACBaseURL %]/cgi-bin/koha/opac-detail.pl?biblionumber=[% i.biblionumber %]</link>
 
  </item>
