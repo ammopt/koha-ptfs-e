@@ -26,7 +26,7 @@
                                 [% END %]
                                 [% IF ( OPACAmazonCoverImages ) %]
                                     [% IF ( item.browser_normalized_isbn ) %]
-                                        <img src="https://images-na.ssl-images-amazon.com/images/P/[% item.browser_normalized_isbn %].01._AA75_PU_PU-5_.jpg" alt="" />
+                                        <img src="https://images-na.ssl-images-amazon.com/images/P/[% item.browser_normalized_isbn %].01._AA75_PU_PU-5_.jpg" alt="Cover" />
                                     [% ELSE %]
                                         <span class="no-image">No cover image available</span>
                                     [% END %]
