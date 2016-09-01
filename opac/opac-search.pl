@@ -572,7 +572,7 @@ if (C4::Context->preference('OpacSuppression')) {
         }
     }
     else {
-        if ( $query_type eq 'pqf' ) {
+        if ( $query_type && $query_type eq 'pqf' ) {
             #$query = "($query) && -(suppress:1)"; #QP syntax
             $query = '@not '.$query.' @attr 14=1 @attr 1=9011 1'; #PQF syntax
         } else {
