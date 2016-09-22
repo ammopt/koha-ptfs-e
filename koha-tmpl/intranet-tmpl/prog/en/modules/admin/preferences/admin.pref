@@ -65,6 +65,14 @@ Administration:
               choices:
                   yes: "The logged-in library"
                   no: "All libraries"
+    Interlibrary Loans:
+        -
+            - pref: ILLModule
+              default: 0
+              choices:
+                  yes: Enable
+                  no: Disable
+            - the interlibrary loans module (master switch).
     Login options:
         -
             - "Inactivity timeout in seconds to automatically log out users: "
