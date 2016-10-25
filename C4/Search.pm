@@ -509,6 +509,7 @@ sub getRecords {
                 }
 
                 # BUILD FACETS
+                my $num_facets_to_show = 10;
                 if ( $servers[ $i - 1 ] =~ /biblioserver/ ) {
                     for my $link_value (
                         sort { $facets_counter->{$b} <=> $facets_counter->{$a} }
@@ -527,7 +528,7 @@ sub getRecords {
                           )
                         {
                             $number_of_facets++;
-                            if (   ( $number_of_facets <= 5 )
+                            if (   ( $number_of_facets <= $num_facets_to_show )
                                 || ( $expanded_facet eq $link_value )
                                 || ( $facets_info->{$link_value}->{'expanded'} )
                               )
@@ -611,7 +612,7 @@ sub getRecords {
                         # handle expanded option
                         unless ( $facets_info->{$link_value}->{'expanded'} ) {
                             $expandable = 1
-                              if ( ( $number_of_facets > 5 )
+                              if ( ( $number_of_facets > $num_facets_to_show )
                                 && ( $expanded_facet ne $link_value ) );
                         }
                         push @facets_loop,

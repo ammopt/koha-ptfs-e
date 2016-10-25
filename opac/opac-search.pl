@@ -60,6 +60,7 @@ use POSIX qw(ceil floor strftime);
 use URI::Escape;
 use JSON qw/decode_json encode_json/;
 use Business::ISBN;
+use C4::UALCustom;
 
 my $DisplayMultiPlaceHold = C4::Context->preference("DisplayMultiPlaceHold");
 # create a new CGI object
@@ -778,8 +779,15 @@ for (my $i=0;$i<@servers;$i++) {
             $template->param(limit_cgi => $limit_cgi);
             $template->param(countrss  => $countRSS );
             $template->param(query_cgi => $query_cgi);
-            $template->param(query_desc => $query_desc);
-            $template->param(limit_desc => $limit_desc);
+            my $hash->{"query_desc"} = $query_desc;
+            my @csearches=();
+            push @csearches,$hash;
+            CleanSearches(@csearches);
+            $template->param(query_desc => @csearches[0]->{'clean_query_desc'});
+            $hash->{"query_desc"} = $limit_desc;
+            push @csearches,$hash;
+            CleanSearches(@csearches);
+            $template->param(limit_desc => @csearches[0]->{'clean_query_desc'});
             $template->param(offset     => $offset);
             $template->param(DisplayMultiPlaceHold => $DisplayMultiPlaceHold);
             if ($query_desc || $limit_desc) {

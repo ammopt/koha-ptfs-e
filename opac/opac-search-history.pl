@@ -27,6 +27,7 @@ use C4::Log;
 use C4::Items;
 use C4::Debug;
 use C4::Search::History;
+use C4::UALCustom;
 
 use URI::Escape;
 use POSIX qw(strftime);
@@ -145,6 +146,14 @@ unless ( $loggedinuser ) {
             $_->{type} eq 'authority' ? $_ : ()
         } @$previous_searches;
 
+		@current_biblio_searches = CleanSearches(@current_biblio_searches);
+		@current_authority_searches = CleanSearches(@current_authority_searches);
+		@previous_biblio_searches = CleanSearches(@previous_biblio_searches);
+		@previous_authority_searches = CleanSearches(@previous_authority_searches);
+
+#		use Data::Dumper;
+#		print Dumper(@current_biblio_searches);
+#exit;
         $template->param(
             current_biblio_searches => \@current_biblio_searches,
             current_authority_searches => \@current_authority_searches,
