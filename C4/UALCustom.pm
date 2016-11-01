@@ -94,6 +94,7 @@ sub GetIndexLabels {
 		'yr,st-numeric,ge'		=>	'from year',
 		'yr,st-numeric,le'		=>	'to year',
 		'mc-loc'				=>	'collection',
+		'yr,st-numeric='		=>	'between years ',
 	);
 	return \%labels;
 }
