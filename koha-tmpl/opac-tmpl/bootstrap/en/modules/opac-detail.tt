@@ -118,7 +118,7 @@
                         [% XSLTBloc %]
                     [% ELSE %]
                         <h1 class="title">[% title |html %][% IF ( subtitle ) %] <span class="subtitle">[% FOREACH subtitl IN subtitle %][% subtitl.subfield |html %] [% END %]</span>[% END %]</h1>
-                        [% IF ( author ) %]<h5 class="author">by <a href="/cgi-bin/koha/opac-search.pl?q=au:[% author |url %]">[% author |html %]</a></h5>[% END %]
+                        [% IF ( author ) %]<h1 class="author">by <a href="/cgi-bin/koha/opac-search.pl?q=au:[% author |url %]">[% author |html %]</a></h1>[% END %]
 
                         <span class="results_summary">[% UNLESS ( item_level_itypes ) %]
                             [
@@ -142,7 +142,7 @@
                                             <h3 id="authorSearchLabel">Select the item(s) to search</h3>
                                         </div>
                                         <div class="modal-body">
-                                            <input type="checkbox" onchange="checkAll(this, '#authorsList')" /> <b>All</b>
+                                            <input type="checkbox" onchange="checkAll(this, '#authorsList')" /> <strong>All</strong>
                                             <ul id="authorsList">
                                                 [% FOREACH MARCAUTHOR IN MARCAUTHORS %]
                                                     <li>
@@ -271,7 +271,7 @@
                                         <div id="subjectsList" class="modal-body">
                                             <input type="checkbox" id="all_subjects" onchange="checkAll(this, '#subjectsList')" />
                                             <label for="all_subjects">
-                                                <b>All</b>
+                                                <strong>All</strong>
                                             </label>
                                             [% FOREACH MARCSUBJCT IN MARCSUBJCTS %]
                                                 [% subjectsloop = loop %]
@@ -743,10 +743,10 @@
                         [% IF ( SyndeticsTOC && SYNDETICS_TOC ) %]
                             <div id="toc">
                                 <div class="content_set">
-                                    <h3>Table of contents provided by Syndetics</h3>
+                                    <h1>Table of contents provided by Syndetics</h1>
                                         <ul>
                                             [% FOREACH SYNDETICS_TO IN SYNDETICS_TOC %]
-                                                <li><b>[% SYNDETICS_TO.l %] [% SYNDETICS_TO.t %]</b>[% IF ( SYNDETICS_TO.p ) %] ([% SYNDETICS_TO.p %])[% END %]</li>
+                                                <li><strong>[% SYNDETICS_TO.l %] [% SYNDETICS_TO.t %]</strong>[% IF ( SYNDETICS_TO.p ) %] ([% SYNDETICS_TO.p %])[% END %]</li>
                                             [% END %]
                                         </ul>
                                 </div>
@@ -765,10 +765,10 @@
                         [% IF ( SyndeticsReviews && SYNDETICS_REVIEWS ) %]
                             <div id="reviews">
                                 <div class="content_set">
-                                    <h3>Reviews provided by Syndetics</h3>
+                                    <h1>Reviews provided by Syndetics</h1>
                                     [% FOREACH SYNDETICS_REVIEW IN SYNDETICS_REVIEWS %]
                                         [% IF ( SYNDETICS_REVIEW.title ) %]
-                                            <h4>[% SYNDETICS_REVIEW.title %]</h4>
+                                            <h1 class="review_subtitle">[% SYNDETICS_REVIEW.title %]</h1>
                                                 [% FOREACH review IN SYNDETICS_REVIEW.reviews %]
 
                                                     [% IF ( review.content ) %]
@@ -785,7 +785,7 @@
                         [% IF ( SyndeticsAuthorNotes && SYNDETICS_ANOTES ) %]
                             <div id="anotes">
                                 <div class="content_set">
-                                    <h3>Author notes provided by Syndetics</h3>
+                                    <h1>Author notes provided by Syndetics</h1>
                                     [% FOREACH SYNDETICS_ANOTE IN SYNDETICS_ANOTES %]
                                         [% IF ( SYNDETICS_ANOTE.content ) %]
                                             [% SYNDETICS_ANOTE.content %]
@@ -970,7 +970,7 @@
 
                         [% IF ( OPACFRBRizeEditions && XISBNS ) %]
                             <div id="editions">
-                                <h4>Other editions of this work</h4>
+                                <h1>Other editions of this work</h1>
                                 <table class="table table-bordered table-striped">
                                     [% FOREACH XISBN IN XISBNS %]
                                         <tr>

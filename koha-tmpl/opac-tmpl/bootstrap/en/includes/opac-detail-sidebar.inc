@@ -92,7 +92,7 @@
 <div class="modal hide" id="exportModal_" tabindex="-1" role="dialog" aria-labelledby="exportLabelexportModal_" aria-hidden="true">
     <div class="modal-header">
         <button type="button" class="closebtn" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h3 class="modal-title" id="exportModalLabel">Exporting to Dublin Core...</h3>
+        <h1 class="modal-title" id="exportModalLabel">Exporting to Dublin Core...</h1>
     </div>
     <form method="get" action="/cgi-bin/koha/opac-export.pl">
     <div class="modal-body">

@@ -22,7 +22,7 @@
                         [% IF ( Koha.Preference( 'opacbookbag' ) == 1 ) %]
                             <li class="dropdown">
                                 <a href="#" title="Collect items you are interested in" class="dropdown-toggle" id="cartmenulink" data-toggle="dropdown" role="button">
-                                    <i id="carticon" class="icon-shopping-cart icon-white"></i> <span class="cartlabel">Cart</span> <span id="basketcount"></span> <b class="caret"></b>
+                                    <em id="carticon" class="icon-shopping-cart icon-white"></em> <span class="cartlabel">Cart</span> <span id="basketcount"></span> <b class="caret"></b>
                                 </a>
                                 <ul aria-labelledby="cartmenulink" role="menu" class="dropdown-menu">
                                     <li role="presentation">
@@ -36,7 +36,7 @@
                         [% END %]
                         [% IF ( Koha.Preference( 'virtualshelves' ) == 1 ) %]
                             <li class="dropdown">
-                                <a href="#" title="Show lists" class="dropdown-toggle" id="listsmenu" data-toggle="dropdown" role="button"><i class="icon-list icon-white"></i> <span class="listslabel">Lists</span> <b class="caret"></b></a>
+                                <a href="#" title="Show lists" class="dropdown-toggle" id="listsmenu" data-toggle="dropdown" role="button"><em class="icon-list icon-white"></em> <span class="listslabel">Lists</span> <b class="caret"></b></a>
                                 <ul aria-labelledby="listsmenu" role="menu" class="dropdown-menu">
                                 [% IF some_public_shelves.count %]
                                     <li role="presentation"><a href="/cgi-bin/koha/opac-shelves.pl?op=list&amp;category=2" tabindex="-1" role="menuitem"><strong>Public lists</strong></a></li>
@@ -85,7 +85,7 @@
                     </ul> <!-- / .nav -->
                     [% IF Koha.Preference( 'virtualshelves' ) == 1 %]<div id="listsDetails"></div>[% END %]
                     [% IF Koha.Preference( 'opacuserlogin' ) == 1 || opaclanguagesdisplay || EnableOpacSearchHistory %]
-                        <a id="user-menu-trigger" class="pull-right" href="#"><i class="icon-user"></i> <span class="caret"></span></a>
+                        <a id="user-menu-trigger" class="pull-right" href="#"><em class="icon-user"></em> <span class="caret"></span></a>
                         <div id="members">
                             <ul class="nav pull-right">
 
@@ -303,7 +303,7 @@
     <div id="loginModal" class="modal hide" tabindex="-1" role="dialog" aria-labelledby="modalLoginLabel" aria-hidden="true">
         <div class="modal-header">
             <button type="button" class="closebtn" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="modalLoginLabel">Log in to your account</h3>
+            <strong id="modalLoginLabel">Log in to your account</strong>
         </div>
         <form action="/cgi-bin/koha/opac-user.pl" method="post" name="auth" id="modalAuth">
             <div class="modal-body">
@@ -314,9 +314,9 @@
                         <p>Sorry, your Shibboleth identity does not match a valid library identity. If you have a local login, you may use that below.</p>
                     </div>
                     [% ELSE %]
-                    <h4>Shibboleth Login</h4>
+                    <!--<h1>Shibboleth Login</h1>-->
                     <p>If you have a Shibboleth account, please <a href="[% shibbolethLoginUrl %]">click here to login</a>.</p>
-                    <h4>Local Login</h4>
+                    <!--<h1>Local Login</h1>-->
                     [% END %]
             [% END %]
                     <input type="hidden" name="koha_login_context" value="opac" />
