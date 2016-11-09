@@ -636,11 +636,11 @@ sub quote_item {
         uncertainprice => 0,
         sort1          => q{},
         sort2          => q{},
-        currency       => $vendor->listprice(),
         tax_value_bak  => 0,
         tax_value_on_ordering => 0,
         tax_rate_bak   => 0,
         tax_rate_on_ordering => 0,
+        currency       => $vendor->listprice->currency,
     };
 
     # suppliers references
