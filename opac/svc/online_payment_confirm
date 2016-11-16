@@ -60,7 +60,9 @@ if ( $success eq '1' ) {
             $account->accountline_id,
             $account->accountline->borrowernumber->borrowernumber,
             $account->accountline->accountno,
-            $account->accountline->amount
+            $account->accountline->amount,
+            undef,
+            $account->accountline->borrowernumber->branchcode->branchcode
         );
 
         # Update Transaction (2 = success)
