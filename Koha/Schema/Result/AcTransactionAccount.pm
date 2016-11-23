@@ -101,4 +101,17 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</transaction_id>
+
+=back
+
+=cut
+
+__PACKAGE__->set_primary_key("accountline_id", "transaction_id");
+
 1;
