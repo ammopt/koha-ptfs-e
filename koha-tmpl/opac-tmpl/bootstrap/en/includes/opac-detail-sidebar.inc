@@ -44,7 +44,7 @@
         <li>
             <div id="export">
                 <div class="dropdown">
-                    <a id="format" class="dropdown-toggle" data-toggle="dropdown" href="#">Save record <b class="caret"></b></a>
+                    <a id="format" class="dropdown-toggle" data-toggle="dropdown" href="#">Save record <strong class="caret"></strong></a>
                         <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="format">
                             [% FOREACH option IN export_options %]
                                 [% IF option == 'dc' %]
@@ -77,7 +77,7 @@
         <li>
             <div id="moresearches_menu">
                 <div class="dropdown">
-                    <a id="furthersearches" class="dropdown-toggle" data-toggle="dropdown" href="#">More searches <b class="caret"></b></a>
+                    <a id="furthersearches" class="dropdown-toggle" data-toggle="dropdown" href="#">More searches <strong class="caret"></strong></a>
                         <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="furthersearches">
                             <li><a href="#" class="menu-inactive">Search for this title in:</a></li>
                             [% OPACSearchForTitleIn %]

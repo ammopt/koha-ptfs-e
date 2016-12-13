@@ -22,7 +22,7 @@
                         [% IF ( Koha.Preference( 'opacbookbag' ) == 1 ) %]
                             <li class="dropdown">
                                 <a href="#" title="Collect items you are interested in" class="dropdown-toggle" id="cartmenulink" data-toggle="dropdown" role="button">
-                                    <em id="carticon" class="icon-shopping-cart icon-white"></em> <span class="cartlabel">Cart</span> <span id="basketcount"></span> <b class="caret"></b>
+                                    <em id="carticon" class="icon-shopping-cart icon-white"></em> <span class="cartlabel">Cart</span> <span id="basketcount"></span> <strong class="caret"></strong>
                                 </a>
                                 <ul aria-labelledby="cartmenulink" role="menu" class="dropdown-menu">
                                     <li role="presentation">
@@ -36,7 +36,7 @@
                         [% END %]
                         [% IF ( Koha.Preference( 'virtualshelves' ) == 1 ) %]
                             <li class="dropdown">
-                                <a href="#" title="Show lists" class="dropdown-toggle" id="listsmenu" data-toggle="dropdown" role="button"><em class="icon-list icon-white"></em> <span class="listslabel">Lists</span> <b class="caret"></b></a>
+                                <a href="#" title="Show lists" class="dropdown-toggle" id="listsmenu" data-toggle="dropdown" role="button"><em class="icon-list icon-white"></em> <span class="listslabel">Lists</span> <strong class="caret"></strong></a>
                                 <ul aria-labelledby="listsmenu" role="menu" class="dropdown-menu">
                                 [% IF some_public_shelves.count %]
                                     <li role="presentation"><a href="/cgi-bin/koha/opac-shelves.pl?op=list&amp;category=2" tabindex="-1" role="menuitem"><strong>Public lists</strong></a></li>
