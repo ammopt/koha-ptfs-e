@@ -214,26 +214,28 @@ for my $accountline (@accountlines) {
     my $payment = $post->createElement("payment");
     $payment->setAttribute( 'payid' => "$pay_count" );
 
+    # Callnumber #109980 requested this be hardcoded to a single code
     my $payment_code;
-    my $branchcode = defined($accountline->itemnumber) ? $accountline->itemnumber->get_column('holdingbranch') : $accountline->borrowernumber->get_column('branchcode');
-    if ( $branchcode eq 'CHE' ) {
-        $payment_code = '10061100';
-    }
-    if ( $branchcode eq 'LCF' ) {
-        $payment_code = '10067100';
-    }
-    if ( $branchcode eq 'CSM' ) {
-        $payment_code = '10058100';
-    }
-    if ( $branchcode eq 'LCC' ) {
-        $payment_code = '10070100';
-    }
-    if ( $branchcode eq 'CCA' ) {
-        $payment_code = '10063100';
-    }
-    if ( $branchcode eq 'WCA' ) {
-        $payment_code = '10065100';
-    }
+    $payment_code = '10061100';
+    #my $branchcode = defined($accountline->itemnumber) ? $accountline->itemnumber->get_column('holdingbranch') : $accountline->borrowernumber->get_column('branchcode');
+    #if ( $branchcode eq 'CHE' ) {
+    #    $payment_code = '10061100';
+    #}
+    #if ( $branchcode eq 'LCF' ) {
+    #    $payment_code = '10067100';
+    #}
+    #if ( $branchcode eq 'CSM' ) {
+    #    $payment_code = '10058100';
+    #}
+    #if ( $branchcode eq 'LCC' ) {
+    #    $payment_code = '10070100';
+    #}
+    #if ( $branchcode eq 'CCA' ) {
+    #    $payment_code = '10063100';
+    #}
+    #if ( $branchcode eq 'WCA' ) {
+    #    $payment_code = '10065100';
+    #}
     my $customfield1 = $post->createElement("customfield1");
     $customfield1->appendTextNode($payment_code);
     $payment->appendChild($customfield1);
