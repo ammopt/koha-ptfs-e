@@ -401,7 +401,7 @@
 <script type="text/javascript">//<![CDATA[
 $(document).ready(function() {
     $('#advsearches').tabs();
-    jQuery.cookie.json = true;
+    //jQuery.cookie.json = true;
     //$('#advsearches > ul').tabs();
 
     [% IF ( ReturnToSearch ) %]

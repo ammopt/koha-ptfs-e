@@ -271,5 +271,6 @@ $(document).ready(function() {
         </script>
     [% END %]
 [% END %]
+<script type="text/javascript" src="/custom/en/js/ptfs_custom_js.js"></script>
 </body>
 </html>
