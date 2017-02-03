@@ -19,6 +19,7 @@
     [%- CASE 'coursereserves' -%]<span>Course reserves</span>
     [%- CASE 'plugins' -%]<span>Koha plugins</span>
     [%- CASE 'lists' -%]<span>Lists</span>
+    [%- CASE 'ill' -%]<span>Create and modify Interlibrary loan requests</span>
     [%- END -%]
 [%- END -%]
 

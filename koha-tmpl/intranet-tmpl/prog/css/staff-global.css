@@ -2790,3 +2790,100 @@ div[class$="_table_controls"] {
 #borrower_message {
     margin-top: 10px;
 }
+
+.form-group {
+   margin-bottom: 10px;
+}
+
+.form-group label {
+    font-weight: bold;
+}
+
+.modal-textarea {
+    width: 98%;
+}
+
+fieldset.rows + fieldset.action {
+    padding-top: 20px;
+}
+
+.yui-u .rows li p label.widelabel {
+    width: auto;
+}
+
+#interlibraryloans h1 {
+    margin: 1em 0;
+}
+
+#interlibraryloans h2 {
+    margin-bottom: 20px;
+}
+
+#interlibraryloans h3 {
+    margin-top: 20px;
+}
+
+#interlibraryloans .bg-info {
+    overflow: auto;
+    position: relative;
+}
+
+#interlibraryloans #search-summary {
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
+    transform: translateY(-50%);
+    position: absolute;
+    top: 50%;
+}
+
+#interlibraryloans .format h5 {
+    margin-top: 20px;
+}
+
+#interlibraryloans .format li {
+    list-style: none;
+}
+
+#interlibraryloans .format h4 {
+    margin-bottom: 20px;
+}
+
+#interlibraryloans .format input {
+    margin: 10px 0;
+}
+
+#interlibraryloans #freeform-fields .custom-name {
+    width: 9em;
+    margin-right: 1em;
+    text-align: right;
+}
+
+#interlibraryloans #freeform-fields .delete-new-field {
+    margin-left: 1em;
+}
+
+#interlibraryloans #add-new-fields {
+    margin: 1em;
+}
+
+#ill-view-panel {
+    margin-top: 15px;
+}
+
+#ill-view-panel h3 {
+    margin-bottom: 10px;
+}
+
+#ill-view-panel h4 {
+    margin-bottom: 20px;
+}
+
+#ill-view-panel .rows div {
+    height: 1em;
+    margin-bottom: 1em;
+}
+
+#ill-view-panel #requestattributes .label {
+    width: auto;
+}
