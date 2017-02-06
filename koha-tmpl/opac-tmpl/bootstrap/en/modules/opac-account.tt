@@ -65,7 +65,7 @@
 
                     <h3>Fines and charges</h3>
                     [% IF ( ACCOUNT_LINES ) %]
-                        <form method="post" action="opac-account-pay.pl" class="form-horizontal">
+                    <!--    <form method="post" action="opac-account-pay.pl" class="form-horizontal"> -->
                         <table class="table table-bordered table-striped" id="finestable">
                             <thead>
                                 <tr>
@@ -198,7 +198,7 @@
                                         </div>
                                 </fieldset>
                             [% END %]
-                        </form>
+                        <!--</form>-->
                     [% ELSE %]
                         <h4>You have no fines or charges</h4>
                     [% END %]
