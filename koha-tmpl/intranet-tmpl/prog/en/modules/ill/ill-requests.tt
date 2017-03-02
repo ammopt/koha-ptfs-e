@@ -182,10 +182,9 @@
                     <h1>Error performing operation</h1>
                     <!-- Dispatch on Status -->
                     <p>We encountered an error:</p>
-                    <ol>
-                        <li>[% whole.status %]</li>
-                        <li>[% whole.message %]</li>
-                    </ol>
+                    <p>
+                      <pre>[% whole.message %] ([% whole.status %])</pre>
+                    </p>
                 [% END %]
 
                 [% IF query_type == 'create' %]
@@ -196,8 +195,8 @@
                     <h1>Confirm ILL request</h1>
                     [% PROCESS $whole.template %]
 
-                [% ELSIF query_type == 'cancel' %]
-                    <h1>Cancel an confirmed request</h1>
+                [% ELSIF query_type == 'cancel' and !whole.error %]
+                    <h1>Cancel a confirmed request</h1>
                     [% PROCESS $whole.template %]
 
                 [% ELSIF query_type == 'generic_confirm' %]
