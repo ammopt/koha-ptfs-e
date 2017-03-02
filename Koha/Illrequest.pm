@@ -209,7 +209,7 @@ sub _core_status_graph {
             name           => 'Requested',
             ui_method_name => 'Confirm request',
             method         => 'confirm',
-            next_actions   => [ 'REQREV', 'CANCREQ' ],
+            next_actions   => [ 'REQREV', 'CANCREQ', 'COMP' ],
             ui_method_icon => 'fa-check',
         },
         GENREQ => {
@@ -252,10 +252,10 @@ sub _core_status_graph {
             prev_actions   => [ 'REQ' ],
             id             => 'COMP',
             name           => 'Completed',
-            ui_method_name => 0,
-            method         => 0,
+            ui_method_name => 'Mark completed',
+            method         => 'mark_completed',
             next_actions   => [ ],
-            ui_method_icon => 0,
+            ui_method_icon => 'fa-check',
         },
         KILL => {
             prev_actions   => [ 'QUEUED', 'REQREV', 'NEW' ],
@@ -382,6 +382,19 @@ sub available_actions {
     my @available_actions = map { $self->capabilities($_) }
         @{$current_action->{next_actions}};
     return \@available_actions;
+}
+
+sub mark_completed {
+    my ( $self ) = @_;
+    $self->status('COMP')->store unless ( $permitted );
+    return {
+        error   => 0,
+        status  => '',
+        message => '',
+        method  => 'mark_completed',
+        stage   => 'commit',
+        next    => 'illview',
+    };
 }
 
 sub backend_confirm {

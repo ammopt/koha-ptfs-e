@@ -160,6 +160,17 @@ if ( $op eq 'illview' ) {
             $params->{illrequest_id});
     }
 
+} elsif ( $op eq 'mark_completed' ) {
+    my $request = Koha::Illrequests->find($params->{illrequest_id});
+    my $backend_result = $request->mark_completed($params);
+    $template->param(
+        whole => $backend_result,
+        request => $request,
+    );
+
+    # handle special commit rules & update type
+    handle_commit_maybe($backend_result, $request);
+
 } elsif ( $op eq 'generic_confirm' ) {
     my $request = Koha::Illrequests->find($params->{illrequest_id});
     $params->{current_branchcode} = C4::Context->mybranch;
