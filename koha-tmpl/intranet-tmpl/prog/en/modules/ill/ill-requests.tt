@@ -10,121 +10,183 @@
 <script type="text/javascript">
     //<![CDATA[
     $(document).ready(function() {
-        var myTable = $("#ill-requests").DataTable($.extend(true, {}, dataTablesDefaults, {
-            "aoColumnDefs": [  // Last column shouldn't be sortable or searchable
-                { "aTargets": [ -1 ], "bSortable": false, "bSearchable": false },
-            ],
-            "aaSorting": [[ 8, "desc" ]], // Default sort, updated descending
-            "processing": true, // Display a message when manipulating
-            "language": {
-                "loadingRecords": "Please wait - loading requests...",
-                "zeroRecords": "No requests were found"
-            },
-            "iDisplayLength": 10, // 10 results per page
-            "sPaginationType": "full_numbers", // Pagination display
-            "sAjaxDataProp": "", // Data is in the root object of the response
-            "deferRender": true, // Improve performance on big datasets
-            "ajax": {
-                url: "/api/v1/illrequests?embed=metadata,patron,capabilities,branch",
-                cache: true
-            },
-            "columns": [
-                {
-                    data: 'orderid',
-                    className: 'orderid'
-                },
-                {
-                    render: function(data, type, row) {
-                        return (
-                            row.metadata.hasOwnProperty('Author') &&
-                            row.metadata.Author.length > 0
-                        ) ? row.metadata.Author : 'N/A';
-                    },
-                    className: 'title'
-                },
-                {
-                    render: function(data, type, row) {
-                        return (
-                            row.metadata.hasOwnProperty('Title') &&
-                            row.metadata.Title.length > 0
-                        ) ? row.metadata.Title : 'N/A';
-                    },
-                    className: 'title'
-                },
-                {
-                    render: function(data, type, row) {
-                        return '<a title="View borrower details" ' +
-                        'href="/cgi-bin/koha/members/moremember.pl?' +
-                        'borrowernumber='+row.borrowernumber+'">' +
-                        row.patron.firstname + ' ' + row.patron.surname +
-                        '</a>';
-                    },
-                    className: 'borrower_name'
-                },
-                {
-                    data: 'borrowernumber',
-                    className: 'borrowernumber'
-                },
-                {
-                    data: 'biblio_id',
-                    className: 'biblio_id'
-                },
-                {
-                    data: 'branch.branchname',
-                    className: 'branch_name'
-                },
-                {
-                    render: function(data, type, row) {
-                        return row.capabilities[row.status].name;
-                    },
-                    className: 'status'
-                },
-                {
-                    data: 'updated',
-                    className: 'updated'
-                },
-                {
-                    data: 'medium',
-                    className: 'medium'
-                },
-                {
-                    data: 'cost',
-                    className: 'cost'
-                },
-                {
-                    render: function(data, type, row) {
-                        return row.id_prefix + row.illrequest_id;
-                    },
-                    className: 'request_id'
-                },
-                {
-                    data: null,
-                    render: function(data, type, row) {
-                        return '<a class="btn btn-default btn-sm" ' +
-                        'href="/cgi-bin/koha/ill/ill-requests.pl?' +
-                        'method=illview&amp;illrequest_id=' +
-                        row.illrequest_id +
-                        '">Manage request</a>' +
-                        '</div>'
+
+        // Illview Datatable setup
+
+        // Fields we don't want to display
+        var ignore = [
+            'accessurl',
+            'backend',
+            'completed',
+            'branch',
+            'capabilities',
+            'cost',
+            'medium',
+            'notesopac',
+            'notesstaff',
+            'placed',
+            'replied'
+        ];
+
+        // Fields we need to expand (flatten)
+        var expand = [
+            'metadata',
+            'patron'
+        ];
+
+        // Expanded fields
+        // This is auto populated
+        var expanded = {};
+
+        // The core fields that should be displayed first
+        var core = [
+            'metadata_Author',
+            'metadata_Title',
+            'borrowernumber',
+            'biblio_id',
+            'branchcode',
+            'status',
+            'updated',
+            'illrequest_id',
+            'action'
+        ];
+
+        // Extra fields that we need to tack on to the end
+        var extra = [ 'action' ];
+
+        // Remove any fields we're ignoring
+        var removeIgnore = function(dataObj) {
+            dataObj.forEach(function(thisRow) {
+                ignore.forEach(function(thisIgnore) {
+                    if (thisRow.hasOwnProperty(thisIgnore)) {
+                        delete thisRow[thisIgnore];
                     }
-                }
-            ]
-        }));
-        var filters = $('#ill-requests').data();
-        if (typeof filters !== 'undefined') {
-            var filterNames = Object.keys(filters).filter(
-                function(thisData) {
-                    return thisData.match(/^filter/);
-                }
-            );
-            filterNames.forEach(function(thisFilter) {
-                var filterClass = "." + toColumnName(thisFilter);
-                var regex = '^'+filters[thisFilter]+'$';
-                myTable.columns(filterClass).search(regex, true, false);
+                });
             });
-            myTable.draw();
+        };
+
+        // Expand any fields we're expanding
+        var expandExpand = function(row) {
+            expand.forEach(function(thisExpand) {
+                if (row.hasOwnProperty(thisExpand)) {
+                    if (!expanded.hasOwnProperty(thisExpand)) {
+                        expanded[thisExpand] = [];
+                    }
+                    var expandObj = row[thisExpand];
+                    Object.keys(expandObj).forEach(
+                        function(thisExpandCol) {
+                            var expColName = thisExpand + '_' + thisExpandCol;
+                            // Keep a list of fields that have been expanded
+                            // so we can create toggle links for them
+                            if (expanded[thisExpand].indexOf(expColName) == -1) {
+                                expanded[thisExpand].push(expColName);
+                            }
+                            expandObj[expColName] =
+                                expandObj[thisExpandCol];
+                            delete expandObj[thisExpandCol];
+                        }
+                    );
+                    $.extend(true, row, expandObj);
+                    delete row[thisExpand];
+                }
+            });
+        };
+
+        // Build a de-duped list of all column names
+        var allCols = {};
+        core.map(function(thisCore) {
+            allCols[thisCore] = 1;
+        });
+        var unionColumns = function(row) {
+            Object.keys(row).forEach(function(col) {
+                if (ignore.indexOf(col) == -1) {
+                    allCols[col] = 1;
+                }
+            });
+        };
+
+        // Some rows may not have fields that other rows have,
+        // so make sure all rows have the same fields
+        var fillMissing = function(row) {
+            Object.keys(allCols).forEach(function(thisCol) {
+                row[thisCol] = (!row.hasOwnProperty(thisCol)) ?
+                    null :
+                    row[thisCol];
+            });
         }
 
+        // Strip the expand prefix if it exists, we do this for display
+        var stripPrefix = function(value) {
+            expand.forEach(function(thisExpand) {
+                var regex = new RegExp(thisExpand + '_', 'g');
+                value = value.replace(regex, '');
+            });
+            return value;
+        };
+
+        // Our 'render' function for borrowerlink
+        var createBorrowerLink = function(data, type, row) {
+            return '<a title="View borrower details" ' +
+                'href="/cgi-bin/koha/members/moremember.pl?' +
+                'borrowernumber='+row.patron_borrowernumber+'">' +
+                row.patron_firstname + ' ' + row.patron_surname +
+                '</a>';
+        };
+
+        // Render function for request ID
+        var createRequestId = function(data, type, row) {
+            return row.id_prefix + row.illrequest_id;
+        };
+
+        // Render function for request status
+        var createStatus = function(data, type, row, meta) {
+            var origData = meta.settings.oInit.originalData;
+            if (origData.length > 0) {
+                return meta.settings.oInit.originalData[0].capabilities[
+                    row.status
+                ].name;
+            } else {
+                return '';
+            }
+        };
+
+        // Render function for creating a row's action link
+        var createActionLink = function(data, type, row) {
+            return '<a class="btn btn-default btn-sm" ' +
+                'href="/cgi-bin/koha/ill/ill-requests.pl?' +
+                'method=illview&amp;illrequest_id=' +
+                row.illrequest_id +
+                '">Manage request</a>' +
+                '</div>'
+        };
+
+        // Columns that require special treatment
+        var specialCols = {
+            action: {
+                name: '',
+                func: createActionLink
+            },
+            borrowernumber: {
+                name: 'Borrower',
+                func: createBorrowerLink
+            },
+            illrequest_id: {
+                name: 'Request number',
+                func: createRequestId
+            },
+            status: {
+                name: 'Status',
+                func: createStatus
+            },
+            biblio_id: {
+                name: 'Biblio number'
+            },
+            branchcode: {
+                name: 'Branch code'
+            }
+        };
+
+        // Helper for handling prefilter column names
         function toColumnName(myVal) {
             return myVal
                 .replace(/^filter/, '')
@@ -132,10 +194,12 @@
                 .replace(/^_/,'').toLowerCase();
         };
 
+        // Toggle request attributes in Illview
         $('#toggle_requestattributes').click(function() {
             $('#requestattributes').toggleClass('content_hidden');
         });
 
+        // Filter partner list
         $('#partner_filter').keyup(function() {
             var needle = $('#partner_filter').val();
             $('#partners > option').each(function() {
@@ -151,6 +215,149 @@
                 }
             });
         });
+
+        // Get our data from the API and process it prior to passing
+        // it to datatables
+        var ajax = $.ajax(
+            '/api/v1/illrequests?embed=metadata,patron,capabilities,branch'
+            ).done(function() {
+                var data = JSON.parse(ajax.responseText);
+                // Make a copy, we'll be removing columns next and need
+                // to be able to refer to data that has been removed
+                var dataCopy = $.extend(true, [], data);
+                // Remove all columns we're not interested in
+                removeIgnore(dataCopy);
+                // Expand columns that need it and create an array
+                // of all column names
+                $.each(dataCopy, function(k, row) {
+                    expandExpand(row);
+                    unionColumns(row);
+                });
+                // Append any extra columns we need to tag on
+                if (extra.length > 0) {
+                    extra.forEach(function(thisExtra) {
+                        allCols[thisExtra] = 1;
+                    });
+                };
+                // Different requests will have different columns,
+                // make sure they all have the same
+                $.each(dataCopy, function(k, row) {
+                    fillMissing(row);
+                });
+
+                // Assemble an array of column definitions for passing
+                // to datatables
+                var colData = [];
+                Object.keys(allCols).forEach(function(thisCol) {
+                    // We may have defined a pretty name for this column
+                    var colName = (
+                        specialCols.hasOwnProperty(thisCol) &&
+                        specialCols[thisCol].hasOwnProperty('name')
+                    ) ?
+                        specialCols[thisCol].name :
+                        thisCol;
+                    // Create the table header for this column
+                    var str = '<th>' + stripPrefix(colName) + '</th>';
+                    $(str).appendTo('#illview-header');
+                    // Create the base column object
+                    var colObj = {
+                        name: thisCol,
+                        className: thisCol
+                    };
+                    // We may need to process the data going in this
+                    // column, so do it if necessary
+                    if (
+                        specialCols.hasOwnProperty(thisCol) &&
+                        specialCols[thisCol].hasOwnProperty('func')
+                    ) {
+                        colObj.render = specialCols[thisCol].func;
+                    } else {
+                        colObj.data = thisCol
+                    }
+                    colData.push(colObj);
+                });
+
+                // Create the toggle links for all metadata fields
+                var links = [];
+                expanded.metadata.forEach(function(thisExpanded) {
+                    if (core.indexOf(thisExpanded) == -1) {
+                        links.push(
+                            '<a href="#" class="toggle-vis" data-column="' +
+                            thisExpanded + '">' + stripPrefix(thisExpanded) +
+                            '</a>'
+                        );
+                    }
+                });
+                $('#column-toggle').append(links.join(' | '));
+
+                // Initialise the datatable
+                var myTable = $('#ill-requests').DataTable($.extend(true, {}, dataTablesDefaults, {
+                    aoColumnDefs: [  // Last column shouldn't be sortable or searchable
+                        {
+                            aTargets: [ 'action' ],
+                            bSortable: false,
+                            bSearchable: false
+                        },
+                    ],
+                    aaSorting: [[ 6, 'desc' ]], // Default sort, updated descending
+                    processing: true, // Display a message when manipulating
+                    language: {
+                        loadingRecords: "Please wait - loading requests...",
+                        zeroRecords: "No requests were found"
+                    },
+                    iDisplayLength: 10, // 10 results per page
+                    sPaginationType: "full_numbers", // Pagination display
+                    deferRender: true, // Improve performance on big datasets
+                    data: dataCopy,
+                    columns: colData,
+                    originalData: data // Enable render functions to access
+                                       // our original data
+                }));
+
+                // Reset columns to default
+                var resetColumns = function() {
+                    Object.keys(allCols).forEach(function(thisCol) {
+                        myTable.column(thisCol + ':name').visible(core.indexOf(thisCol) != -1);
+                    });
+                    myTable.columns.adjust().draw(false);
+                };
+
+                // Handle the click event on a toggle link
+                $('a.toggle-vis').on('click', function(e) {
+                    e.preventDefault();
+                    var column = myTable.column(
+                        $(this).data('column') + ':name'
+                    );
+                    column.visible(!column.visible());
+                });
+
+                // Reset column toggling
+                $('#reset-toggle').click(function() {
+                    resetColumns();
+                });
+
+                // Handle a prefilter request and do the prefiltering
+                var filters = $('#ill-requests').data();
+                if (typeof filters !== 'undefined') {
+                    var filterNames = Object.keys(filters).filter(
+                        function(thisData) {
+                            return thisData.match(/^filter/);
+                        }
+                    );
+                    filterNames.forEach(function(thisFilter) {
+                        var filterName = toColumnName(thisFilter) + ':name';
+                        var regex = '^'+filters[thisFilter]+'$';
+                        console.log(regex);
+                        myTable.columns(filterName).search(regex, true, false);
+                    });
+                    myTable.draw();
+                }
+
+                // Initialise column hiding
+                resetColumns();
+
+            }
+        );
 
     });
     //]]>
@@ -442,29 +649,21 @@
                     <h1>View ILL requests</h1>
                     <div id="results">
                         <h3>Details for all requests</h3>
+
+                        <div id="column-toggle">
+                            Toggle additional columns:
+                        </div>
+                        <div id="reset-toggle"><a href="#">Reset toggled columns</a></div>
+
                         <table
                             [% FOREACH filter IN prefilters %]
                             data-filter-[% filter.name %]="[% filter.value %]"
                             [% END %]
                             id="ill-requests">
                             <thead>
-                                <tr>
-                                    <th id="orderid">Order ID:</th>
-                                    <th id="author">Author:</th>
-                                    <th id="title">Title:</th>
-                                    <th id="borrower_name">Borrower:</th>
-                                    <th id="borrowernumber">Borrower number:</th>
-                                    <th id="biblio_id">Biblio number:</th>
-                                    <th id="branchcode">Branch:</th>
-                                    <th id="status">Status:</th>
-                                    <th id="updated">Last updated:</th>
-                                    <th id="medium">Request type:</th>
-                                    <th id="cost">Cost:</th>
-                                    <th id="req_id">Request number:</th>
-                                    <th id="link">Manage request:</th>
-                                </tr>
+                                <tr id="illview-header"></tr>
                             </thead>
-                            <tbody>
+                            <tbody id="illview-body">
                             </tbody>
                         </table>
                     </div>

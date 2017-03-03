@@ -2867,6 +2867,13 @@ fieldset.rows + fieldset.action {
     margin: 1em;
 }
 
+#interlibraryloans #column-toggle,
+#interlibraryloans #reset-toggle {
+    margin: 15px 0;
+    line-height: 1.5em;
+    font-weight: 700;
+}
+
 #ill-view-panel {
     margin-top: 15px;
 }
@@ -2886,4 +2893,12 @@ fieldset.rows + fieldset.action {
 
 #ill-view-panel #requestattributes .label {
     width: auto;
+}
+
+table#ill-requests {
+    width: 100% !important;
+}
+
+table#ill-requests th {
+    text-transform: capitalize;
 }
