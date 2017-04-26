@@ -832,3 +832,10 @@ OPAC:
             - "The patron should see the charge description as "
             - pref: PayPalChargeDescription
               class: long
+    Authentication:
+        -
+            - pref: opacShibOnly
+              choices:
+                  yes: "Don't allow"
+                  no: Allow
+            - patrons to login by means other than Shibboleth.
