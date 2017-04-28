@@ -28,13 +28,17 @@ use C4::Context;
 
 BEGIN {
     if ( check_install( module => 'Test::DBIx::Class' ) ) {
-        plan tests => 11;
-    } else {
-        plan skip_all => "Need Test::DBIx::Class"
+        plan tests => 17;
+    }
+    else {
+        plan skip_all => "Need Test::DBIx::Class";
     }
 }
 
-use Test::DBIx::Class { schema_class => 'Koha::Schema', connect_info => ['dbi:SQLite:dbname=:memory:','',''] };
+use Test::DBIx::Class {
+    schema_class => 'Koha::Schema',
+    connect_info => [ 'dbi:SQLite:dbname=:memory:', '', '' ]
+};
 
 # Mock Variables
 my $matchpoint = 'userid';
@@ -61,6 +65,7 @@ sub mockedConfig {
 
 ### Mock ->preference
 my $OPACBaseURL = "testopac.com";
+my $staffClientBaseURL = "teststaff.com";
 $context->mock( 'preference', \&mockedPref );
 
 sub mockedPref {
@@ -73,6 +78,9 @@ sub mockedPref {
 
     return $return;
 }
+
+my $interface = 'opac';
+$context->mock( 'interface', \&mockedInterface );
 
 ## Mock Database
 my $database = new Test::MockModule('Koha::Database');
@@ -242,16 +250,18 @@ subtest "checkpw_shib tests" => sub {
 
 };
 
-## _get_uri
+## _get_uri - opac
 $OPACBaseURL = "testopac.com";
 is( C4::Auth_with_shibboleth::_get_uri(),
     "https://testopac.com", "https opac uri returned" );
 
 $OPACBaseURL = "http://testopac.com";
 my $result;
-warning_like { $result = C4::Auth_with_shibboleth::_get_uri() }
-             [ qr/Shibboleth requires OPACBaseURL to use the https protocol!/ ],
-             "improper protocol - received expected warning";
+warnings_are { $result = C4::Auth_with_shibboleth::_get_uri() }[
+    "shibboleth interface: $interface",
+"Shibboleth requires OPACBaseURL/staffClientBaseURL to use the https protocol!"
+],
+  "improper protocol - received expected warning";
 is( $result, "https://testopac.com", "https opac uri returned" );
 
 $OPACBaseURL = "https://testopac.com";
@@ -259,10 +269,94 @@ is( C4::Auth_with_shibboleth::_get_uri(),
     "https://testopac.com", "https opac uri returned" );
 
 $OPACBaseURL = undef;
-warning_like { $result = C4::Auth_with_shibboleth::_get_uri() }
-             [ qr/OPACBaseURL not set!/ ],
-             "undefined OPACBaseURL - received expected warning";
-is( $result, "https://", "https opac uri returned" );
+
+warnings_are { $result = C4::Auth_with_shibboleth::_get_uri() }
+[ "shibboleth interface: $interface", "OPACBaseURL not set!" ],
+  "undefined OPACBaseURL - received expected warning";
+is( $result, "https://", "https $interface uri returned" );
+
+## _get_uri - intranet
+$interface = 'intranet';
+$staffClientBaseURL = "teststaff.com";
+is( C4::Auth_with_shibboleth::_get_uri(),
+    "https://teststaff.com", "https $interface uri returned" );
+
+$staffClientBaseURL = "http://teststaff.com";
+warnings_are { $result = C4::Auth_with_shibboleth::_get_uri() }[
+    "shibboleth interface: $interface",
+"Shibboleth requires OPACBaseURL/staffClientBaseURL to use the https protocol!"
+],
+  "improper protocol - received expected warning";
+is( $result, "https://teststaff.com", "https $interface uri returned" );
+
+$staffClientBaseURL = "https://teststaff.com";
+is( C4::Auth_with_shibboleth::_get_uri(),
+    "https://teststaff.com", "https $interface uri returned" );
+
+$staffClientBaseURL = undef;
+warnings_are { $result = C4::Auth_with_shibboleth::_get_uri() }
+[ "shibboleth interface: $interface", "staffClientBaseURL not set!" ],
+  "undefined staffClientBaseURL - received expected warning";
+is( $result, "https://", "https $interface uri returned" );
 
 ## _get_shib_config
 # Internal helper function, covered in tests above
+
+sub mockedConfig {
+    my $param = shift;
+
+    my %shibboleth = (
+        'autocreate' => $autocreate,
+        'matchpoint' => $matchpoint,
+        'mapping'    => \%mapping
+    );
+
+    return \%shibboleth;
+}
+
+sub mockedPref {
+    my $param = $_[1];
+    my $return;
+
+    if ( $param eq 'OPACBaseURL' ) {
+        $return = $OPACBaseURL;
+    }
+
+    if ( $param eq 'staffClientBaseURL' ) {
+        $return = $staffClientBaseURL;
+    }
+
+    return $return;
+}
+
+sub mockedInterface {
+    return $interface;
+}
+
+sub mockedSchema {
+    return Schema();
+}
+
+## Convenience method to reset config
+sub reset_config {
+    $matchpoint = 'userid';
+    $autocreate = 0;
+    %mapping    = (
+        'userid'       => { 'is' => 'uid' },
+        'surname'      => { 'is' => 'sn' },
+        'dateexpiry'   => { 'is' => 'exp' },
+        'categorycode' => { 'is' => 'cat' },
+        'address'      => { 'is' => 'add' },
+        'city'         => { 'is' => 'city' },
+    );
+    $ENV{'uid'}  = "test1234";
+    $ENV{'sn'}   = undef;
+    $ENV{'exp'}  = undef;
+    $ENV{'cat'}  = undef;
+    $ENV{'add'}  = undef;
+    $ENV{'city'} = undef;
+
+    return 1;
+}
+
+1;
