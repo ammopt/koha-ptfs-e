@@ -661,10 +661,10 @@ sub check_limits {
         = ( $branch_rules->{count}, $brw_rules->{count} );
     my ( $branch_count, $brw_count ) = (
         $self->_limit_counter(
-            $branch_rules->{method}, { branch_id => $branchcode }
+            $branch_rules->{method}, { branchcode => $branchcode }
         ),
         $self->_limit_counter(
-            $brw_rules->{method}, { borrower_id => $patron->borrowernumber }
+            $brw_rules->{method}, { borrowernumber => $patron->borrowernumber }
         ),
     );
 
