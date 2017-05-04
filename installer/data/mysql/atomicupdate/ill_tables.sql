@@ -49,4 +49,4 @@ INSERT IGNORE INTO systempreferences (variable,value,explanation,options,type) V
 -- Userflags
 
 INSERT INTO userflags (bit,flag,flagdesc,defaulton)
-VALUES (21,'ill','The Interlibrary Loans Module',0);
+VALUES (22,'ill','The Interlibrary Loans Module',0);
