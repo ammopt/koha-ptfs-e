@@ -404,7 +404,9 @@ sub order_line {
     my $budget = GetBudget( $orderline->budget_id );
     my $ol_fields = { budget_code => $budget->{budget_code}, };
     if ( $orderline->order_vendornote ) {
-        $ol_fields->{servicing_instruction} = $orderline->order_vendornote;
+        if ($orderline->order_vendornote=~m/SERVICING:([^:]+) ::/) {
+            $ol_fields->{servicing_instruction} = $1;
+        }
     }
     $self->add_seg(
         gir_segments(
@@ -420,6 +422,11 @@ sub order_line {
 
     # FTX free text for current orderline TBD
     #    dont really have a special instructions field to encode here
+    if ( $orderline->order_vendornote && $orderline->order_vendornote=~m/FTX:([^:]+) ::/) {
+        my $ftx = "FTX+LIN+++$1";
+        $ftx .= $seg_terminator;
+        $self->add_seg($ftx);
+    }
     # Encode notes here
     # PRI-CUX-DTM unit price on which order is placed : optional
     # Coutts read this as 0.00 if not present
