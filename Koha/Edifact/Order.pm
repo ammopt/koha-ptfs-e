@@ -399,19 +399,20 @@ sub order_line {
     }
     my $budget = GetBudget( $orderline->budget_id );
     my $ol_fields = { budget_code => $budget->{budget_code}, };
-    if ( $orderline->order_vendornote ) {
-        if ($orderline->order_vendornote=~m/SERVICING:([^:]+) ::/) {
-            $ol_fields->{servicing_instruction} = $1;
-        }
-    }
+#    if ( $orderline->order_vendornote ) {
+#        if ($orderline->order_vendornote=~m/SERVICING:([^:]+) ::/) {
+#            $ol_fields->{servicing_instruction} = $1;
+#        }
+#    }
     $self->add_seg( gir_segments( $ol_fields, @items ) );
 
     # TBD what if #items exceeds quantity
 
     # FTX free text for current orderline TBD
     #    dont really have a special instructions field to encode here
-    if ( $orderline->order_vendornote && $orderline->order_vendornote=~m/FTX:([^:]+) ::/) {
-        my $ftx = "FTX+LIN+++$1";
+    if ( $orderline->order_vendornote ) {
+        my $ftx = 'FTX+LIN+++';
+        $ftx .= $orderline->order_vendornote;
         $ftx .= $seg_terminator;
         $self->add_seg($ftx);
     }

@@ -588,7 +588,7 @@ sub quote_item {
         quantity           => $order_quantity,
         quantityreceived   => 0,
         order_vendornote   => q{},
-        order_internalnote => $order_note,
+        order_internalnote => q{},
         rrp                => $item->price,
         ecost => _discounted_price( $quote->vendor->discount, $item->price ),
         uncertainprice => 0,
@@ -622,10 +622,9 @@ sub quote_item {
             $txt .= $si;
             ++$occ;
         }
-        $order_hash->{order_vendornote} .= "SERVICING:$txt ::";
     }
     if ($order_note) {
-        $order_hash->{order_vendornote} .= "FTX:$order_note ::";
+        $order_hash->{order_vendornote} .= $order_note;
     }
 
 
