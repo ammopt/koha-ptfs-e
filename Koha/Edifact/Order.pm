@@ -422,8 +422,9 @@ sub order_line {
 
     # FTX free text for current orderline TBD
     #    dont really have a special instructions field to encode here
-    if ( $orderline->order_vendornote && $orderline->order_vendornote=~m/FTX:([^:]+) ::/) {
-        my $ftx = "FTX+LIN+++$1";
+    if ( $orderline->order_vendornote ) {
+        my $ftx = 'FTX+LIN+++';
+        $ftx .= $orderline->order_vendornote;
         $ftx .= $seg_terminator;
         $self->add_seg($ftx);
     }
