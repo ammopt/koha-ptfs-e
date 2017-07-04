@@ -89,6 +89,7 @@ BEGIN {
         &NotifyOrderUsers
 
         &FillWithDefaultValues
+        populate_order_with_prices
     );
 }
 
