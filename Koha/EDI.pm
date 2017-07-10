@@ -27,7 +27,7 @@ use Business::ISBN;
 use DateTime;
 use C4::Context;
 use Koha::Database;
-use C4::Acquisition qw( NewBasket CloseBasket ModOrder);
+use C4::Acquisition qw( NewBasket CloseBasket ModOrder populate_order_with_prices );
 use C4::Suggestions qw( ModSuggestion );
 use C4::Items qw(AddItem);
 use C4::Biblio qw( AddBiblio TransformKohaToMarc GetMarcBiblio );
@@ -308,6 +308,13 @@ sub process_invoice {
                                 datereceived     => $msg_date,
                             }
                         );
+                        my $p_updates =
+                          update_price_from_invoice( $received_order,
+                            $invoice_message->vendor_id );
+                        if ( keys %{$p_updates} ) {
+                            $received_order->set_columns($p_updates);
+                            $received_order->update;
+                        }
                         transfer_items( $schema, $line, $order,
                             $received_order );
                         receipt_items( $schema, $line,
@@ -319,6 +326,11 @@ sub process_invoice {
                         $order->invoiceid($invoiceid);
                         $order->unitprice($price);
                         $order->orderstatus('complete');
+                        my $p_updates = update_price_from_invoice( $order,
+                            $invoice_message->vendor_id );
+                        foreach my $col ( keys %{$p_updates} ) {
+                            $order->set_column( $col, $p_updates->{$col} );
+                        }
                         $order->update;
                         receipt_items( $schema, $line, $ordernumber );
                     }
@@ -350,6 +362,44 @@ sub _get_invoiced_price {
         }
     }
     return $price;
+}
+
+sub update_price_from_invoice {
+    my $ord          = shift;
+    my $booksellerid = shift;
+
+    # wrapper around populate_order_with_prices as we are using dbic Row objects
+    my $ord_hash_ref = {
+        discount               => $ord->discount,
+        tax_rate_on_receiving  => $ord->tax_rate_on_receiving,
+        tax_value_on_receiving => $ord->tax_value_on_receiving,
+        tax_rate               => $ord->tax_rate_bak,
+        unitprice              => $ord->unitprice,
+        ecost_tax_included     => $ord->ecost_tax_included,
+        ecost_tax_excluded     => $ord->ecost_tax_excluded,
+        unitprice_tax_included => $ord->unitprice_tax_included,
+        unitprice_tax_excluded => $ord->unitprice_tax_excluded,
+        quantity               => $ord->quantity,
+    };
+    my %pre_hash = %{$ord_hash_ref};
+    $ord_hash_ref = populate_order_with_prices(
+        {
+            order        => $ord_hash_ref,
+            booksellerid => $booksellerid,
+            receiving    => 1,
+        }
+    );
+    foreach my $k ( keys %pre_hash ) {
+        if ( !defined $ord_hash_ref->{$k}
+            || $ord_hash_ref->{$k} == $pre_hash{$k} )
+        {
+            delete $ord_hash_ref->{$k};
+        }
+    }
+    delete $ord_hash_ref->{quantity};
+    delete $ord_hash_ref->{discount};
+
+    return $ord_hash_ref;
 }
 
 sub receipt_items {
@@ -579,22 +629,26 @@ sub quote_item {
         }
         $order_quantity = 1;    # attempts to create an orderline for each gir
     }
-    my $vendor = Koha::Acquisition::Booksellers->find( $quote->vendor_id );
+    my $vendor = $schema->resultset('Aqbookseller')->find( $quote->vendor_id );
+    my $ecost = _discounted_price( $quote->vendor->discount,
+            $item->price_info, $item->price_info_inclusive );
 
     # database definitions should set some of these defaults but dont
     my $order_hash = {
         biblionumber       => $bib->{biblionumber},
         entrydate          => DateTime->now( time_zone => 'local' )->ymd(),
         basketno           => $basketno,
-        listprice          => $item->price,
+        listprice          => $item->price_info,
         quantity           => $order_quantity,
         quantityreceived   => 0,
         order_vendornote   => q{},
         order_internalnote => $order_note,
-        replacementprice   => $item->price,
-        rrp_tax_included   => $item->price,
-        rrp_tax_excluded   => $item->price,
-        ecost => _discounted_price( $quote->vendor->discount, $item->price ),
+        replacementprice   => $item->price_info,
+        rrp_tax_included   => $item->price_info,
+        rrp_tax_excluded   => $item->price_info,
+        ecost              => $ecost,
+        ecost_tax_included => $ecost,
+        discount => $quote->vendor->discount,
         uncertainprice => 0,
         sort1          => q{},
         sort2          => q{},
@@ -805,8 +859,8 @@ sub quote_item {
                         notforloan       => -1,
                         cn_sort          => q{},
                         cn_source        => 'ddc',
-                        price            => $item->price,
-                        replacementprice => $item->price,
+                        price            => $item->price_info,
+                        replacementprice => $item->price_info,
                         itype =>
                           $item->girfield( 'stock_category', $occurrence ),
                         location =>
@@ -850,7 +904,10 @@ sub get_edifact_ean {
 
 # We should not need to have a routine to do this here
 sub _discounted_price {
-    my ( $discount, $price ) = @_;
+    my ( $discount, $price, $discounted_price ) = @_;
+    if (defined $discounted_price) {
+        return $discounted_price;
+    }
     return $price - ( ( $discount * $price ) / 100 );
 }
 
@@ -1000,7 +1057,7 @@ sub _create_item_from_quote {
         cn_sort    => q{},
     };
     $item_hash->{booksellerid} = $quote->vendor_id;
-    $item_hash->{price}        = $item_hash->{replacementprice} = $item->price;
+    $item_hash->{price}        = $item_hash->{replacementprice} = $item->price_info;
     $item_hash->{itype}        = $item->girfield('stock_category');
     $item_hash->{location}     = $item->girfield('collection_code');
 
