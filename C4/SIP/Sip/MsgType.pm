@@ -997,6 +997,8 @@ sub handle_patron_info {
 
         # Custom protocol extension to report patron internet privileges
         $resp .= maybe_add( FID_INET_PROFILE, $patron->inet_privileges );
+        my $icam = $patron->inet_privileges eq 'No Access' ? 'N' : 'Y';
+        $resp .= maybe_add(FID_ICAM_PROFILE, $icam);
 
         my $msg = $patron->screen_msg;
         if( defined( $patron_pwd ) && !$password_rc ) {
