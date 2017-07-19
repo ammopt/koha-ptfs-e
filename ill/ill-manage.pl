@@ -24,10 +24,10 @@ use CGI;
 
 use C4::Auth;
 use C4::Context;
-use C4::Dates;
 use C4::Koha;
 use C4::Members;
 use C4::Output;
+use Koha::DateUtils qw( output_pref dt_from_string );
 use Koha::Libraries;
 use Koha::ILLRequests;
 use Koha::Patrons;
@@ -282,7 +282,10 @@ if ($request) {
             # Validate Date input
             my $new_vals = \%{$cgi->Vars};
             if ( $new_vals->{reply_date} ) {
-                my $dt = C4::Dates->new($new_vals->{reply_date}, 'iso')->output('iso');
+                my $dt = output_pref({
+                    dt => dt_from_string($new_vals->{reply_date}, 'iso'),
+                    dateformat => 'iso'
+                });
                 if ( !$dt ) {
                     $op      = 'message';
                     $template->param (
