@@ -22,7 +22,7 @@ use Carp;
 
 use BLDSS;
 use XML::LibXML;
-use C4::Branch;
+use Koha::Libraries;
 use Koha::ILLRequest::Backend::BLDSS;
 use Koha::ILLRequest::XML::BLDSS;
 use Koha::ILLRequest::Record;
@@ -438,7 +438,7 @@ sub request {
     my ( $self, $params ) = @_;
 
     my $brw = $params->{patron};
-    my $branch = C4::Branch::GetBranchDetail($params->{branch});
+    my $branch = Koha::Libraries->find($params->{branch});
     # Currently hard-coded to BL requirements.  This should instead use
     # methods from the API or config to extract appropriate & required fields.
     my ( $invalid, $delivery ) = Koha::ILLRequest::Backend::BLDSS->new

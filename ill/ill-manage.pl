@@ -23,13 +23,11 @@ use Modern::Perl;
 use CGI;
 
 use C4::Auth;
-use C4::Branch;
 use C4::Context;
 use C4::Dates;
 use C4::Koha;
 use C4::Members;
 use C4::Output;
-use C4::Branch;
 use Koha::Borrowers;
 use Koha::ILLRequests;
 use URI::Escape;
@@ -126,7 +124,7 @@ if ($request) {
                 );
             }
         } else {
-            my $branchdetails = GetBranchDetail(C4::Context->userenv->{'branch'});
+            my $branchdetails = Koha::Libraries->find(C4::Context->userenv->{'branch'});
             my ( $result, $summary ) = $request->place_generic_request(
                 {
                     to          => [ $cgi->param('partners') ],
@@ -269,7 +267,7 @@ if ($request) {
                 whole   => $cgi->param('borrower'),
                 forward => $parent,
             );
-        } elsif ( !GetBranchDetail($cgi->param('branch')) ) {
+        } elsif ( !Koha::Libraries->find($cgi->param('branch')) ) {
             $op      = 'message';
             $template->param (
                 message => 'invalid_branch',

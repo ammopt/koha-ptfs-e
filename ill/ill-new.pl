@@ -20,7 +20,6 @@
 use Modern::Perl;
 use CGI;
 use C4::Auth;
-use C4::Branch;
 use C4::Members;
 use C4::Output;
 use C4::Search qw(GetDistinctValues);
@@ -57,7 +56,7 @@ if ( $input->param('query_type') eq 'manual' ) {
     );
 } elsif ( fail($query, $input->param('branch')) ) {
     $error = { error => "missing_branch", action => $action };
-} elsif ( !GetBranchDetail($input->param('branch')) ) {
+} elsif ( !Koha::Libraries->find($input->param('branch')) ) {
     $error = { error => "invalid_branch", action => $action };
 } elsif ( $brw_count == 0 ) {
     $error = { error => "invalid_borrower", action => $action };

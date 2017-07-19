@@ -22,7 +22,6 @@ use Modern::Perl;
 use CGI;
 
 use C4::Auth;
-use C4::Branch;
 use C4::Context;
 use C4::Koha;
 use C4::Output;
