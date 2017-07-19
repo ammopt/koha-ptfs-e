@@ -26,7 +26,7 @@ use C4::Context;
 use C4::Koha;
 use C4::Output;
 use C4::Search qw(GetDistinctValues);
-use Koha::Borrowers;
+use Koha::Libraries;
 use Koha::ILLRequests;
 use URI::Escape;
 
@@ -97,7 +97,7 @@ $template->param(
     query_type  => $type,
     recv        => $input,
     reply       => $reply,
-    branches    => GetBranchesLoop,
+    branches    => Koha::Libraries->search,
     types       => [ "Book", "Article", "Journal" ],
     statuses    => GetAuthorisedValues( 'ILLSTATUS' ),
 );

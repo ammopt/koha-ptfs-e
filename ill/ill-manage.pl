@@ -28,7 +28,7 @@ use C4::Dates;
 use C4::Koha;
 use C4::Members;
 use C4::Output;
-use Koha::Borrowers;
+use Koha::Libraries;
 use Koha::ILLRequests;
 use URI::Escape;
 
@@ -205,7 +205,7 @@ if ($request) {
 
     } elsif ( $op eq 'edit' ) {
         $template->param(
-            branches => GetBranchesLoop($request->status->getProperty('branch')),
+            branches => Koha::Libraries->search($request->status->getProperty('branch')),
             ill      => $request->getForEditing( { brw => 1 } ),
             title    => $tabs->{$op},
             forward  => "update",

@@ -24,6 +24,7 @@ use C4::Members;
 use C4::Output;
 use C4::Search qw(GetDistinctValues);
 use C4::Context;
+use Koha::Libraries;
 use Koha::ILLRequests;
 use URI::Escape;
 
@@ -155,7 +156,7 @@ $template->param(
     author   => $input->param('author')   || "",
     type     => $input->param('type')     || "",
     recv     => $input,
-    branches => GetBranchesLoop,
+    branches => Koha::Libraries->search,
     reply    => $reply,
     error    => $error,
     debug    => 0,

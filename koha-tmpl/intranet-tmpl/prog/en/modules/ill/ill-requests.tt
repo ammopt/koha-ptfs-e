@@ -183,7 +183,7 @@
                         <select id="branch_filter" name="branch_filter">
                             <option value="" />
                             [% FOREACH branch IN branches %]
-                                <option value="[% branch.value %]">
+                                <option value="[% branch.branchcode %]">
                                     [% branch.branchname %]
                                 </option>
                             [% END %]

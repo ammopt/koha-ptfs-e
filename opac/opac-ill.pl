@@ -26,7 +26,7 @@ use C4::Auth;
 use C4::Context;
 use C4::Koha;
 use C4::Output;
-use Koha::Borrowers;
+use Koha::Libraries;
 use Koha::ILLRequests;
 use URI::Escape;
 
@@ -59,7 +59,7 @@ if ( fail(1) ) {
 
 } elsif ( $op eq 'new' ) {
     $template->param(
-        branches => GetBranchesLoop($borrower->branchcode),
+        branches => Koha::Libraries->search($borrower->branchcode),
         types    => [ "Book", "Article", "Journal" ],
         back     => $here,
         forward  => $here . "?op=search",
@@ -73,7 +73,7 @@ if ( fail(1) ) {
 
 } elsif ( $op eq 'manual' ) {
     $template->param(
-        branches => GetBranchesLoop($borrower->branchcode),
+        branches => Koha::Libraries->search($borrower->branchcode),
         types    => [ "Book", "Article", "Journal" ],
         back     => $here,
         forward  => $here . "?op=manual_action",
