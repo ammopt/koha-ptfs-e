@@ -22,7 +22,7 @@ use warnings;
 use C4::Auth;
 use C4::Output;
 use CGI;
-use Koha::Borrowers;
+use Koha::Patrons;
 use C4::Members qw( GetPatronImage );
 use C4::Members::Attributes qw(GetBorrowerAttributes);
 
@@ -42,7 +42,7 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
 );
 
 # Get borrower Object
-my $borrower = Koha::Borrowers->new()->find($borrowernumber);
+my $borrower = Koha::Patrons->find($borrowernumber);
 
 # Setup normal template params for members pages - This really should be factored out somewhere!
 $template->param( borrower => $borrower );

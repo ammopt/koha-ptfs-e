@@ -20,12 +20,12 @@ package Koha::ILLRequests;
 use Modern::Perl;
 use Carp;
 
-use Koha::Borrowers;
 use Koha::Database;
 use Koha::ILLRequest;
 use Koha::ILLRequest::Abstract;
 use Koha::ILLRequest::Config;
 use Koha::ILLRequest::Status;
+use Koha::Patrons;
 use URI::Escape;
 
 use base qw(Koha::Objects);
@@ -420,7 +420,7 @@ resolution depends on $strategy:
 sub _borrower_from_number {
     my ( $number, $strategy ) = @_;
 
-    my $borrowers = Koha::Borrowers->new;
+    my $borrowers = Koha::Patrons->new;
     my $brws;
     if ( $strategy && 'crd' eq $strategy ) {
         $brws = $borrowers->search( { cardnumber => $number } );

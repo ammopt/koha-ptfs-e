@@ -28,6 +28,7 @@ use C4::Koha;
 use C4::Output;
 use Koha::Libraries;
 use Koha::ILLRequests;
+use Koha::Patrons;
 use URI::Escape;
 
 my $cgi = CGI->new();
@@ -48,7 +49,7 @@ my $query       = $cgi->param('query_value');
 my $here        = "/cgi-bin/koha/opac-ill.pl";
 my $op          = $cgi->param('op') || "";
 my ( $error, $message );
-my $borrower    = Koha::Borrowers->new->find($borrowernumber)
+my $borrower    = Koha::Patrons->find($borrowernumber)
     || die "You're logged in as the database user. We don't support that.";
 
 if ( fail(1) ) {

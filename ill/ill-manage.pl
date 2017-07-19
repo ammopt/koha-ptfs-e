@@ -30,6 +30,7 @@ use C4::Members;
 use C4::Output;
 use Koha::Libraries;
 use Koha::ILLRequests;
+use Koha::Patrons;
 use URI::Escape;
 
 my $cgi = CGI->new;
@@ -194,7 +195,7 @@ if ($request) {
 
     } elsif ( $op eq 'generic_ill') {
         my $ill_code = C4::Context->preference('GenericILLPartners');
-        my @partners = Koha::Borrowers->new->search( { categorycode => $ill_code } );
+        my @partners = Koha::Patrons->search( { categorycode => $ill_code } );
         $template->param(
             draft    => $request->prepare_generic_request,
             partners => \@partners,
@@ -357,7 +358,7 @@ sub validate_partner {
     # Perform cardnumber search.  If no results, perform surname search.
     # Return ( 0, undef ), ( 1, $brw ) or ( n, $brws )
     my $input = shift;
-    my $borrowers = Koha::Borrowers->new;
+    my $borrowers = Koha::Patrons->new;
     my $ill_code = C4::Context->preference('GenericILLPartners');
     my ( $count, $brw );
     my $brws = $borrowers->search( {

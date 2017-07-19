@@ -23,7 +23,6 @@ use Modern::Perl;
 
 use base 'Koha::Service';
 
-use Koha::Borrowers;
 use Koha::Borrower::ILLRequest;
 use Koha::ILLRequests;
 

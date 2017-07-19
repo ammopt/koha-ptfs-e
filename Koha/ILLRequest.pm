@@ -20,11 +20,11 @@ package Koha::ILLRequest;
 use Modern::Perl;
 use Carp;
 use Encode;
-use Koha::Borrowers;
 use Koha::Database;
 use Koha::Email;
 use Koha::ILLRequest::Status;
 use Koha::ILLRequest::Abstract;
+use Koha::Patrons;
 use Mail::Sendmail;
 use base qw(Koha::Object);
 
@@ -899,7 +899,7 @@ resolution depends on $strategy:
 sub _borrower_from_number {
     my ( $number, $strategy ) = @_;
 
-    my $borrowers = Koha::Borrowers->new;
+    my $borrowers = Koha::Patrons->new;
     my $brws;
     if ( 'crd' eq $strategy ) {
         $brws = $borrowers->search( { cardnumber => $number } );

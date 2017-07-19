@@ -26,6 +26,7 @@ use C4::Search qw(GetDistinctValues);
 use C4::Context;
 use Koha::Libraries;
 use Koha::ILLRequests;
+use Koha::Patrons;
 use URI::Escape;
 
 my $input = CGI->new;
@@ -176,7 +177,7 @@ sub validate_borrower {
     # Perform cardnumber search.  If no results, perform surname search.
     # Return ( 0, undef ), ( 1, $brw ) or ( n, $brws )
     my ( $input, $action ) = @_;
-    my $borrowers = Koha::Borrowers->new;
+    my $borrowers = Koha::Patrons->new;
     my ( $count, $brw );
     my $query = { cardnumber => $input };
     $query = { borrowernumber => $input } if ( $action eq 'search_cont' );
