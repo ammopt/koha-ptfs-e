@@ -60,7 +60,7 @@ if ( fail(1) ) {
 
 } elsif ( $op eq 'new' ) {
     $template->param(
-        branches => Koha::Libraries->search($borrower->branchcode),
+        branches => Koha::Libraries->find($borrower->branchcode),
         types    => [ "Book", "Article", "Journal" ],
         back     => $here,
         forward  => $here . "?op=search",
@@ -74,7 +74,7 @@ if ( fail(1) ) {
 
 } elsif ( $op eq 'manual' ) {
     $template->param(
-        branches => Koha::Libraries->search($borrower->branchcode),
+        branches => Koha::Libraries->find($borrower->branchcode),
         types    => [ "Book", "Article", "Journal" ],
         back     => $here,
         forward  => $here . "?op=manual_action",

@@ -206,7 +206,7 @@ if ($request) {
 
     } elsif ( $op eq 'edit' ) {
         $template->param(
-            branches => Koha::Libraries->search($request->status->getProperty('branch')),
+            branches => Koha::Libraries->find($request->status->getProperty('branch')),
             ill      => $request->getForEditing( { brw => 1 } ),
             title    => $tabs->{$op},
             forward  => "update",
