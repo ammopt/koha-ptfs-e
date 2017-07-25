@@ -879,8 +879,8 @@ sub quote_item {
                         notforloan       => -1,
                         cn_sort          => q{},
                         cn_source        => 'ddc',
-                        price            => $item->price,
-                        replacementprice => $item->price,
+                        price            => $item->price_info,
+                        replacementprice => $item->price_info,
                         itype =>
                           $item->girfield( 'stock_category', $occurrence ),
                         location =>
@@ -1077,7 +1077,7 @@ sub _create_item_from_quote {
         cn_sort    => q{},
     };
     $item_hash->{booksellerid} = $quote->vendor_id;
-    $item_hash->{price}        = $item_hash->{replacementprice} = $item->price;
+    $item_hash->{price}        = $item_hash->{replacementprice} = $item->price_info;
     $item_hash->{itype}        = $item->girfield('stock_category');
     $item_hash->{location}     = $item->girfield('collection_code');
 
