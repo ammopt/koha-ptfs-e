@@ -589,9 +589,16 @@ sub getRecords {
 
                # also, if it's a collection code, use the name instead of the code
                                 if ( $link_value =~ /ccode/ ) {
+                                    my $av = Koha::AuthorisedValues->search(
+                                        {
+                                            category         => 'CCODE',
+                                            authorised_value => $one_facet,
+                                        }
+                                    );
                                     $facet_label_value =
-                                      GetKohaAuthorisedValueLib( 'CCODE',
-                                        $one_facet, $opac );
+                                        $av->count
+                                      ? $av->next->opac_description
+                                      : q{};
                                 }
 
                 # but we're down with the whole label being in the link's title.
