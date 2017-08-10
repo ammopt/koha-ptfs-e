@@ -132,17 +132,17 @@ sub _parseResponse {
     # If clause for unit-testing convenience only. Normally relevant *_props
     # should be passed in $config.
     if ( $config eq "avail" ) {
-        $config = ${$self}{avail_props};
+        $config = $self->{avail_props};
     } elsif ( $config eq "price" ) {
-        $config = ${$self}{price_props};
+        $config = $self->{price_props};
     }
     $accum = {} if ( !$accum ); # initiate $accum if empty.
     foreach my $field ( keys %{$config} ) {
         if ( ref $config->{$field} eq 'ARRAY' ) {
             foreach my $node ($chunk->findnodes($field)) {
                 $accum->{$field} = [] if ( !$accum->{$field} );
-                push @{$accum}{$field},
-                  $self->_parseResponse($node, ${$config}{$field}[0], {});
+                push @{$accum->{$field}},
+                  $self->_parseResponse($node, $config->{$field}[0], {});
             }
         } else {
             my ( $op, $arg ) = ( "findvalue", $field );
@@ -176,7 +176,7 @@ Parse $XML, which should be an API record section, using $REC's configuration.
 
 sub create_from_xml {
     my ( $self, $xml ) = @_;
-    ${$self}{data} = $self->_parseResponse($xml, ${$self}{record_props}, {});
+    $self->{data} = $self->_parseResponse($xml, $self->{record_props}, {});
     return $self;
 }
 
