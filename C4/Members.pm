@@ -30,7 +30,7 @@ use C4::Log; # logaction
 use C4::Overdues;
 use C4::Reserves;
 use C4::Accounts;
-use C4::Biblio;
+use C4::Biblio qw( GetBiblioFromItemNumber );
 use C4::Letters;
 use C4::Members::Attributes qw(SearchIdMatchingAttribute UpdateBorrowerAttribute);
 use C4::NewsChannels; #get slip news
@@ -826,7 +826,7 @@ sub GetMemberAccountRecords {
     my $total = 0;
     while ( my $data = $sth->fetchrow_hashref ) {
         if ( $data->{itemnumber} ) {
-            my $biblio = GetBiblioFromItemNumber( $data->{itemnumber} );
+            my $biblio = C4::Biblio::GetBiblioFromItemNumber( $data->{itemnumber} );
             $data->{biblionumber} = $biblio->{biblionumber};
             $data->{title}        = $biblio->{title};
         }
