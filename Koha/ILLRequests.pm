@@ -175,7 +175,7 @@ sub get_search_string {
     my $userstring = "";
     my @querystring = ();
     my $opts = $self->{opts};
-    while ( my ($type, $value) = each $opts ) {
+    while ( my ($type, $value) = each %{$opts} ) {
         $userstring .= "[" . join(": ", $type, $value) . "]";
         push @querystring, join("=", $type, uri_escape($value));
     }

@@ -867,7 +867,7 @@ following description:
 EOF
 
     my $details = $self->record->getFullDetails;
-    while (my ($key, $values) = each $details) {
+    while (my ($key, $values) = each %{$details}) {
         if (${$values}[1]) {
             $draft->{body} .= "  - " . ${$values}[0]
                 . ": " . ${$values}[1]. "\n";

@@ -137,7 +137,7 @@ sub _parseResponse {
         $config = ${$self}{price_props};
     }
     $accum = {} if ( !$accum ); # initiate $accum if empty.
-    foreach my $field ( keys $config ) {
+    foreach my $field ( keys %{$config} ) {
         if ( ref $config->{$field} eq 'ARRAY' ) {
             foreach my $node ($chunk->findnodes($field)) {
                 $accum->{$field} = [] if ( !$accum->{$field} );
@@ -191,7 +191,7 @@ store operations.
 
 sub create_from_manual_entry {
     my ( $self, $values ) = @_;
-    while ( my ( $id, $properties ) = each $self->{manual_props} ) {
+    while ( my ( $id, $properties ) = each %{$self->{manual_props}} ) {
         $self->manual_property(
             $id, $values->{$id}, $properties->{name}, $properties->{inSummary}
         );
@@ -220,7 +220,7 @@ sub create_from_store {
     }
 
     # Populate dynamic API fields
-    foreach my $field ( keys $self->{record_props} ) {
+    foreach my $field ( keys %{$self->{record_props}} ) {
 
         # populate data from database
         $self->{data}->{$field} = {
@@ -239,7 +239,7 @@ sub create_from_store {
     }
 
     # Populate 'primary values'
-    foreach my $field ( keys $self->{primary_props} ) {
+    foreach my $field ( keys %{$self->{primary_props}} ) {
         $self->{data}->{$field} = {
             value     => $attributes->{$field},
             name      => $self->{primary_props}->{$field}->{name},
@@ -319,7 +319,7 @@ values, if the fields have been defined by the yaml config.
 sub getFullDetails {
     my ( $self, $params ) = @_;
     my $details = {};
-    while ( my ( $key, $value ) = each $self->{data} ) {
+    while ( my ( $key, $value ) = each %{$self->{data}} ) {
         if ( $value->{name} ) {
             $details->{$key} = [ $value->{name}, $value->{value} ]
                 unless ( 'primary_notes_staff' eq $key

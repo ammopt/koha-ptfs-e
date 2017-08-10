@@ -106,7 +106,7 @@ sub _deriveProperties {
     } );
     if ( $prefix ) {
         my $paccum = {};
-        while ( my ($k, $v) = each $accum ) {
+        while ( my ($k, $v) = each %{$accum} ) {
             $paccum->{$prefix . $k} = $v;
         }
         $accum = $paccum;
@@ -124,7 +124,7 @@ sub _recurse {
         ${$args}{accum}{$xpath} =
           [ $self->_deriveProperties(${$args}{tmpl}) ];
     } else {
-        while ( my ($key, $value) = each ${$args}{tmpl} ) {
+        while ( my ($key, $value) = each %{${$args}{tmpl}} ) {
             if ( $key ~~ ${$args}{kwrds} ) {
                 # syntactic keyword entry -> add keyword entry's value to the
                 # current prefix entry in our accumulated results.
@@ -384,7 +384,7 @@ sub _load_configuration {
     my $staff_comments = $from_xml->{staff_request_comments};
     $configuration->{censorship}->{censor_notes_staff} = 1
         if ( $staff_comments && 'hide' eq $staff_comments );
-    my $reply_date = $from_xml->{reply_date};
+    my $reply_date = $from_xml->{reply_date} || 0;
     if ( 'hide' eq $reply_date ) {
         $configuration->{censorship}->{censor_reply_date} = 1;
     } else {
