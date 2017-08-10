@@ -49,21 +49,23 @@ $template->param(
     query_value => $query,
     query_type  => $action,
 );
-my ( $brw_count, $brw ) = validate_borrower($input->param('brw'), $action);
+my ( $brw_count, $brw ) = validate_borrower($input->param('brw') || 0, $action);
 
-if ( $input->param('query_type') eq 'manual' ) {
+my $branch = $input->param('branch');
+
+if ( $action eq 'manual' ) {
     $reply = $illRequests->prepare_manual_entry;
     $template->param(
         forward => 'manual_action',
     );
-} elsif ( fail($query, $input->param('branch')) ) {
+} elsif ( fail($query, $branch) ) {
     $error = { error => "missing_branch", action => $action };
-} elsif ( !Koha::Libraries->find($input->param('branch')) ) {
+} elsif ( !Koha::Libraries->find($branch) ) {
     $error = { error => "invalid_branch", action => $action };
 } elsif ( $brw_count == 0 ) {
     $error = { error => "invalid_borrower", action => $action };
 } elsif ( $brw_count > 1 ) {
-    my $forward = $input->param('query_type');
+    my $forward = $action;
     my %flds = $input->Vars;
     my $flds = {};
     while ( my ( $k, $v ) = each %flds ) {
@@ -75,7 +77,7 @@ if ( $input->param('query_type') eq 'manual' ) {
         flds         => $flds,
         query_type   => 'borrowers',
         borrowers    => $brw,
-        branch       => $input->param('branch'),
+        branch       => $branch,
         surname      => $input->param('brw'),
         forward      => $forward,
         query_value  => $query,
@@ -85,9 +87,9 @@ if ( $input->param('query_type') eq 'manual' ) {
     $opts->{keywords} = $query if ( '' ne $query );
     my $nav_qry = "?query_type=search_cont&query_value=" . uri_escape($query);
     $nav_qry .= "&brw=" . $brw->borrowernumber;
-    $nav_qry .= "&branch=" . $input->param('branch');
+    $nav_qry .= "&branch=" . $branch;
     for my $opt ( qw( isbn issn title author type start_rec max_results ) ) {
-        my $val = $input->param($opt);
+        my $val = $input->param($opt) || ''; # Default to ''
         if ( $val ne '' ) {
             $opts->{$opt} = $val;
             $nav_qry .= "&${opt}=" . uri_escape($val)
@@ -105,7 +107,7 @@ if ( $input->param('query_type') eq 'manual' ) {
         # setup place request url
         my $rq_qry = "?query_type=request";
         $rq_qry .= "&brw=" . $brw->borrowernumber;
-        $rq_qry .= "&branch=" . $input->param('branch');
+        $rq_qry .= "&branch=" . $branch;
         $rq_qry .= "&query_value=";
         # Setup pagers
         my $page_qry = $nav_qry . "&start_rec=";
@@ -177,6 +179,7 @@ sub validate_borrower {
     # Perform cardnumber search.  If no results, perform surname search.
     # Return ( 0, undef ), ( 1, $brw ) or ( n, $brws )
     my ( $input, $action ) = @_;
+    return undef if !$input;
     my $borrowers = Koha::Patrons->new;
     my ( $count, $brw );
     my $query = { cardnumber => $input };
