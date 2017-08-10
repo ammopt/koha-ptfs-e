@@ -94,10 +94,10 @@ sub validate_delivery_input {
     if ( 'digital' eq $formats->{$fmt} ) {
         my $target = $brw->email || "";
         if ( 'branch' eq $recipient ) {
-            if ( $brn->{branchreplyto} ) {
-                $target = $brn->{branchreplyto};
+            if ( $brn->branchreplyto ) {
+                $target = $brn->branchreplyto;
             } else {
-                $target = $brn->{branchemail};
+                $target = $brn->branchemail;
             }
         }
         die "Digital delivery: invalid $recipient type email address."
@@ -106,8 +106,8 @@ sub validate_delivery_input {
     } elsif ( 'physical' eq $formats->{$fmt} ) {
         # Country
         $delivery->{Address}->{Country} = country2code(
-            $brn->{branchcountry}, LOCALE_CODE_ALPHA_3
-        ) || die "Invalid country in branch record: $brn->{branchcountry}.";
+            $brn->branchcountry, LOCALE_CODE_ALPHA_3
+        ) || die "Invalid country in branch record: $brn->branchcountry.";
         # Mandatory Fields
         my $mandatory_fields = {
             AddressLine1  => "branchaddress1",
@@ -116,18 +116,18 @@ sub validate_delivery_input {
         };
         while ( my ( $bl_field, $k_field ) = each %{$mandatory_fields} ) {
             die "Physical delivery requested, but branch missing $k_field."
-                if ( !$brn->{$k_field} or "" eq $brn->{$k_field} );
-            $delivery->{Address}->{$bl_field} = $brn->{$k_field};
+                if ( !$brn->$k_field or "" eq $brn->$k_field );
+            $delivery->{Address}->{$bl_field} = $brn->$k_field;
         }
         # Optional Fields
         my $optional_fields = {
             AddressLine2     => "branchaddress2",
             AddressLine3     => "branchaddress3",
             CountyOrState    => "branchstate",
-            ProvinceOrRegion => "",
+            # ProvinceOrRegion => "", # Not mapped in Koha
         };
         while ( my ( $bl_field, $k_field ) = each %{$optional_fields} ) {
-            $delivery->{Address}->{$bl_field} = $brn->{$k_field} || "";
+            $delivery->{Address}->{$bl_field} = $brn->$k_field || "";
         }
     } else {
         die "Unknown service type: $fmt."
