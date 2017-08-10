@@ -47,6 +47,9 @@ my ( $template, $borrowernumber, $cookie ) = get_template_and_user( {
     flagsrequired => { ill => '*' },
 } );
 
+my $branch = $input->param('branch');
+my $patron = $input->param('brw');
+
 if ( 'manual_action' eq $type ) {
     my %flds = $input->Vars;
     my $flds = {};
@@ -59,13 +62,11 @@ if ( 'manual_action' eq $type ) {
     push(@{$reply}, $request->getSummary( { brw => 1 } )) if ( $request );
     $type = 'request';
 
-} elsif ( $type eq 'request' and $query
-         and $input->param('brw')
-         and $input->param('branch') ) {
+} elsif ( $type eq 'request' and $query and $patron and $branch ) {
     my $request = $illRequests->request( {
         uin      => $query,
-        branch   => $input->param('branch'),
-        borrower => $input->param('brw'),
+        branch   => $branch,
+        borrower => $patron,
     } );
     push(@{$reply}, $request->getSummary( { brw => 1 } )) if ($request);
 
