@@ -125,7 +125,7 @@ sub _recurse {
           [ $self->_deriveProperties(${$args}{tmpl}) ];
     } else {
         while ( my ($key, $value) = each %{${$args}{tmpl}} ) {
-            if ( $key ~~ ${$args}{kwrds} ) {
+            if ( grep { $key eq $_ } @{$args->{kwrds}} ) {
                 # syntactic keyword entry -> add keyword entry's value to the
                 # current prefix entry in our accumulated results.
                 if ( $key eq "inSummary" ) {
