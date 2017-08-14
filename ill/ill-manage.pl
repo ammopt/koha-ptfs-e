@@ -233,7 +233,7 @@ if ($request) {
             $op      = 'message';
             $template->param (
                 message => $avail->{status},
-                whole   => $request,
+                whole   => $avail,
                 forward => $parent,
             );
         } else {
