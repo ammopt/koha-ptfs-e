@@ -129,9 +129,9 @@ if ($request) {
             my ( $result, $summary ) = $request->place_generic_request(
                 {
                     to          => [ $cgi->param('partners') ],
-                    from        => $branchdetails->{'branchemail'},
-                    replyto     => $branchdetails->{'branchreplyto'},
-                    sender      => $branchdetails->{'branchreturnpath'},
+                    from        => $branchdetails->branchemail,
+                    replyto     => $branchdetails->branchreplyto,
+                    sender      => $branchdetails->branchreturnpath,
                     subject     => Encode::encode( "utf8", $cgi->param('subject') ),
                     message     => Encode::encode( "utf8", $cgi->param('body') ),
                     contenttype => 'text/plain; charset="utf8"',
