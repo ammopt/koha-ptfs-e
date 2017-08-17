@@ -159,7 +159,7 @@ $template->param(
     author   => $input->param('author')   || "",
     type     => $input->param('type')     || "",
     recv     => $input,
-    branches => Koha::Libraries->search,
+    branches => scalar Koha::Libraries->search,
     reply    => $reply,
     error    => $error,
     debug    => 0,
