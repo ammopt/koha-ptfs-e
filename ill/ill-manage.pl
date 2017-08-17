@@ -52,6 +52,7 @@ my $here    = "/cgi-bin/koha/ill/ill-manage.pl";
 my $tab_url = $here . "?rq=" . $rq . "&op=";
 my $parent  = "/cgi-bin/koha/ill/ill-requests.pl";
 my $tabs = {};
+my $branch = $cgi->param('branch');
 
 $request = $illRequests->find($rq) if ($rq);
 
@@ -121,7 +122,7 @@ if ($request) {
                         body    => $cgi->param('body')
                     },
                     select       => $partner,
-                    branch       => $cgi->param('branch'),
+                    branch       => $branch,
                 );
             }
         } else {
@@ -268,11 +269,11 @@ if ($request) {
                 whole   => $cgi->param('borrower'),
                 forward => $parent,
             );
-        } elsif ( !Koha::Libraries->find($cgi->param('branch')) ) {
+        } elsif ( !Koha::Libraries->find($branch) ) {
             $op      = 'message';
             $template->param (
                 message => 'invalid_branch',
-                whole   => $cgi->param('branch'),
+                whole   => $branch,
                 forward => $parent,
             );
 
