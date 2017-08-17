@@ -23,7 +23,7 @@ use C4::Auth;
 use C4::Output;
 use CGI;
 use Koha::Patrons;
-use C4::Members qw( GetPatronImage );
+use Koha::Patron::Images;
 use C4::Members::Attributes qw(GetBorrowerAttributes);
 
 my $input = CGI->new();
@@ -43,14 +43,18 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
 
 # Get borrower Object
 my $borrower = Koha::Patrons->find($borrowernumber);
+my $unblessed_borrower = $borrower->unblessed;
+$unblessed_borrower->{category_type} = $borrower->category->category_type;
+# Set informations for the patron
+foreach my $key ( keys %{$unblessed_borrower} ) {
+    $template->param( $key => $unblessed_borrower->{$key} );
+}
 
 # Setup normal template params for members pages - This really should be factored out somewhere!
-$template->param( borrower => $borrower );
+$template->param( borrower => $unblessed_borrower );
 
-my ( $picture, $dberror ) = GetPatronImage( $borrower->cardnumber );
-if ($picture) {
-    $template->param( picture => 1 );
-}
+my $patron_image = Koha::Patron::Images->find($borrowernumber);
+$template->param( picture => 1 ) if $patron_image;
 
 if ( C4::Context->preference('ExtendedPatronAttributes') ) {
     my $attributes = GetBorrowerAttributes($borrowernumber);
