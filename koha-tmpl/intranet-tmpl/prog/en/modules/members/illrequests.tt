@@ -2,7 +2,7 @@
 <title>ILL Requests for [% INCLUDE 'patron-title.inc' %]</title>
 [% INCLUDE 'doc-head-close.inc' %]
 <script src="[% interface %]/lib/angular/angular.min.js"></script>
-<script src="[% interface %]/prog/[% lang %]/js/pages/ill.js"></script>
+<script src="[% themelang %]/js/pages/ill.js"></script>
 <script>
   angular.module('preloaded', [])
     .constant('preloaded', { borrowernumber: [% borrowernumber %] })
