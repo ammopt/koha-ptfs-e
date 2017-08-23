@@ -292,6 +292,11 @@ sub process_invoice {
                     if ($tax_rate && $tax_rate->{rate} != 0) {
                        $tax_rate->{rate} /= 100;
                     }
+                    elsif (!defined $tax_rate ) {
+                        $tax_rate = {
+                            rate => 0,
+                        };
+                    }
 
                     if ( $order->quantity > $line->quantity ) {
                         my $ordered = $order->quantity;
@@ -310,6 +315,7 @@ sub process_invoice {
                                 invoiceid        => $invoiceid,
                                 datereceived     => $msg_date,
                                 tax_rate_on_receiving => $tax_rate->{rate},
+                                tax_rate_bak     => $tax_rate->{rate},
                             }
                         );
                         my $p_updates =
@@ -631,6 +637,10 @@ sub quote_item {
         sort1          => q{},
         sort2          => q{},
         currency       => $vendor->listprice(),
+        tax_value_bak  => 0,
+        tax_value_on_ordering => 0,
+        tax_rate_bak   => 0,
+        tax_rate_on_ordering => 0,
     };
 
     # suppliers references
