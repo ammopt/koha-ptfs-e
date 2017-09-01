@@ -40,7 +40,7 @@ use Koha::Acquisition::Booksellers;
 
 our $VERSION = 1.1;
 our @EXPORT_OK =
-  qw( process_quote process_invoice process_ordrsp create_edi_order get_edifact_ean );
+  qw( process_quote process_invoice process_ordrsp create_edi_order get_edifact_ean reprocess_quote );
 
 sub create_edi_order {
     my $parameters = shift;
@@ -557,6 +557,7 @@ sub process_quote {
             }
             else {
                 $quote->basketno($basketno);
+                $quote->update;
             }
             $logger->trace("Created basket :$basketno");
             my $items  = $msg->lineitems();
@@ -737,6 +738,12 @@ sub quote_item {
 
         if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
             $item_hash = _create_item_from_quote( $item, $quote );
+	    if ($item_hash->{homebranch}) {
+		    my $b = $schema->resultset('Branch')->search({ branchcode => $item_hash->{homebranch}});
+		    if ($b == 0) {
+			    $item_hash->{homebranch} = $item_hash->{holdingbranch} = undef;
+		    }
+	    }
 
             my $created = 0;
             while ( $created < $order_quantity ) {
@@ -881,8 +888,14 @@ sub quote_item {
                         holdingbranch =>
                           $item->girfield( 'branch', $occurrence ),
                         homebranch => $item->girfield( 'branch', $occurrence ),
-                    };
-                    my $itemnumber;
+		    };
+		    if ($new_item->{homebranch}) {
+			    my $b = $schema->resultset('Branch')->search({ branchcode => $new_item->{homebranch}});
+			    if ($b == 0) {
+				    $new_item->{homebranch} = $new_item->{holdingbranch} = undef;
+			    }
+		    }
+		    my $itemnumber;
                     ( undef, undef, $itemnumber ) =
                       AddItem( $new_item, $bib->{biblionumber} );
                     $logger->trace("New item $itemnumber added");
@@ -1082,6 +1095,101 @@ sub _create_item_from_quote {
     return $item_hash;
 }
 
+sub reprocess_quote {
+    my $quote = shift;
+    my $first_ean = shift;
+
+    $quote->status('processing');
+    $quote->update;
+
+    my $edi = Koha::Edifact->new( { transmission => $quote->raw_msg, } );
+
+    my $messages       = $edi->message_array();
+    my $process_errors = 0;
+    my $logger         = Log::Log4perl->get_logger();
+    my $schema         = Koha::Database->new()->schema();
+    my $message_count  = 0;
+    my @added_baskets;    # if auto & multiple baskets need to order all
+    my $continue_basket = $quote->basketno->basketno;
+    my $processing_started = 0;
+
+    if ( @{$messages} && $quote->vendor_id ) {
+        foreach my $msg ( @{$messages} ) {
+            ++$message_count;
+            my $basketno;
+            if ($continue_basket) {
+		$basketno = $continue_basket;
+                undef $continue_basket;
+            }
+            else {
+            $basketno =
+              NewBasket( $quote->vendor_id, 0, $quote->filename, q{},
+                q{} . q{} );
+            }
+            push @added_baskets, $basketno;
+            if ( $message_count > 1 ) {
+                my $m_filename = $quote->filename;
+                $m_filename .= "_$message_count";
+                $schema->resultset('EdifactMessage')->create(
+                    {
+                        message_type  => $quote->message_type,
+                        transfer_date => $quote->transfer_date,
+                        vendor_id     => $quote->vendor_id,
+                        edi_acct      => $quote->edi_acct,
+                        status        => 'recmsg',
+                        basketno      => $basketno,
+                        raw_msg       => q{},
+                        filename      => $m_filename,
+                    }
+                );
+            }
+            else {
+                $quote->basketno($basketno);
+                $quote->update;
+            }
+            $logger->trace("Processing basket :$basketno");
+            my $items  = $msg->lineitems();
+            my $refnum = $msg->message_refno;
+
+            for my $item ( @{$items} ) {
+                if ($item->item_number_id() eq $first_ean) {
+			$processing_started = 1;
+                }
+                if ($processing_started) {
+                if ( !quote_item( $item, $quote, $basketno ) ) {
+                    ++$process_errors;
+                }
+                }
+            }
+        }
+    }
+    my $status = 'received';
+    if ($process_errors) {
+        $status = 'error';
+    }
+
+    $quote->status($status);
+    $quote->update;    # status and basketno link
+                       # Do we automatically generate orders for this vendor
+    my $v = $schema->resultset('VendorEdiAccount')->search(
+        {
+            vendor_id => $quote->vendor_id,
+        }
+    )->single;
+    if ( $v->auto_orders ) {
+        for my $b (@added_baskets) {
+            create_edi_order(
+                {
+
+                    basketno => $b,
+                }
+            );
+            CloseBasket($b);
+        }
+    }
+
+    return;
+}
 1;
 __END__
 
