@@ -532,9 +532,11 @@ sub gir_segments {
     foreach my $item (@onorderitems) {
         my $seg = sprintf 'GIR+%03d', $sequence_no;
         $seg .= add_gir_identity_number( 'LFN', $budget_code );
-        if ( $basket->effective_create_items eq 'ordering' ) {
+        if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
+            if ($item->homebranch ) {
             $seg .=
               add_gir_identity_number( 'LLO', $item->homebranch->branchcode );
+            }
             $seg .= add_gir_identity_number( 'LST', $item->itype );
             $seg .= add_gir_identity_number( 'LSQ', $item->location );
             $seg .= add_gir_identity_number( 'LSM', $item->itemcallnumber );
