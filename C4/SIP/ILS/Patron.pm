@@ -27,6 +27,7 @@ use C4::Auth qw(checkpw);
 use Koha::Items;
 use Koha::Libraries;
 use Koha::Patrons;
+use DBI;
 
 our $kp;    # koha patron
 
@@ -105,7 +106,7 @@ sub new {
         fine_items      => [],
         recall_items    => [],
         unavail_holds   => [],
-        inet            => ( !$debarred && !$expired ),
+        inet            => GetBorrowerAttributeLib($kp->{borrowernumber}, 'INTPERM'),
         expired         => $expired,
         fee_limit       => $fee_limit,
         userid          => $kp->{userid},
@@ -122,7 +123,7 @@ sub new {
             $ilspatron{screen_msg} .= " -- " . $flags->{$_}->{message};  # show all but internal NOTES
         }
         if ($flags->{$_}->{noissues}) {
-            foreach my $toggle (qw(charge_ok renew_ok recall_ok hold_ok inet)) {
+            foreach my $toggle (qw(charge_ok renew_ok recall_ok hold_ok )) {
                 $ilspatron{$toggle} = 0;    # if we get noissues, disable everything
             }
         }
@@ -382,7 +383,7 @@ sub unavail_holds {
 
 sub block {
     my ($self, $card_retained, $blocked_card_msg) = @_;
-    foreach my $field ('charge_ok', 'renew_ok', 'recall_ok', 'hold_ok', 'inet') {
+    foreach my $field ('charge_ok', 'renew_ok', 'recall_ok', 'hold_ok') {
         $self->{$field} = 0;
     }
     $self->{screen_msg} = "Block feature not implemented";  # $blocked_card_msg || "Card Blocked.  Please contact library staff";
@@ -392,7 +393,7 @@ sub block {
 
 sub enable {
     my $self = shift;
-    foreach my $field ('charge_ok', 'renew_ok', 'recall_ok', 'hold_ok', 'inet') {
+    foreach my $field ('charge_ok', 'renew_ok', 'recall_ok', 'hold_ok') {
         $self->{$field} = 1;
     }
     syslog("LOG_DEBUG", "Patron(%s)->enable: charge: %s, renew:%s, recall:%s, hold:%s",
@@ -404,7 +405,7 @@ sub enable {
 
 sub inet_privileges {
     my $self = shift;
-    return $self->{inet} ? 'Y' : 'N';
+    return $self->{inet};
 }
 
 sub _fee_limit {
@@ -544,8 +545,22 @@ sub build_patron_attributes_string {
     return $string;
 }
 
+# Members/Attrubutes does not have a subroutine to retrieve lib
+sub GetBorrowerAttributeLib {
+    my $borrowernumber = shift;
+    my $code = shift;
+
+    my $dbh = C4::Context->dbh();
+    my $query = 'SELECT lib
+                 FROM borrower_attributes
+                 WHERE borrowernumber = ?
+                 AND code = ?';
+    my $value = $dbh->selectrow_array($query, undef, $borrowernumber, $code);
+    return $value;
+}
+
+
 1;
-__END__
 
 =head1 EXAMPLES
 
