@@ -1109,6 +1109,18 @@
         </xsl:for-each>
         </xsl:if>
 
+ <xsl:if test="marc:datafield[@tag=942]">
+ <span class="results_summary lborosuppress">
+ <span class="label">Suppressed on OPAC: </span>
+ <xsl:for-each select="marc:datafield[@tag=942]">
+ <xsl:call-template name="subfieldSelect">
+ <xsl:with-param name="codes">n</xsl:with-param>
+ </xsl:call-template>
+ <xsl:choose><xsl:when test="position()=last()"><xsl:text></xsl:text></xsl:when><xsl:otherwise><xsl:text>; </xsl:text></xsl:otherwise></xsl:choose>
+ </xsl:for-each>
+ </span>
+ </xsl:if>
+
         <xsl:if test="$OPACBaseURL!=''">
         <span class="results_summary"><span class="label">OPAC view: </span>
             <a><xsl:attribute name="href"><xsl:value-of select="$OPACBaseURL"/>/cgi-bin/koha/opac-detail.pl?biblionumber=<xsl:value-of select="marc:datafield[@tag=999]/marc:subfield[@code='c']"/></xsl:attribute><xsl:attribute name="target">_blank</xsl:attribute>Open in new window</a>.
