@@ -274,6 +274,7 @@
                     } else {
                         colObj.data = thisCol
                     }
+                    colObj.defaultContent = "";
                     colData.push(colObj);
                 });
 
