@@ -356,14 +356,16 @@ sub order_line {
 
     # PIA isbn or other id
     my @identifiers;
-    foreach my $id_string ( $biblioitem->ean, $biblioitem->issn, $biblioitem->isbn ) {
-        my @ids = split /\s*\|\s*/, $id_string;
-        foreach my $id (@ids) {
+    foreach my $id_field ( $biblioitem->ean, $biblioitem->issn, $biblioitem->isbn ) {
+	    if ($id_field) {
+		    my @ids = split /\s*\|\s*/, $id_field;
+		    foreach my $id (@ids) {
 
-            if ( $id && $id ne $id_string ) {
-                push @identifiers, $id;
-            }
-        }
+			    if ( $id && $id ne $id_string ) {
+				    push @identifiers, $id;
+			    }
+		    }
+	    }
     }
     $self->add_seg( additional_product_id( join( ' ', @identifiers ) ) );
 
