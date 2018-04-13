@@ -14,10 +14,12 @@
                 "items": {
                     "type": "string",
                     "enum": [
+                        "status_alias",
                         "patron",
                         "library",
                         "capabilities",
-                        "metadata"
+                        "metadata",
+                        "requested_partners"
                     ]
                 }
             }, {
@@ -52,6 +54,18 @@
                 "description": "A full status string e.g. REQREV",
                 "required": false,
                 "type": "string"
+            }, {
+                "name": "cost",
+                "in": "query",
+                "description": "The quoted cost of the request",
+                "required": false,
+                "type": "number"
+            }, {
+                "name": "price_paid",
+                "in": "query",
+                "description": "The final cost of the request",
+                "required": false,
+                "type": "number"
             }, {
                 "name": "medium",
                 "in": "query",
