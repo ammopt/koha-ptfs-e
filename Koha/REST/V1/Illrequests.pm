@@ -21,6 +21,7 @@ use Mojo::Base 'Mojolicious::Controller';
 
 use Koha::Illrequests;
 use Koha::Libraries;
+use Koha::DateUtils qw( format_sqldatetime );
 
 =head1 NAME
 
@@ -40,6 +41,7 @@ sub list {
     my $args = $c->req->params->to_hash // {};
     my $filter;
     my $output = [];
+    my @format_dates = ( 'placed', 'updated' );
 
     # Create a hash where all keys are embedded values
     # Enables easy checking
@@ -54,18 +56,29 @@ sub list {
         $filter->{$filter_param} = \@values;
     }
 
-    my $requests = Koha::Illrequests->search($filter);
+    my @req_list = Koha::Illrequests->search($filter)->as_list;
 
     if ( scalar (keys %embed) )
     {
         # Need to embed stuff
-        my @results = map { $_->TO_JSON(\%embed) } $requests->as_list;
-        return $c->render( status => 200, openapi => \@results );
+        @req_list = map { $_->TO_JSON(\%embed) } @req_list;
     }
-    else
-    {
-        return $c->render( status => 200, openapi => $requests );
+
+    # Format dates as required
+    foreach(@req_list) {
+        foreach my $field(@format_dates) {
+            if (defined $_->{$field}) {
+                $_->{$field . "_formatted"} = format_sqldatetime(
+                    $_->{$field},
+                    undef,
+                    undef,
+                    1
+                );
+            }
+        }
     }
+
+    return $c->render( status => 200, openapi => \@req_list );
 }
 
 1;

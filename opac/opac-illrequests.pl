@@ -50,7 +50,8 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user({
 });
 
 # Are we able to actually work?
-my $backends = Koha::Illrequest::Config->new->available_backends;
+my $reduced  = C4::Context->preference('ILLOpacbackends');
+my $backends = Koha::Illrequest::Config->new->available_backends($reduced);
 my $backends_available = ( scalar @{$backends} > 0 );
 $template->param( backends_available => $backends_available );
 
@@ -61,10 +62,9 @@ if ( $op eq 'list' ) {
     my $requests = Koha::Illrequests->search(
         { borrowernumber => $loggedinuser }
     );
-    my $req = Koha::Illrequest->new;
     $template->param(
         requests => $requests,
-        backends    => $req->available_backends
+        backends    => $backends
     );
 
 } elsif ( $op eq 'view') {
@@ -85,8 +85,8 @@ if ( $op eq 'list' ) {
     print $query->redirect(
         '/cgi-bin/koha/opac-illrequests.pl?method=view&illrequest_id=' .
         $params->{illrequest_id} .
-        '&message=1'
-    );
+        '&message=1');
+    exit;
 } elsif ( $op eq 'cancreq') {
     my $request = Koha::Illrequests->find({
         borrowernumber => $loggedinuser,
@@ -96,8 +96,8 @@ if ( $op eq 'list' ) {
     print $query->redirect(
         '/cgi-bin/koha/opac-illrequests.pl?method=view&illrequest_id=' .
         $params->{illrequest_id} .
-        '&message=1'
-    );
+        '&message=1');
+    exit;
 
 } elsif ( $op eq 'create' ) {
     if (!$params->{backend}) {
@@ -111,16 +111,26 @@ if ( $op eq 'list' ) {
         $params->{cardnumber} = Koha::Patrons->find({
             borrowernumber => $loggedinuser
         })->cardnumber;
+        $params->{opac} = 1;
         my $backend_result = $request->backend_create($params);
-        $template->param(
-            media       => [ "Book", "Article", "Journal" ],
-            branches    => Koha::Libraries->search->unblessed,
-            whole       => $backend_result,
-            request     => $request
-        );
-        if ($backend_result->{stage} eq 'commit') {
-            print $query->redirect('/cgi-bin/koha/opac-illrequests.pl?message=2');
+        if ($backend_result->{stage} eq 'copyrightclearance') {
+            $template->param(
+                stage       => $backend_result->{stage},
+                whole       => $backend_result
+            );
+        } else {
+            $template->param(
+                media       => [ "Book", "Article", "Journal" ],
+                branches    => Koha::Libraries->search->unblessed,
+                whole       => $backend_result,
+                request     => $request
+            );
+            if ($backend_result->{stage} eq 'commit') {
+                print $query->redirect('/cgi-bin/koha/opac-illrequests.pl?message=2');
+                exit;
+            }
         }
+
     }
 }
 

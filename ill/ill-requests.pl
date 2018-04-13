@@ -61,7 +61,6 @@ if ( $backends_available ) {
     if ( $op eq 'illview' ) {
         # View the details of an ILL
         my $request = Koha::Illrequests->find($params->{illrequest_id});
-
         $template->param(
             request => $request
         );
@@ -75,6 +74,28 @@ if ( $backends_available ) {
             request => $request
         );
         handle_commit_maybe($backend_result, $request);
+
+    } elsif ( $op eq 'migrate' ) {
+        # We're in the process of migrating a request
+        my $request = Koha::Illrequests->find($params->{illrequest_id});
+        my $backend_result;
+        if ( $params->{backend} ) {
+            my $new_request = Koha::Illrequest->new->load_backend( $params->{backend} );
+            $backend_result = $new_request->backend_migrate($params);
+            $template->param(
+                whole   => $backend_result,
+                request => $new_request
+            );
+        }
+        else {
+           $request = Koha::Illrequests->find( $params->{illrequest_id} );
+           $backend_result = $request->backend_migrate($params);
+           $template->param(
+               whole   => $backend_result,
+               request => $request
+           );
+        }
+        handle_commit_maybe( $backend_result, $request );
 
     } elsif ( $op eq 'confirm' ) {
         # Backend 'confirm' method
@@ -119,8 +140,11 @@ if ( $backends_available ) {
                 value   => {}
             };
             $template->param(
-                whole   => $backend_result,
-                request => $request
+                whole          => $backend_result,
+                request        => $request,
+                status_aliases => scalar Koha::AuthorisedValues->search(
+                    { category => 'ILLSTATUS' }
+                )
             );
         } else {
             # Commit:
@@ -128,8 +152,13 @@ if ( $backends_available ) {
             $request->borrowernumber($params->{borrowernumber});
             $request->biblio_id($params->{biblio_id});
             $request->branchcode($params->{branchcode});
+            $request->price_paid($params->{price_paid});
             $request->notesopac($params->{notesopac});
             $request->notesstaff($params->{notesstaff});
+            my $alias = ($params->{status_alias} =~ /\d/) ?
+                $params->{status_alias} :
+                undef;
+            $request->status_alias($alias);
             $request->store;
             my $backend_result = {
                 error   => 0,
@@ -223,13 +252,12 @@ if ( $backends_available ) {
         my $active_filters = [];
         foreach my $filter(@{$possible_filters}) {
             if ($params->{$filter}) {
-                push @{$active_filters},
-                    { name => $filter, value => $params->{$filter}};
+                push @{$active_filters}, "$filter=$params->{$filter}";
             }
         }
         if (scalar @{$active_filters} > 0) {
             $template->param(
-                prefilters => $active_filters
+                prefilters => join(",", @{$active_filters})
             );
         }
     } else {
@@ -264,6 +292,14 @@ sub handle_commit_maybe {
                 '/cgi-bin/koha/ill/ill-requests.pl?method=illview&illrequest_id='.
                 $request->id
             );
+            exit;
+        } elsif ( $backend_result->{next} eq 'emigrate' ) {
+            # Redirect to a view of the newly created request
+            print $cgi->redirect(
+                '/cgi-bin/koha/ill/ill-requests.pl?method=migrate&stage=emigrate&illrequest_id='.
+                $request->id
+            );
+            exit;
         } else {
             # Redirect to a requests list view
             redirect_to_list();

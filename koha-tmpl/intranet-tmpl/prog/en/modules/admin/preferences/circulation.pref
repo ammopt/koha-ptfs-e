@@ -715,6 +715,18 @@ Circulation:
             - pref: ILLModuleCopyrightClearance
               type: textarea
               class: long
+        -
+            - Allow unmediated Interlibrary loan requests
+            - pref: ILLModuleUnmediated
+              default: 0
+              choices:
+                  yes: Enable
+                  no: Disable
+        -
+            - "ILL backends to enabled for OPAC initiated requests:"
+            - pref: ILLOpacbackends
+              class: multi
+            - (separated with |).
     Fines Policy:
         -
             - Calculate fines based on days overdue

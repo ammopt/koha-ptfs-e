@@ -1,0 +1,50 @@
+[% USE Branches %]
+[% USE Koha %]
+[% USE KohaDates %]
+
+[% INCLUDE 'doc-head-open.inc' %]
+<title>Koha &rsaquo; Patrons &rsaquo; ILL requests for [% INCLUDE 'patron-title.inc' no_html = 1 %]</title>
+[% INCLUDE 'doc-head-close.inc' %]
+[% Asset.js("lib/jquery/plugins/jquery.checkboxes.min.js") %]
+[% Asset.css("css/datatables.css") %]
+[% INCLUDE 'datatables.inc' %]
+<script type="text/javascript">
+    // Date format for datepickers
+    var dateMap = {
+        dmydot: 'dd.mm.yy',
+        iso: 'yy-mm-dd',
+        metric: 'dd/mm/yy',
+        us: 'mm/dd/yy'
+    };
+    var dateFormat = dateMap['[% Koha.Preference('dateformat') %]'];
+</script>
+<script type="text/javascript" src="[% interface %]/[% theme %]/js/ill-list-table.js"></script>
+</head>
+
+<body id="pat_ill_requests">
+    [% INCLUDE 'header.inc' %]
+    [% INCLUDE 'patron-search.inc' %]
+
+    <div id="breadcrumbs">
+        <a href="/cgi-bin/koha/mainpage.pl">Home</a>
+        &rsaquo; <a href="/cgi-bin/koha/members/members-home.pl">Patrons</a>
+        &rsaquo; ILL requests for [% INCLUDE 'patron-title.inc' %]
+    </div>
+
+    <div id="doc3" class="yui-t1">
+
+    <div id="bd">
+        <div id="yui-main">
+            <div class="yui-b">
+                <div class="yui-g">
+                    <h2>ILL requests</h2>
+                    [% INCLUDE 'ill-list-table.inc' %]
+                </div>
+            </div>
+        </div>
+        <div class="yui-b">
+            [% INCLUDE 'circ-menu.inc' %]
+        </div>
+    </div>
+
+[% INCLUDE 'intranet-bottom.inc' %]

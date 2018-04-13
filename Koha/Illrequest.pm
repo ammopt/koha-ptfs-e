@@ -1,6 +1,6 @@
 package Koha::Illrequest;
 
-# Copyright PTFS Europe 2016
+# Copyright PTFS Europe 2016,2018
 #
 # This file is part of Koha.
 #
@@ -30,6 +30,8 @@ use Koha::Database;
 use Koha::Email;
 use Koha::Exceptions::Ill;
 use Koha::Illrequestattributes;
+use Koha::AuthorisedValue;
+use Koha::Illrequest::Logger;
 use Koha::Patron;
 
 use base qw(Koha::Object);
@@ -108,6 +110,19 @@ available for request.
 
 =head2 Class methods
 
+=head3 statusalias
+
+=cut
+
+sub statusalias {
+    my ( $self ) = @_;
+    return $self->status_alias ?
+        Koha::AuthorisedValue->_new_from_dbic(
+            scalar $self->_result->status_alias
+        ) :
+        undef;
+}
+
 =head3 illrequestattributes
 
 =cut
@@ -119,6 +134,16 @@ sub illrequestattributes {
     );
 }
 
+=head3 logs
+
+=cut
+
+sub logs {
+    my ( $self ) = @_;
+    my $logger = Koha::Illrequest::Logger->new;
+    return $logger->get_request_logs($self);
+}
+
 =head3 patron
 
 =cut
@@ -128,6 +153,22 @@ sub patron {
     return Koha::Patron->_new_from_dbic(
         scalar $self->_result->borrowernumber
     );
+}
+
+=head3 status
+
+Overloaded getter/setter for request status,
+also nullifies status_alias
+
+=cut
+
+sub status {
+    my ( $self, $newval) = @_;
+    if ($newval) {
+        $self->status_alias(undef);
+        return $self->SUPER::status($newval);
+    }
+    return $self->SUPER::status;
 }
 
 =head3 load_backend
@@ -151,7 +192,10 @@ sub load_backend {
     my $location = join "/", @raw, $backend_name, "Base.pm";    # File to load
     my $backend_class = join "::", @raw, $backend_name, "Base"; # Package name
     require $location;
-    $self->{_my_backend} = $backend_class->new({ config => $self->_config });
+    $self->{_my_backend} = $backend_class->new({
+        config => $self->_config,
+        logger => Koha::Illrequest::Logger->new
+    });
     return $self;
 }
 
@@ -197,12 +241,14 @@ capabilities & custom_capability and their callers.
 sub _backend_capability {
     my ( $self, $name, $args ) = @_;
     my $capability = 0;
+    # See if capability is defined in backend
     try {
         $capability = $self->_backend->capabilities($name);
     } catch {
         return 0;
     };
-    if ( $capability ) {
+    # Try to invoke it
+    if ( $capability && ref($capability) eq 'CODE' ) {
         return &{$capability}($args);
     } else {
         return 0;
@@ -515,6 +561,22 @@ sub mark_completed {
     };
 }
 
+=head2 backend_migrate
+
+Migrate a request from one backend to another.
+
+=cut
+
+sub backend_migrate {
+    my ( $self, $params ) = @_;
+
+    my $response = $self->_backend->migrate({
+            request    => $self,
+            other      => $params,
+        });
+    return $self->expandTemplate($response);
+}
+
 =head2 backend_confirm
 
 Confirm a request. The backend handles setting of mandatory fields in the commit stage:
@@ -600,23 +662,24 @@ sub backend_create {
     my ( $self, $params ) = @_;
 
     # Establish whether we need to do a generic copyright clearance.
-    if ( ( !$params->{stage} || $params->{stage} eq 'init' )
-             && C4::Context->preference("ILLModuleCopyrightClearance") ) {
-        return {
-            error   => 0,
-            status  => '',
-            message => '',
-            method  => 'create',
-            stage   => 'copyrightclearance',
-            value   => {
-                backend => $self->_backend->name
-            }
-        };
-    } elsif (     defined $params->{stage}
-               && $params->{stage} eq 'copyrightclearance' ) {
-        $params->{stage} = 'init';
+    if ($params->{opac}) {
+        if ( ( !$params->{stage} || $params->{stage} eq 'init' )
+                && C4::Context->preference("ILLModuleCopyrightClearance") ) {
+            return {
+                error   => 0,
+                status  => '',
+                message => '',
+                method  => 'create',
+                stage   => 'copyrightclearance',
+                value   => {
+                    backend => $self->_backend->name
+                }
+            };
+        } elsif (     defined $params->{stage}
+                && $params->{stage} eq 'copyrightclearance' ) {
+            $params->{stage} = 'init';
+        }
     }
-
     # First perform API action, then...
     my $args = {
         request => $self,
@@ -644,6 +707,20 @@ sub backend_create {
 
     # ...Updating status!
     $self->status('QUEUED')->store unless ( $permitted );
+
+    ## Handle Unmediated ILLs
+
+    # For the unmediated workflow we only need to delegate to our backend. If
+    # that backend supports unmediateld_ill, it will do its thing and return a
+    # proper response.  If it doesn't then _backend_capability returns 0, so
+    # we keep the current result.
+    if ( C4::Context->preference("ILLModuleUnmediated") && $permitted ) {
+        my $unmediated_result = $self->_backend_capability(
+            'unmediated_ill',
+            $args
+        );
+        $result = $unmediated_result if $unmediated_result;
+    }
 
     return $self->expandTemplate($result);
 }
@@ -920,6 +997,13 @@ EOF
         my $result = sendmail(%mail);
         if ( $result ) {
             $self->status("GENREQ")->store;
+            $self->_backend_capability(
+                'set_requested_partners',
+                {
+                    request => $self,
+                    to => $to
+                }
+            );
             return {
                 error   => 0,
                 status  => '',
@@ -984,6 +1068,81 @@ sub _censor {
     return $params;
 }
 
+=head3 requested_partners
+
+    my $partners_string = $illRequest->requested_partners;
+
+Return the string representing the email addresses of the parters to
+whom a request has been sent
+
+=cut
+
+sub requested_partners {
+    my ( $self ) = @_;
+    return $self->_backend_capability(
+        'get_requested_partners',
+        { request => $self }
+    );
+}
+
+=head3 status
+
+    $Illrequest->status('CANREQ');
+
+Overloaded I<status> method that, in addition to setting the request status
+records the fact that the status has changed
+
+=cut
+
+sub status {
+    my ( $self, $new_status ) = @_;
+
+    my $current_status = $self->SUPER::status;
+
+    if ($new_status) {
+        # Keep a record of the previous status before we change it,
+        # we might need it
+        $self->{previous_status} = $current_status;
+        my $ret = $self->SUPER::status($new_status)->store;
+        if ($ret) {
+            my $logger = Koha::Illrequest::Logger->new;
+            $logger->log_status_change(
+                $self,
+                $new_status
+            );
+        } else {
+            delete $self->{previous_status};
+        }
+        return $ret;
+    } else {
+        return $current_status;
+    }
+}
+
+=head3 store
+
+    $Illrequest->store;
+
+Overloaded I<store> method that, in addition to performing the 'store',
+possibly records the fact that something happened
+
+=cut
+
+sub store {
+    my ( $self, $attrs ) = @_;
+
+    my $ret = $self->SUPER::store;
+
+    $attrs->{log_origin} = 'core';
+
+    if ($ret && defined $attrs) {
+        my $logger = Koha::Illrequest::Logger->new;
+        $logger->log_maybe($self, $attrs);
+    }
+
+    return $ret;
+}
+
 =head3 TO_JSON
 
     $json = $illrequest->TO_JSON
@@ -1000,6 +1159,11 @@ sub TO_JSON {
     $object->{id_prefix} = $self->id_prefix;
 
     if ( scalar (keys %$embed) ) {
+        # Augment the request response with statusalias details if
+        # appropriate
+        if ( $embed->{status_alias}) {
+            $object->{status_alias} = $self->statusalias;
+        }
         # Augment the request response with patron details if appropriate
         if ( $embed->{patron} ) {
             my $patron = $self->patron;
@@ -1023,6 +1187,11 @@ sub TO_JSON {
                 $self->branchcode
             )->TO_JSON;
         }
+        # Augment the request response with requested partner details
+        # if appropriate
+        if ( $embed->{requested_partners} ) {
+            $object->{requested_partners} = $self->requested_partners;
+        }
     }
 
     return $object;
@@ -1041,6 +1210,7 @@ sub _type {
 =head1 AUTHOR
 
 Alex Sassmannshausen <alex.sassmannshausen@ptfs-europe.com>
+Andrew Isherwood <andrew.isherwood@ptfs-europe.com>
 
 =cut
 

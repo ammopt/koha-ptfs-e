@@ -4141,6 +4141,7 @@ CREATE TABLE illrequests (
     biblio_id integer DEFAULT NULL,             -- Potential bib linked to request
     branchcode varchar(50) NOT NULL,            -- The branch associated with the request
     status varchar(50) DEFAULT NULL,            -- Current Koha status of request
+    status_alias integer DEFAULT NULL,          -- Foreign key to relevant authorised_values.id
     placed date DEFAULT NULL,                   -- Date the request was placed
     replied date DEFAULT NULL,                  -- Last API response
     updated timestamp DEFAULT CURRENT_TIMESTAMP -- Last modification to request
@@ -4148,9 +4149,10 @@ CREATE TABLE illrequests (
     completed date DEFAULT NULL,                -- Date the request was completed
     medium varchar(30) DEFAULT NULL,            -- The Koha request type
     accessurl varchar(500) DEFAULT NULL,        -- Potential URL for accessing item
-    cost varchar(20) DEFAULT NULL,              -- Cost of request
-    notesopac text DEFAULT NULL,                -- Patron notes attached to request
-    notesstaff text DEFAULT NULL,               -- Staff notes attached to request
+    cost varchar(20) DEFAULT NULL,              -- Quotes cost of request
+    price_paid varchar(20) DEFAULT NULL,              -- Final cost of request
+    notesopac MEDIUMTEXT DEFAULT NULL,                -- Patron notes attached to request
+    notesstaff MEDIUMTEXT DEFAULT NULL,               -- Staff notes attached to request
     orderid varchar(50) DEFAULT NULL,           -- Backend id attached to request
     backend varchar(20) DEFAULT NULL,           -- The backend used to create request
     CONSTRAINT `illrequests_bnfk`
@@ -4161,6 +4163,10 @@ CREATE TABLE illrequests (
       FOREIGN KEY (`branchcode`)
       REFERENCES `branches` (`branchcode`)
       ON UPDATE CASCADE ON DELETE CASCADE
+    CONSTRAINT `illrequests_safk`
+      FOREIGN KEY (`status_alias`)
+      REFERENCES `authorised_values` (`id`)
+      ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
@@ -4171,8 +4177,9 @@ DROP TABLE IF EXISTS `illrequestattributes`;
 CREATE TABLE illrequestattributes (
     illrequest_id bigint(20) unsigned NOT NULL, -- ILL request number
     type varchar(200) NOT NULL,                 -- API ILL property name
-    value text NOT NULL,                        -- API ILL property value
-    PRIMARY KEY  (`illrequest_id`,`type`),
+    value MEDIUMTEXT NOT NULL,                  -- API ILL property value
+    readonly tinyint(1) NOT NULL DEFAULT 1,     -- Is this attribute read only
+    PRIMARY KEY  (`illrequest_id`, `type` (191)),
     CONSTRAINT `illrequestattributes_ifk`
       FOREIGN KEY (illrequest_id)
       REFERENCES `illrequests` (`illrequest_id`)
