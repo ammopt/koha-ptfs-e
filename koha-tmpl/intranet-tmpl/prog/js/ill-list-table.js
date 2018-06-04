@@ -7,7 +7,7 @@ $(document).ready(function() {
     // Filters that are active
     var activeFilters = {};
 
-    $('#illfilter_dateplaced, #illfilter_datemodified').datepicker(
+    $('#illfilter_dateplaced_start, #illfilter_dateplaced_end, #illfilter_datemodified_start, #illfilter_datemodified_end').datepicker(
         'option', 'dateFormat', dateFormat
     );
 
@@ -149,43 +149,13 @@ $(document).ready(function() {
             }
         },
         dateModified: {
-            listener: function() {
-                var me = 'dateModified';
-                $('#illfilter_datemodified').change(function() {
-                    var val = $('#illfilter_datemodified').val();
-                    if (val && val.length > 0) {
-                        activeFilters[me] = function() {
-                            table.column(11).search(val);
-                        }
-                    } else {
-                        if (activeFilters.hasOwnProperty(me)) {
-                            delete activeFilters[me];
-                        }
-                    }
-                });
-            },
             clear: function() {
-                $('#illfilter_datemodified').val('');
+                $('#illfilter_datemodified_start, #illfilter_datemodified_end').val('');
             }
         },
         datePlaced: {
-            listener: function() {
-                var me = 'datePlaced';
-                $('#illfilter_dateplaced').change(function() {
-                    var val = $('#illfilter_dateplaced').val();
-                    if (val && val.length > 0) {
-                        activeFilters[me] = function() {
-                            table.column(9).search(val);
-                        }
-                    } else {
-                        if (activeFilters.hasOwnProperty(me)) {
-                            delete activeFilters[me];
-                        }
-                    }
-                });
-            },
             clear: function() {
-                $('#illfilter_dateplaced').val('');
+                $('#illfilter_dateplaced_start, #illfilter_dateplaced_end').val('');
             }
         }
     };
@@ -489,6 +459,33 @@ $(document).ready(function() {
                     }
                 }
             }));
+
+			// Custom date range filtering
+			$.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+				var placedStart = $('#illfilter_dateplaced_start').datepicker('getDate');
+				var placedEnd = $('#illfilter_dateplaced_end').datepicker('getDate');
+				var modifiedStart = $('#illfilter_datemodified_start').datepicker('getDate');
+				var modifiedEnd = $('#illfilter_datemodified_end').datepicker('getDate');
+				var rowPlaced = data[8] ? new Date(data[8]) : null;
+				var rowModified = data[10] ? new Date(data[10]) : null;
+				var placedPassed = true;
+				var modifiedPassed = true;
+				if (placedStart && rowPlaced && rowPlaced < placedStart) {
+					placedPassed = false
+				};
+				if (placedEnd && rowPlaced && rowPlaced > placedEnd) {
+					placedPassed = false;
+				}
+				if (modifiedStart && rowModified && rowModified < modifiedStart) {
+					modifiedPassed = false
+				};
+				if (modifiedEnd && rowModified && rowModified > modifiedEnd) {
+					modifiedPassed = false;
+				}
+
+				return placedPassed && modifiedPassed;
+
+			});
         }
     );
 
