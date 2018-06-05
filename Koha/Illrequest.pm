@@ -155,22 +155,6 @@ sub patron {
     );
 }
 
-=head3 status
-
-Overloaded getter/setter for request status,
-also nullifies status_alias
-
-=cut
-
-sub status {
-    my ( $self, $newval) = @_;
-    if ($newval) {
-        $self->status_alias(undef);
-        return $self->SUPER::status($newval);
-    }
-    return $self->SUPER::status;
-}
-
 =head3 load_backend
 
 Require "Base.pm" from the relevant ILL backend.
@@ -1090,7 +1074,7 @@ sub requested_partners {
     $Illrequest->status('CANREQ');
 
 Overloaded I<status> method that, in addition to setting the request status
-records the fact that the status has changed
+records the fact that the status has changed, also nullifies status_alias
 
 =cut
 
@@ -1100,6 +1084,7 @@ sub status {
     my $current_status = $self->SUPER::status;
 
     if ($new_status) {
+        $self->status_alias(undef);
         # Keep a record of the previous status before we change it,
         # we might need it
         $self->{previous_status} = $current_status;
