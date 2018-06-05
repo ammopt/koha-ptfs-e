@@ -17,6 +17,7 @@
         us: 'mm/dd/yy'
     };
     var dateFormat = dateMap['[% Koha.Preference('dateformat') %]'];
+    var prefilters = '[% prefilters %]';
 </script>
 <script type="text/javascript" src="[% interface %]/[% theme %]/js/ill-list-table.js"></script>
 </head>
@@ -31,19 +32,21 @@
         &rsaquo; ILL requests for [% INCLUDE 'patron-title.inc' %]
     </div>
 
-    <div id="doc3" class="yui-t1">
-
-    <div id="bd">
-        <div id="yui-main">
-            <div class="yui-b">
-                <div class="yui-g">
-                    <h2>ILL requests</h2>
-                    [% INCLUDE 'ill-list-table.inc' %]
+    <div id="doc3" class="yui-t2">
+        <div id="bd">
+            <div id="yui-main">
+                <div class="yui-b">
+                </div>
+                <div class="yui-main">
+                    <div class="yui-b">
+                        <h2>ILL requests</h2>
+                        [% INCLUDE 'ill-list-table.inc' %]
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="yui-b">
-            [% INCLUDE 'circ-menu.inc' %]
+            <div class="yui-b">
+                [% INCLUDE 'circ-menu.inc' %]
+            </div>
         </div>
     </div>
 
