@@ -40,6 +40,7 @@ $(document).ready(function() {
         'metadata_Author',
         'metadata_Title',
         'borrowername',
+        'borroweruserid',
         'patron_cardnumber',
         'biblio_id',
         'library',
@@ -83,7 +84,7 @@ $(document).ready(function() {
                     var sel = $('#illfilter_status option:selected').val();
                     if (sel && sel.length > 0) {
                         activeFilters[me] = function() {
-                            table.column(6).search(sel);
+                            table.column(7).search(sel);
                         }
                     } else {
                         if (activeFilters.hasOwnProperty(me)) {
@@ -115,7 +116,7 @@ $(document).ready(function() {
                     var sel = $('#illfilter_branchname option:selected').val();
                     if (sel && sel.length > 0) {
                         activeFilters[me] = function() {
-                            table.column(5).search(sel);
+                            table.column(6).search(sel);
                         }
                     } else {
                         if (activeFilters.hasOwnProperty(me)) {
@@ -135,7 +136,7 @@ $(document).ready(function() {
                     var val = $('#illfilter_barcode').val();
                     if (val && val.length > 0) {
                         activeFilters[me] = function() {
-                            table.column(3).search(val);
+                            table.column(4).search(val);
                         }
                     } else {
                         if (activeFilters.hasOwnProperty(me)) {
@@ -213,14 +214,23 @@ $(document).ready(function() {
         return value;
     };
 
-    // Our 'render' function for borrowerlink
-    var createPatronLink = function(data, type, row) {
+    // Our 'render' function for patron name
+    var createPatronName = function(data, type, row) {
         return '<a title="' + _("View borrower details") + '" ' +
             'href="/cgi-bin/koha/members/moremember.pl?' +
             'borrowernumber='+row.borrowernumber+'">' +
             row.patron_firstname + ' ' + row.patron_surname +
             '</a>';
     };
+
+        // Our 'render' function for patron userid
+        var createPatronUserID = function(data, type, row) {
+            return '<a title="' + _("View borrower details") + '" ' +
+                'href="/cgi-bin/koha/members/moremember.pl?' +
+                'borrowernumber='+row.borrowernumber+'">' +
+                row.patron_userid +
+                '</a>';
+        };
 
     // Our 'render' function for biblio_id
     var createBiblioLink = function(data, type, row) {
@@ -308,8 +318,12 @@ $(document).ready(function() {
             func: createActionLink
         },
         borrowername: {
-            name: _("Patron"),
-            func: createPatronLink
+            name: _("Patron name"),
+            func: createPatronName
+        },
+        borroweruserid: {
+            name: _("Patron username"),
+            func: createPatronUserID
         },
         illrequest_id: {
             name: _("Request number"),
@@ -429,15 +443,15 @@ $(document).ready(function() {
 					{ // When sorting 'placed', we want to use the
 						// unformatted column
 						'aTargets': [ 'placed_formatted'],
-						'iDataSort':8
+						'iDataSort':9
 					},
 					{ // When sorting 'updated', we want to use the
 						// unformatted column
 						'aTargets': [ 'updated_formatted'],
-						'iDataSort': 10
+						'iDataSort': 11
 					}
                 ],
-                'aaSorting': [[ 9, 'desc' ]], // Default sort, updated descending
+                'aaSorting': [[ 10, 'desc' ]], // Default sort, updated descending
                 'processing': true, // Display a message when manipulating
                 'iDisplayLength': 10, // 10 results per page
                 'sPaginationType': "full_numbers", // Pagination display
@@ -468,8 +482,8 @@ $(document).ready(function() {
 				var placedEnd = $('#illfilter_dateplaced_end').datepicker('getDate');
 				var modifiedStart = $('#illfilter_datemodified_start').datepicker('getDate');
 				var modifiedEnd = $('#illfilter_datemodified_end').datepicker('getDate');
-				var rowPlaced = data[8] ? new Date(data[8]) : null;
-				var rowModified = data[10] ? new Date(data[10]) : null;
+				var rowPlaced = data[9] ? new Date(data[9]) : null;
+				var rowModified = data[11] ? new Date(data[11]) : null;
 				var placedPassed = true;
 				var modifiedPassed = true;
 				if (placedStart && rowPlaced && rowPlaced < placedStart) {

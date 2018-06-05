@@ -4,6 +4,7 @@
             <th>Author</th>
             <th>Title</th>
             <th>Patron name</th>
+            <th>Patron username</th>
             <th>Patron barcode</th>
             <th>Biblio ID</th>
             <th>Library</th>
