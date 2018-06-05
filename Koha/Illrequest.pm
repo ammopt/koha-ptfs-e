@@ -1155,7 +1155,8 @@ sub TO_JSON {
             $object->{patron} = {
                 firstname  => $patron->firstname,
                 surname    => $patron->surname,
-                cardnumber => $patron->cardnumber
+                cardnumber => $patron->cardnumber,
+                userid     => $patron->userid
             };
         }
         # Augment the request response with metadata details if appropriate
