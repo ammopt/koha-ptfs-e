@@ -373,9 +373,11 @@ $(document).ready(function() {
 
     // Get our data from the API and process it prior to passing
     // it to datatables
-    var ajax = $.ajax(
-        '/api/v1/illrequests?embed=requested_partners,metadata,patron,capabilities,library,status_alias'
-        ).done(function() {
+    var url = '/api/v1/illrequests?embed=requested_partners,metadata,patron,capabilities,library,status_alias';
+    if (typeof prefilters != 'undefined' && prefilters.length > 0) {
+        url += '&' + prefilters;
+    }
+    var ajax = $.ajax(url).done(function() {
             var data = JSON.parse(ajax.responseText);
             // Make a copy, we'll be removing columns next and need
             // to be able to refer to data that has been removed
