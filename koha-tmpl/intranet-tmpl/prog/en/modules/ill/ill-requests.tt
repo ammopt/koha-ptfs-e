@@ -18,6 +18,7 @@
         us: 'mm/dd/yy'
     };
     var dateFormat = dateMap['[% Koha.Preference('dateformat') %]'];
+    var prefilters = '[% prefilters %]';
 </script>
 <script type="text/javascript" src="[% interface %]/[% theme %]/js/ill-list-table.js"></script>
 </head>
