@@ -127,7 +127,7 @@
                                     <td>[% request.metadata.Author || 'N/A' %]</td>
                                     <td>[% request.metadata.Title || 'N/A' %]</td>
                                     <td>[% request.backend %]</td>
-                                    <td>[% request.medium %]</td>
+                                    <td>[% request.getType %]</td>
                                     <td>[% request.status_alias ? request.statusalias.authorised_value : request.capabilities.$status.name %]</td>
                                     <td>[% request.placed %]</td>
                                     <td>[% request.updated %]</td>
@@ -166,7 +166,7 @@
                                     </li>
                                     <li>
                                         <label for="medium">Request type:</label>
-                                        [% request.medium %]
+                                        [% request.getType %]
                                     </li>
                                     <li>
                                         <label for="placed">Request placed:</label>
