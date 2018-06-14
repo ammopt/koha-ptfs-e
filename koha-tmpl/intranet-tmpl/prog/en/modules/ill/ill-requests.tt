@@ -230,7 +230,7 @@
                                 </li>
                                 <li class="medium">
                                     <label class="medium">Request type:</label>
-                                    [% request.medium %]
+                                    [% request.getType %]
                                 </li>
                                 <li class="cost">
                                     <label class="cost">Cost:</label>
@@ -375,7 +375,7 @@
                                 </div>
                                 <div class="medium">
                                     <span class="label medium">Request type:</span>
-                                    [% request.medium %]
+                                    [% request.getType %]
                                 </div>
                                 <div class="cost">
                                     <span class="label cost">Cost:</span>
