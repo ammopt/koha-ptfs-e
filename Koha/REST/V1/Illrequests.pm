@@ -20,8 +20,10 @@ use Modern::Perl;
 use Mojo::Base 'Mojolicious::Controller';
 
 use Koha::Illrequests;
+use Koha::Illrequestattributes;
 use Koha::Libraries;
-use Koha::DateUtils qw( format_sqldatetime );
+use Koha::Patrons;
+use Koha::Libraries;
 
 =head1 NAME
 
@@ -39,37 +41,118 @@ sub list {
     my $c = shift->openapi->valid_input or return;
 
     my $args = $c->req->params->to_hash // {};
-    my $filter;
-    my $output = [];
-    my @format_dates = ( 'placed', 'updated' );
+	my @format_dates = ( 'placed', 'updated' );
 
     # Create a hash where all keys are embedded values
     # Enables easy checking
     my %embed;
+    my $args_arr = (ref $args->{embed} eq 'ARRAY') ? $args->{embed} : [ $args->{embed} ];
     if (defined $args->{embed}) {
-        %embed = map { $_ => 1 }  @{$args->{embed}};
+        %embed = map { $_ => 1 }  @{$args_arr};
         delete $args->{embed};
     }
 
-    for my $filter_param ( keys %$args ) {
-        my @values = split(/,/, $args->{$filter_param});
-        $filter->{$filter_param} = \@values;
+    my $requests = Koha::Illrequests->unblessed;
+
+    # Identify patrons & branches that
+    # we're going to need and get them
+    my $to_fetch = {};
+    $to_fetch->{patrons} = {} if $embed{patron};
+    $to_fetch->{branches} = {} if $embed{library};
+    $to_fetch->{capabilities} = {} if $embed{capabilities};
+    foreach my $req(@{$requests}) {
+        $to_fetch->{patrons}->{$req->{borrowernumber}} = 1 if $embed{patron};
+        $to_fetch->{branches}->{$req->{branchcode}} = 1 if $embed{library};
+        $to_fetch->{capabilities}->{$req->{backend}} = 1 if $embed{capabilities};
     }
 
-    my @req_list = Koha::Illrequests->search($filter)->as_list;
-
-    if ( scalar (keys %embed) )
-    {
-        # Need to embed stuff
-        @req_list = map { $_->TO_JSON(\%embed) } @req_list;
+    # Fetch the patrons we need
+    my $patron_arr = [];
+    if ($embed{patron}) {
+        my @patron_ids = keys %{$to_fetch->{patrons}};
+        if (scalar @patron_ids > 0) {
+            my $where = {
+                borrowernumber => { -in => \@patron_ids }
+            };
+            $patron_arr = Koha::Patrons->search($where)->unblessed;
+        }
     }
 
-    # Format dates as required
-    foreach(@req_list) {
+    # Fetch the branches we need
+    my $branch_arr = [];
+    if ($embed{library}) {
+        my @branchcodes = keys %{$to_fetch->{branches}};
+        if (scalar @branchcodes > 0) {
+            my $where = {
+                branchcode => { -in => \@branchcodes }
+            };
+            $branch_arr = Koha::Libraries->search($where)->unblessed;
+        }
+    }
+
+    # Fetch the capabilities we need
+    if ($embed{capabilities}) {
+        my @backends = keys %{$to_fetch->{capabilities}};
+        if (scalar @backends > 0) {
+            foreach my $bc(@backends) {
+                my $backend = Koha::Illrequest->new->load_backend($bc);
+                $to_fetch->{$bc} = $backend->capabilities;
+            }
+        }
+    }
+
+
+    # Now we've got all associated users and branches,
+    # we can augment the request objects
+    foreach my $req(@{$requests}) {
+        my $r = Koha::Illrequests->new->find($req->{illrequest_id});
+        $req->{id_prefix} = $r->id_prefix;
+        # Augment the request response with statusalias details if
+        # appropriate
+        if ($embed{status_alias}) {
+            $req->{status_alias} = $r->statusalias;
+        }
+        # Augment the request response with requested partner details
+        # if appropriate
+        if ($embed{requested_partners}) {
+            $req->{requested_partners} = $r->requested_partners;
+        }
+        foreach my $p(@{$patron_arr}) {
+            if ($p->{borrowernumber} == $req->{borrowernumber}) {
+                $req->{patron} = {
+                    firstname  => $p->{firstname},
+                    surname    => $p->{surname},
+                    cardnumber => $p->{cardnumber},
+					userid     => $p->{userid}
+                };
+                last;
+            }
+        }
+        foreach my $b(@{$branch_arr}) {
+            if ($b->{branchcode} eq $req->{branchcode}) {
+                $req->{library} = $b;
+                last;
+            }
+        }
+        if ($embed{metadata}) {
+            my $metadata = Koha::Illrequestattributes->search(
+                { illrequest_id => $req->{illrequest_id} },
+                { columns => [qw/type value/] }
+            )->unblessed;
+            my $meta_hash = {};
+            foreach my $meta(@{$metadata}) {
+                $meta_hash->{$meta->{type}} = $meta->{value};
+            }
+            $req->{metadata} = $meta_hash;
+        }
+        if ($embed{capabilities}) {
+            $req->{capabilities} = $to_fetch->{$req->{backend}};
+        }
+		# Format dates as required
         foreach my $field(@format_dates) {
-            if (defined $_->{$field}) {
-                $_->{$field . "_formatted"} = format_sqldatetime(
-                    $_->{$field},
+            if (defined $req->{$field}) {
+                $req->{$field . "_formatted"} = format_sqldatetime(
+                    $req->{$field},
                     undef,
                     undef,
                     1
@@ -78,7 +161,7 @@ sub list {
         }
     }
 
-    return $c->render( status => 200, openapi => \@req_list );
+    return $c->render( status => 200, openapi => $requests );
 }
 
 1;

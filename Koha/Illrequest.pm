@@ -765,8 +765,7 @@ sub getLimits {
 =head3 getPrefix
 
     my $prefix = $abstract->getPrefix( {
-        brw_cat => $brw_cat,
-        branch  => $branch_code,
+        branch  => $branch_code
     } );
 
 Return the ILL prefix as defined by our $params: either per borrower category,
@@ -776,13 +775,8 @@ per branch or the default.
 
 sub getPrefix {
     my ( $self, $params ) = @_;
-    my $brn_prefixes = $self->_config->getPrefixes('branch');
-    my $brw_prefixes = $self->_config->getPrefixes('brw_cat');
-
-    return $brw_prefixes->{$params->{brw_cat}}
-        || $brn_prefixes->{$params->{branch}}
-        || $brw_prefixes->{default}
-        || "";                  # "the empty prefix"
+    my $brn_prefixes = $self->_config->getPrefixes();
+    return $brn_prefixes->{$params->{branch}} || ""; # "the empty prefix"
 }
 
 =head3 getType
@@ -1036,12 +1030,7 @@ file.
 
 sub id_prefix {
     my ( $self ) = @_;
-    my $brw = $self->patron;
-    my $brw_cat = "dummy";
-    $brw_cat = $brw->categorycode
-        unless ( 'HASH' eq ref($brw) && $brw->{deleted} );
     my $prefix = $self->getPrefix( {
-        brw_cat => $brw_cat,
         branch  => $self->branchcode,
     } );
     $prefix .= "-" if ( $prefix );
@@ -1149,6 +1138,10 @@ sub store {
 Overloaded I<TO_JSON> method that takes care of inserting calculated values
 into the unblessed representation of the object.
 
+TODO: This method does nothing and is not called anywhere. However, bug 74325
+touches it, so keeping this for now until both this and bug 74325 are merged,
+at which point we can sort it out and remove it completely
+
 =cut
 
 sub TO_JSON {
@@ -1156,43 +1149,6 @@ sub TO_JSON {
 
     my $object = $self->SUPER::TO_JSON();
     $object->{id_prefix} = $self->id_prefix;
-
-    if ( scalar (keys %$embed) ) {
-        # Augment the request response with statusalias details if
-        # appropriate
-        if ( $embed->{status_alias}) {
-            $object->{status_alias} = $self->statusalias;
-        }
-        # Augment the request response with patron details if appropriate
-        if ( $embed->{patron} ) {
-            my $patron = $self->patron;
-            $object->{patron} = {
-                firstname  => $patron->firstname,
-                surname    => $patron->surname,
-                cardnumber => $patron->cardnumber,
-                userid     => $patron->userid
-            };
-        }
-        # Augment the request response with metadata details if appropriate
-        if ( $embed->{metadata} ) {
-            $object->{metadata} = $self->metadata;
-        }
-        # Augment the request response with status details if appropriate
-        if ( $embed->{capabilities} ) {
-            $object->{capabilities} = $self->capabilities;
-        }
-        # Augment the request response with library details if appropriate
-        if ( $embed->{library} ) {
-            $object->{library} = Koha::Libraries->find(
-                $self->branchcode
-            )->TO_JSON;
-        }
-        # Augment the request response with requested partner details
-        # if appropriate
-        if ( $embed->{requested_partners} ) {
-            $object->{requested_partners} = $self->requested_partners;
-        }
-    }
 
     return $object;
 }
