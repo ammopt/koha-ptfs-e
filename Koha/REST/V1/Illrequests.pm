@@ -53,18 +53,20 @@ sub list {
         delete $args->{embed};
     }
 
-    my $requests = Koha::Illrequests->unblessed;
+    # Get all requests
+    my @requests = Koha::Illrequests->as_list;
 
     # Identify patrons & branches that
     # we're going to need and get them
-    my $to_fetch = {};
-    $to_fetch->{patrons} = {} if $embed{patron};
-    $to_fetch->{branches} = {} if $embed{library};
-    $to_fetch->{capabilities} = {} if $embed{capabilities};
-    foreach my $req(@{$requests}) {
-        $to_fetch->{patrons}->{$req->{borrowernumber}} = 1 if $embed{patron};
-        $to_fetch->{branches}->{$req->{branchcode}} = 1 if $embed{library};
-        $to_fetch->{capabilities}->{$req->{backend}} = 1 if $embed{capabilities};
+    my $to_fetch = {
+        patrons      => {},
+        branches     => {},
+        capabilities => {}
+    };
+    foreach my $req(@requests) {
+        $to_fetch->{patrons}->{$req->borrowernumber} = 1 if $embed{patron};
+        $to_fetch->{branches}->{$req->branchcode} = 1 if $embed{library};
+        $to_fetch->{capabilities}->{$req->backend} = 1 if $embed{capabilities};
     }
 
     # Fetch the patrons we need
@@ -102,25 +104,24 @@ sub list {
         }
     }
 
-
     # Now we've got all associated users and branches,
     # we can augment the request objects
-    foreach my $req(@{$requests}) {
-        my $r = Koha::Illrequests->new->find($req->{illrequest_id});
-        $req->{id_prefix} = $r->id_prefix;
+    my @output = ();
+    foreach my $req(@requests) {
+        my $to_push = $req->unblessed;
         # Augment the request response with statusalias details if
         # appropriate
         if ($embed{status_alias}) {
-            $req->{status_alias} = $r->statusalias;
+            $to_push->{status_alias} = $req->statusalias;
         }
         # Augment the request response with requested partner details
         # if appropriate
         if ($embed{requested_partners}) {
-            $req->{requested_partners} = $r->requested_partners;
+            $to_push->{requested_partners} = $req->requested_partners;
         }
         foreach my $p(@{$patron_arr}) {
-            if ($p->{borrowernumber} == $req->{borrowernumber}) {
-                $req->{patron} = {
+            if ($p->{borrowernumber} == $req->borrowernumber) {
+                $to_push->{patron} = {
                     firstname  => $p->{firstname},
                     surname    => $p->{surname},
                     cardnumber => $p->{cardnumber},
@@ -130,39 +131,40 @@ sub list {
             }
         }
         foreach my $b(@{$branch_arr}) {
-            if ($b->{branchcode} eq $req->{branchcode}) {
-                $req->{library} = $b;
+            if ($b->{branchcode} eq $req->branchcode) {
+                $to_push->{library} = $b;
                 last;
             }
         }
         if ($embed{metadata}) {
             my $metadata = Koha::Illrequestattributes->search(
-                { illrequest_id => $req->{illrequest_id} },
+                { illrequest_id => $req->illrequest_id },
                 { columns => [qw/type value/] }
             )->unblessed;
             my $meta_hash = {};
             foreach my $meta(@{$metadata}) {
                 $meta_hash->{$meta->{type}} = $meta->{value};
             }
-            $req->{metadata} = $meta_hash;
+            $to_push->{metadata} = $meta_hash;
         }
         if ($embed{capabilities}) {
-            $req->{capabilities} = $to_fetch->{$req->{backend}};
+            $to_push->{capabilities} = $to_fetch->{$req->backend};
         }
 		# Format dates as required
         foreach my $field(@format_dates) {
-            if (defined $req->{$field}) {
-                $req->{$field . "_formatted"} = format_sqldatetime(
-                    $req->{$field},
+            if (defined $to_push->{$field}) {
+                $to_push->{$field . "_formatted"} = format_sqldatetime(
+                    $to_push->{$field},
                     undef,
                     undef,
                     1
                 );
             }
         }
+        push @output, $to_push;
     }
 
-    return $c->render( status => 200, openapi => $requests );
+    return $c->render( status => 200, openapi => \@output );
 }
 
 1;
