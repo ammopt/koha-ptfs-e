@@ -24,6 +24,7 @@ use Koha::Illrequestattributes;
 use Koha::Libraries;
 use Koha::Patrons;
 use Koha::Libraries;
+use Koha::DateUtils qw( format_sqldatetime );
 
 =head1 NAME
 
