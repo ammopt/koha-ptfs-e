@@ -1,21 +1,32 @@
 <table id="ill-requests">
     <thead>
         <tr id="illview-header">
-            <th>Author</th>
-            <th>Title</th>
-            <th>Patron name</th>
-            <th>Patron username</th>
-            <th>Patron barcode</th>
-            <th>Biblio ID</th>
-            <th>Library</th>
-            <th>Status</th>
-            <th>Additional status</th>
-			<th class="placed">&nbsp;</th>
-			<th class="placed_formatted">Date placed</th>
-			<th class="updated">&nbsp;</th>
-			<th class="updated_formatted">Updated on</th>
-            <th>Request number</th>
-            <th class="actions"></th>
+			<th scope="col">Request ID</th>
+			<th scope="col">Author</th>
+			<th scope="col">Title</th>
+			<th scope="col">Article title</th>
+			<th scope="col">Issue</th>
+			<th scope="col">Volume</th>
+			<th scope="col">Year</th>
+			<th scope="col">Pages</th>
+			<th scope="col">Type</th>
+			<th scope="col">Order ID</th>
+			<th scope="col">Biblio ID</th>
+			<th scope="col">Patron</th>
+			<th scope="col">Branch</th>
+			<th scope="col">Status</th>
+			<th scope="col">&nbsp;</th>
+			<th scope="col" class="placed_formatted">Placed on</th>
+			<th scope="col">Replied</th>
+			<th scope="col">&nbsp;</th>
+			<th scope="col" class="updated_formatted">Updated on</th>
+			<th scope="col">Completed on</th>
+			<th scope="col">Access URL</th>
+			<th scope="col">Cost</th>
+			<th scope="col">OPAC notes</th>
+			<th scope="col">Staff notes</th>
+			<th scope="col">Backend</th>
+			<th scope="col" class="actions"></th>
         </tr>
     </thead>
     <tbody id="illview-body">

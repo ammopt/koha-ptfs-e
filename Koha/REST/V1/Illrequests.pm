@@ -109,6 +109,8 @@ sub list {
     my @output = ();
     foreach my $req(@requests) {
         my $to_push = $req->unblessed;
+        # Add the id_prefix
+        $to_push->{id_prefix} = $req->id_prefix;
         # Augment the request response with statusalias details if
         # appropriate
         if ($embed{status_alias}) {
