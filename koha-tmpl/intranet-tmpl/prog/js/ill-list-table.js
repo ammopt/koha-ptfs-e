@@ -11,49 +11,16 @@ $(document).ready(function() {
         'option', 'dateFormat', dateFormat
     );
 
-    // Fields we don't want to display
-    var ignore = [
-        'accessurl',
-        'backend',
-        'branchcode',
-        'completed',
-        'capabilities',
-        'cost',
-        'medium',
-        'notesopac',
-        'notesstaff',
-        'replied'
-    ];
-
     // Fields we need to expand (flatten)
     var expand = [
         'metadata',
-        'patron'
+        'patron',
+        'library'
     ];
 
     // Expanded fields
     // This is auto populated
     var expanded = {};
-
-    // The core fields that should be displayed first
-    var core = [
-        'metadata_Author',
-        'metadata_Title',
-        'borrowername',
-        'borroweruserid',
-        'patron_cardnumber',
-        'biblio_id',
-        'library',
-        'status',
-        'additional_status',
-        'placed',
-        'placed_formatted',
-        'updated',
-        'updated_formatted',
-        'illrequest_id',
-        'action'
-    ];
-
 
     // Filterable columns
     var filterable = {
@@ -101,7 +68,7 @@ $(document).ready(function() {
             prep: function(tableData, oData) {
                 var uniques = {};
                 tableData.forEach(function(row) {
-                    uniques[row.library.branchname] = 1
+                    uniques[row.library_branchname] = 1
                 });
                 Object.keys(uniques).sort().forEach(function(unique) {
                     $('#illfilter_branchname').append(
@@ -161,17 +128,6 @@ $(document).ready(function() {
         }
     };
 
-    // Remove any fields we're ignoring
-    var removeIgnore = function(dataObj) {
-        dataObj.forEach(function(thisRow) {
-            ignore.forEach(function(thisIgnore) {
-                if (thisRow.hasOwnProperty(thisIgnore)) {
-                    delete thisRow[thisIgnore];
-                }
-            });
-        });
-    };
-
     // Expand any fields we're expanding
     var expandExpand = function(row) {
         expand.forEach(function(thisExpand) {
@@ -182,7 +138,7 @@ $(document).ready(function() {
                 var expandObj = row[thisExpand];
                 Object.keys(expandObj).forEach(
                     function(thisExpandCol) {
-                        var expColName = thisExpand + '_' + thisExpandCol;
+                        var expColName = thisExpand + '_' + thisExpandCol.replace(/\s/g,'_');
                         // Keep a list of fields that have been expanded
                         // so we can create toggle links for them
                         if (expanded[thisExpand].indexOf(expColName) == -1) {
@@ -198,12 +154,6 @@ $(document).ready(function() {
             }
         });
     };
-
-    // Build a de-duped list of all column names
-    var allCols = {};
-    core.map(function(thisCore) {
-        allCols[thisCore] = 1;
-    });
 
     // Strip the expand prefix if it exists, we do this for display
     var stripPrefix = function(value) {
@@ -223,14 +173,27 @@ $(document).ready(function() {
             '</a>';
     };
 
-        // Our 'render' function for patron userid
-        var createPatronUserID = function(data, type, row) {
-            return '<a title="' + _("View borrower details") + '" ' +
-                'href="/cgi-bin/koha/members/moremember.pl?' +
-                'borrowernumber='+row.borrowernumber+'">' +
-                row.patron_userid +
-                '</a>';
-        };
+    // Render function for type
+    var createType = function(data, type, row) {
+        if (!row.hasOwnProperty('metadata_Type') || !row.metadata_Type) {
+            if (row.hasOwnProperty('medium') && row.medium) {
+                row.metadata_Type = row.medium;
+            } else {
+                row.metadata_Type = null;
+            }
+        }
+        return row.metadata_Type;
+    };
+    
+
+    // Our 'render' function for patron userid
+    var createPatronUserID = function(data, type, row) {
+        return '<a title="' + _("View borrower details") + '" ' +
+            'href="/cgi-bin/koha/members/moremember.pl?' +
+            'borrowernumber='+row.borrowernumber+'">' +
+            row.patron_userid +
+            '</a>';
+    };
 
     // Our 'render' function for biblio_id
     var createBiblioLink = function(data, type, row) {
@@ -249,6 +212,20 @@ $(document).ready(function() {
     // Render function for request ID
     var createRequestId = function(data, type, row) {
         return row.id_prefix + row.illrequest_id;
+    };
+
+    // Render function for title
+    var createTitle = function(data, type, row) {
+        return row.hasOwnProperty('metadata_container_title') ?
+            row.metadata_container_title :
+            row.metadata_title;
+    };
+
+    // Render function for article title
+    var createArticleTitle = function(data, type, row) {
+        return row.hasOwnProperty('metadata_container_title') ?
+            row.metadata_title :
+            '';
     };
 
     // Render function for request status
@@ -314,45 +291,40 @@ $(document).ready(function() {
     // Columns that require special treatment
     var specialCols = {
         action: {
-            name: '',
             func: createActionLink
         },
-        borrowername: {
-            name: _("Patron name"),
+        borrowernumber: {
             func: createPatronName
         },
         borroweruserid: {
-            name: _("Patron username"),
             func: createPatronUserID
         },
         illrequest_id: {
-            name: _("Request number"),
             func: createRequestId
         },
         status: {
-            name: _("Status"),
             func: createStatus
         },
         additional_status: {
-            name: _("Additional status"),
             func: createAdditional
         },
         biblio_id: {
-            name: _("Biblio ID"),
-			func: createBiblioLink
+            func: createBiblioLink
         },
         library: {
-            name: _("Library"),
             func: createLibrary
         },
-        updated: {
-            name: _("Updated on"),
+        metadata_title: {
+            func: createTitle
         },
-        placed: {
-            name: _("Date placed"),
+        metadata_article_title: {
+            func: createArticleTitle
         },
-        patron_cardnumber: {
-            name: _("Patron barcode")
+        metadata_Medium: {
+            func: createType
+        },
+        metadata_Type: {
+            func: createType
         }
     };
 
@@ -396,8 +368,6 @@ $(document).ready(function() {
             // Make a copy, we'll be removing columns next and need
             // to be able to refer to data that has been removed
             var dataCopy = $.extend(true, [], data);
-            // Remove all columns we're not interested in
-            removeIgnore(dataCopy);
             // Expand columns that need it and create an array
             // of all column names
             $.each(dataCopy, function(k, row) {
@@ -407,51 +377,54 @@ $(document).ready(function() {
             // Assemble an array of column definitions for passing
             // to datatables
             var colData = [];
-            Object.keys(allCols).forEach(function(thisCol) {
+            columns_settings.forEach(function(thisCol) {
+                var colName = thisCol.columnname;
                 // Create the base column object
-                var colObj = {
-                    name: thisCol,
-                    className: thisCol,
-                    defaultContent: ''
-                };
+                var colObj = $.extend({}, thisCol);
+                colObj.name = colName;
+                colObj.className = colName;
+                colObj.defaultContent = ''
                 // We may need to process the data going in this
                 // column, so do it if necessary
                 if (
-                    specialCols.hasOwnProperty(thisCol) &&
-                    specialCols[thisCol].hasOwnProperty('func')
+                    specialCols.hasOwnProperty(colName) &&
+                    specialCols[colName].hasOwnProperty('func')
                 ) {
-                    colObj.render = specialCols[thisCol].func;
+                    colObj.render = specialCols[colName].func;
                 } else {
-                    colObj.data = thisCol;
+                    colObj.data = colName;
                 }
+				// Make sure properties that aren't present in the API
+				// response are populated with null to avoid Datatables
+				// choking on their absence
+				dataCopy.forEach(function(thisData) {
+					if (!thisData.hasOwnProperty(colName)) {
+						thisData[colName] = null;
+					}
+				});
                 colData.push(colObj);
             });
 
             // Initialise the datatable
-            table = $('#ill-requests').DataTable($.extend(true, {}, dataTablesDefaults, {
+			table = KohaTable("#ill-requests", {
                 'aoColumnDefs': [
                     { // Last column shouldn't be sortable or searchable
                         'aTargets': [ 'actions' ],
                         'bSortable': false,
                         'bSearchable': false
                     },
-					{ // Hide the two date columns we use just for sorting
-						'aTargets': [ 'placed', 'updated' ],
-						'bVisible': false,
-						'bSearchable': false
-					},
-					{ // When sorting 'placed', we want to use the
-						// unformatted column
-						'aTargets': [ 'placed_formatted'],
-						'iDataSort':9
-					},
-					{ // When sorting 'updated', we want to use the
-						// unformatted column
-						'aTargets': [ 'updated_formatted'],
-						'iDataSort': 11
-					}
+                    { // When sorting 'placed', we want to use the
+                        // unformatted column
+                        'aTargets': [ 'placed_formatted'],
+                        'iDataSort': 14
+                    },
+                    { // When sorting 'updated', we want to use the
+                        // unformatted column
+                        'aTargets': [ 'updated_formatted'],
+                        'iDataSort': 17
+                    }
                 ],
-                'aaSorting': [[ 10, 'desc' ]], // Default sort, updated descending
+                'aaSorting': [[17, 'desc' ]], // Default sort, updated descending
                 'processing': true, // Display a message when manipulating
                 'iDisplayLength': 10, // 10 results per page
                 'sPaginationType': "full_numbers", // Pagination display
@@ -461,7 +434,6 @@ $(document).ready(function() {
                 'originalData': data, // Enable render functions to access
                                         // our original data
                 'initComplete': function() {
-
                     // Prepare any filter elements that need it
                     for (var el in filterable) {
                         if (filterable.hasOwnProperty(el)) {
@@ -474,34 +446,34 @@ $(document).ready(function() {
                         }
                     }
                 }
-            }));
+            }, columns_settings);
 
-			// Custom date range filtering
-			$.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-				var placedStart = $('#illfilter_dateplaced_start').datepicker('getDate');
-				var placedEnd = $('#illfilter_dateplaced_end').datepicker('getDate');
-				var modifiedStart = $('#illfilter_datemodified_start').datepicker('getDate');
-				var modifiedEnd = $('#illfilter_datemodified_end').datepicker('getDate');
-				var rowPlaced = data[9] ? new Date(data[9]) : null;
-				var rowModified = data[11] ? new Date(data[11]) : null;
-				var placedPassed = true;
-				var modifiedPassed = true;
-				if (placedStart && rowPlaced && rowPlaced < placedStart) {
-					placedPassed = false
-				};
-				if (placedEnd && rowPlaced && rowPlaced > placedEnd) {
-					placedPassed = false;
-				}
-				if (modifiedStart && rowModified && rowModified < modifiedStart) {
-					modifiedPassed = false
-				};
-				if (modifiedEnd && rowModified && rowModified > modifiedEnd) {
-					modifiedPassed = false;
-				}
+            // Custom date range filtering
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                var placedStart = $('#illfilter_dateplaced_start').datepicker('getDate');
+                var placedEnd = $('#illfilter_dateplaced_end').datepicker('getDate');
+                var modifiedStart = $('#illfilter_datemodified_start').datepicker('getDate');
+                var modifiedEnd = $('#illfilter_datemodified_end').datepicker('getDate');
+                var rowPlaced = data[14] ? new Date(data[14]) : null;
+                var rowModified = data[17] ? new Date(data[17]) : null;
+                var placedPassed = true;
+                var modifiedPassed = true;
+                if (placedStart && rowPlaced && rowPlaced < placedStart) {
+                    placedPassed = false
+                };
+                if (placedEnd && rowPlaced && rowPlaced > placedEnd) {
+                    placedPassed = false;
+                }
+                if (modifiedStart && rowModified && rowModified < modifiedStart) {
+                    modifiedPassed = false
+                };
+                if (modifiedEnd && rowModified && rowModified > modifiedEnd) {
+                    modifiedPassed = false;
+                }
 
-				return placedPassed && modifiedPassed;
+                return placedPassed && modifiedPassed;
 
-			});
+            });
         }
     );
 
