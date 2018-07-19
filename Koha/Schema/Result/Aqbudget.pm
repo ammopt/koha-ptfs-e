@@ -227,6 +227,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 aqinvoice_lines
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::AqinvoiceLine>
+
+=cut
+
+__PACKAGE__->has_many(
+  "aqinvoice_lines",
+  "Koha::Schema::Result::AqinvoiceLine",
+  { "foreign.aqbudgets_budgetid" => "self.budget_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 aqinvoices
 
 Type: has_many
