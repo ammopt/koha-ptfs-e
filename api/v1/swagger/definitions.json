@@ -2,6 +2,12 @@
   "account_line": {
     "$ref": "definitions/account_line.json"
   },
+  "acquisition_invoice": {
+    "$ref": "definitions/acquisition_invoice.json"
+  },
+  "acquisition_invoice": {
+    "$ref": "definitions/acquisition_invoice_line.json"
+  },
   "city": {
     "$ref": "definitions/city.json"
   },

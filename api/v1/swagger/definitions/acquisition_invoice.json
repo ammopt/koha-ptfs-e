@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties": {
+    "lines": {
+        "type": "array",
+        "items": {
+            "$ref": "../definitions.json#/acquisition_invoice_line.json"
+        }
+    }
+  }
+}
