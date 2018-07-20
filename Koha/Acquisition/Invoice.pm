@@ -23,11 +23,17 @@ use base qw(Koha::Object);
 
 =head1 NAME
 
-Koha::Acquisition::Invoice object class
+Koha::Acquisition::Invoice Object class
 
 =head1 API
 
+=head2 Class methods
+
+=cut
+
 =head2 Internal methods
+
+=cut
 
 =head3 _type
 

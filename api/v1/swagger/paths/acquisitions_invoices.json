@@ -1,0 +1,70 @@
+{
+  "/acquisitions/invoices/{invoice_id}/lines": {
+    "post": {
+      "x-mojo-to": "Acquisitions::Invoice::Lines#add_invoice_line",
+      "operationId": "addInvoiceLine",
+      "tags": ["acquisitions", "invoices"],
+      "parameters": [{
+        "name": "invoice_id",
+        "in": "path",
+        "description": "ID of invoice tp associate invoice line with",
+        "required": true,
+        "type": "integer"
+      }, {
+        "name": "data",
+        "in": "body",
+        "description": "Invoice line object",
+        "required": true,
+        "schema": {
+          "$ref": "../definitions.json#/acquisitions_invoice_line"
+        }
+      }],
+      "produces": [
+        "application/json"
+      ],
+      "responses": {
+        "200": {
+          "description": "The newly created invoice line",
+          "schema": {
+            "$ref": "../definitions.json#/acquisitions_invoice_line"
+          }
+        },
+        "401": {
+          "description": "Authentication required",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "403": {
+          "description": "Access forbidden",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "404": {
+          "description": "Invoice not found",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "500": {
+          "description": "Internal server error",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "503": {
+          "description": "Under maintenance",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        }
+      },
+      "x-koha-authorization": {
+        "permissions": {
+          "acquisition": "invoices_manage"
+        }
+      }
+    }
+  }
+}

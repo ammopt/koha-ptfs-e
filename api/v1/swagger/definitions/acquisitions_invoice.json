@@ -4,7 +4,7 @@
     "lines": {
         "type": "array",
         "items": {
-            "$ref": "../definitions.json#/acquisition_invoice_line.json"
+            "$ref": "./acquisitions_invoice_line.json"
         }
     }
   }
