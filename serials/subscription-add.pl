@@ -35,6 +35,7 @@ use Koha::Biblios;
 use Koha::DateUtils;
 use Koha::ItemTypes;
 use Carp;
+use C4::RoutingSlip::Copyright;
 
 #use Smart::Comments;
 
@@ -145,6 +146,10 @@ for my $field ( @$additional_fields ) {
 $template->param( additional_fields_for_subscription => $additional_fields );
 
 my $typeloop = { map { $_->{itemtype} => $_ } @{ Koha::ItemTypes->search_with_localization->unblessed } };
+my $copyrightroutinglist = C4::RoutingSlip::Copyright->get_all();
+$template->param(copyrightroutinglist => $copyrightroutinglist);
+
+my $locations_loop = GetAuthorisedValues("LOC",$subs->{'location'});
 
 # FIXME We should use the translated_description for item types
 my @typearg =
@@ -327,6 +332,7 @@ sub redirect_add_subscription {
     my $startdate      = output_pref( { str => scalar $query->param('startdate'),      dateonly => 1, dateformat => 'iso' } );
     my $enddate        = output_pref( { str => scalar $query->param('enddate'),        dateonly => 1, dateformat => 'iso' } );
     my $firstacquidate = output_pref( { str => scalar $query->param('firstacquidate'), dateonly => 1, dateformat => 'iso' } );
+    my $copyright = $query->param('copyright');
 
     if(!defined $enddate || $enddate eq '') {
         if($subtype eq "issues") {
@@ -344,7 +350,7 @@ sub redirect_add_subscription {
         join(";",@irregularity), $numberpattern, $locale, $callnumber,
         $manualhistory, $internalnotes, $serialsadditems,
         $staffdisplaycount, $opacdisplaycount, $graceperiod, $location, $enddate,
-        $skip_serialseq, $itemtype, $previousitemtype
+        $skip_serialseq, $itemtype, $previousitemtype, $copyright
     );
 
     my $additional_fields = Koha::AdditionalField->all( { tablename => 'subscription' } );
@@ -413,6 +419,7 @@ sub redirect_mod_subscription {
     }
 
     my $nextexpected = GetNextExpected($subscriptionid);
+    my $copyright = $query->param('copyright');
     #  If it's  a mod, we need to check the current 'expected' issue, and mod it in the serials table if necessary.
     if ( $nextexpected->{planneddate} && $nextacquidate ne $nextexpected->{planneddate} ) {
         ModNextExpected($subscriptionid, $nextacquidate);
@@ -428,7 +435,7 @@ sub redirect_mod_subscription {
         $status, $biblionumber, $callnumber, $notes, $letter,
         $manualhistory, $internalnotes, $serialsadditems, $staffdisplaycount,
         $opacdisplaycount, $graceperiod, $location, $enddate, $subscriptionid,
-        $skip_serialseq, $itemtype, $previousitemtype
+        $skip_serialseq, $itemtype, $previousitemtype, $copyright
     );
 
     my $additional_fields = Koha::AdditionalField->all( { tablename => 'subscription' } );

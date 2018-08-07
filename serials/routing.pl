@@ -99,6 +99,7 @@ my $member_loop = [];
 for my $routing ( @routinglist ) {
     my $member = Koha::Patrons->find( $routing->{borrowernumber} )->unblessed;
     $member->{location} = $member->{branchcode};
+    $member->{branchname} = GetBranchName($member->{branchcode});
     if ($member->{firstname} ) {
         $member->{name} = $member->{firstname} . q| |;
     }
@@ -110,6 +111,7 @@ for my $routing ( @routinglist ) {
     }
     $member->{routingid}=$routing->{routingid} || q{};
     $member->{ranking} = $routing->{ranking} || q{};
+    $member->{vacation_flag}=$routing->{vacation_flag} || q{};
 
     push(@{$member_loop}, $member);
 }

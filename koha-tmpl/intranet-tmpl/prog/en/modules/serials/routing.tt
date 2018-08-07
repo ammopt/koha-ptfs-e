@@ -68,12 +68,15 @@ function reorder_item(sid,rid,rank){
     [% IF memberloop %]
         <table style="clear:none;margin:0;">
             <tr><th>Name</th>
+                <th>Branch</th>
                 <th>Rank</th>
+                <th>Printing</th>
                 <th>Delete</th>
             </tr>
             [% USE m_loop = iterator(memberloop) %]
             [% FOREACH member IN m_loop %]
             <tr><td>[% member.name %]</td>
+                <td>[% member.branchcode %]</td>
                 <td>
                     <select name="itemrank" class="itemrank" data-subscriptionid="[% subscriptionid %]" data-routingid="[% member.routingid %]">
                     [% rankings = [1 .. m_loop.size] %]
@@ -85,6 +88,13 @@ function reorder_item(sid,rid,rank){
                         [% END %]
                     [% END %]
                     </select>
+                    <td>
+                    [% IF member.vacation_flag %]
+                    No
+                    [% ELSE %]
+                    Yes
+                    [% END %]
+                    </td> 
                 </td>
                 <td><a class="btn btn-default btn-xs" href="/cgi-bin/koha/serials/routing.pl?routingid=[% member.routingid %]&amp;subscriptionid=[% subscriptionid %]&amp;op=delete"><i class="fa fa-trash"></i> Delete</a></td>
             </tr>

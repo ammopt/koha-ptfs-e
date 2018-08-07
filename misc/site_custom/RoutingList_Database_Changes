@@ -1,0 +1,15 @@
+In order to support Pinset Masons custom Routing Slips
+with the copyright and vacation features
+the following database changes are required
+
+Add the rlcopyright table
+add the copyright field to subscription
+
+Add the vacation_flag field to borrowers and deleted borrowers
+
+The original scripts to do this have been moved from atomicupdates to here as changes to the installer
+have robbed atomicupdates of their atomicity
+
+NB when upgrading ensure that the Result classes for these tables are regenerated as otherwise
+the vaction_flag  cannot be updated!!!
+

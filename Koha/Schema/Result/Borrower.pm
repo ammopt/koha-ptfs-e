@@ -451,6 +451,12 @@ __PACKAGE__->table("borrowers");
   data_type: 'text'
   is_nullable: 1
 
+=head2 vacation_flag
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -653,6 +659,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 1 },
   "overdrive_auth_token",
   { data_type => "text", is_nullable => 1 },
+  "vacation_flag",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -680,18 +688,6 @@ __PACKAGE__->set_primary_key("borrowernumber");
 =cut
 
 __PACKAGE__->add_unique_constraint("cardnumber", ["cardnumber"]);
-
-=head2 C<userid>
-
-=over 4
-
-=item * L</userid>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("userid", ["userid"]);
 
 =head1 RELATIONS
 

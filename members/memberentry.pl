@@ -548,7 +548,7 @@ if ($nok or !$nodouble){
     %data=%newdata; 
     $template->param( updtype => ($op eq 'add' ?'I':'M'));	# used to check for $op eq "insert"... but we just changed $op!
     unless ($step){  
-        $template->param( step_1 => 1,step_2 => 1,step_3 => 1, step_4 => 1, step_5 => 1, step_6 => 1);
+        $template->param( step_1 => 1,step_2 => 1,step_3 => 1, step_4 => 1, step_5 => 1, step_6 => 1, step_7 => 1);
     }  
 } 
 if (C4::Context->preference("IndependentBranches")) {
@@ -565,7 +565,7 @@ if ($op eq 'add'){
 }
 if ($op eq "modify")  {
     $template->param( updtype => 'M',modify => 1 );
-    $template->param( step_1=>1, step_2=>1, step_3=>1, step_4=>1, step_5 => 1, step_6 => 1) unless $step;
+    $template->param( step_1 => 1, step_2 => 1, step_3 => 1, step_4 => 1, step_5 => 1, step_6 => 1, step_7 => 1) unless $step;
     if ( $step == 4 ) {
         $template->param( categorycode => $borrower_data->{'categorycode'} );
     }
@@ -581,7 +581,7 @@ if ($op eq "modify")  {
 }
 if ( $op eq "duplicate" ) {
     $template->param( updtype => 'I' );
-    $template->param( step_1 => 1, step_2 => 1, step_3 => 1, step_4 => 1, step_5 => 1, step_6 => 1 ) unless $step;
+    $template->param( step_1 => 1, step_2 => 1, step_3 => 1, step_4 => 1, step_5 => 1, step_6 => 1, step_7 => 1) unless $step;
     $data{'cardnumber'} = "";
 }
 
@@ -788,6 +788,12 @@ if(defined($data{'flags'})){
 }
 if(defined($data{'contacttitle'})){
   $template->param("contacttitle_" . $data{'contacttitle'} => "SELECTED");
+}
+if ( defined $data{vacation_flag} ) {
+    $template->param(vacation_flag => $data{vacation_flag});
+}
+else {
+    $template->param(vacation_flag => 0);
 }
 
 
