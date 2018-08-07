@@ -1,0 +1,80 @@
+[% INCLUDE 'doc-head-open.inc' %]
+<title>Koha &rsaquo; Administration &rsaquo; Routing List Text </title>
+[% INCLUDE 'doc-head-close.inc' %]
+</head>
+<body id="admin_rltext" class="admin">
+[% INCLUDE 'header.inc' %]
+[% INCLUDE 'cat-search.inc' %]
+
+<div id="breadcrumbs">
+    <a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo;
+    <a href="/cgi-bin/koha/admin/admin-home.pl">Administration</a> &rsquo;
+    <a href="/cgi-bin/koha/admin/routinglisttext.pl">Routing List Text</a>
+[% IF edittext %]
+    &rsquo;Edit
+[% END %]
+</div>
+
+<div id="doc3" class="yui-t2">
+    <div id="bd">
+        <div id="yui-main">
+            <div id="toolbar">
+            </div>
+            <div class="yui-b">
+[% IF !edittext %]
+               <h2>Routing List Text</h2>
+           <table id="rl_text" class="dataTable">
+           <tbody>
+           [% FOREACH message IN message_list %]
+           [% IF loop.odd %]
+             <tr>
+           [% ELSE %]
+              <tr class="highlight">
+           [% END %]
+               <td>[% message.id %]</td>
+               <td>[% message.code %]</td>
+               <td>[% message.txt %]</td>
+               <td>
+               <input type="button" onclick="location.href='routinglisttext.pl?id=[% message.id %]&op=edittext';" value="Edit" />
+</td>
+              </tr>
+           [% END %]
+           </tbody>
+           <thead>
+              <tr role="row">
+              <th class="sorting_disabled">Id</th>
+              <th class="sorting_disabled">Code</th>
+              <th class="sorting_disabled">Text</th>
+              <th class="sorting_disabled">Action</th>
+              </tr>
+           </thead>
+           </table>
+[% ELSE %]
+<!-- edittext -->
+<form action="/cgi-bin/koha/admin/routinglisttext.pl" name="Editform" method="post">
+   <fieldset class="rows">
+   <legend>Update text for message [% code %] ([% id %])</legend>
+   <input type="hidden" name="op" value="txtupd" />
+   <input type="hidden" name="id" value="[% id %]" />
+   <ol>
+   <li>
+   <label for="msg_text">Text for routing list copyright message </label>
+   <textarea name="msg_text" id="msg_text" cols="80" rows="6">[% msg_txt %]</textarea>
+   </li>
+   </ol>
+   </fieldset>
+
+   <fieldset class="action">
+      <input type="submit" value="Save" />
+      <a class="cancel" href="/cgi-bin/koha/admin/routinglisttext.pl">Cancel</a>
+   </fieldset>
+</form>
+[% END %]
+           </div>
+
+</div>
+</div>
+<div class="yui-b">
+ 
+</div>
+[% INCLUDE 'intranet-bottom.inc' %]

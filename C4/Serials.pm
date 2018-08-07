@@ -1348,7 +1348,8 @@ sub ModSubscription {
     $biblionumber, $callnumber, $notes, $letter, $manualhistory,
     $internalnotes, $serialsadditems, $staffdisplaycount, $opacdisplaycount,
     $graceperiod, $location, $enddate, $subscriptionid, $skip_serialseq,
-    $itemtype, $previousitemtype
+    $itemtype, $previousitemtype,
+    $copyright
     ) = @_;
 
     my $dbh   = C4::Context->dbh;
@@ -1361,7 +1362,8 @@ sub ModSubscription {
             callnumber=?, notes=?, letter=?, manualhistory=?,
             internalnotes=?, serialsadditems=?, staffdisplaycount=?,
             opacdisplaycount=?, graceperiod=?, location = ?, enddate=?,
-            skip_serialseq=?, itemtype=?, previousitemtype=?
+            skip_serialseq=?, itemtype=?, previousitemtype=?,
+            copyright = ?
         WHERE subscriptionid = ?";
 
     my $sth = $dbh->prepare($query);
@@ -1376,6 +1378,7 @@ sub ModSubscription {
         $internalnotes, $serialsadditems, $staffdisplaycount, $opacdisplaycount,
         $graceperiod,     $location,       $enddate,        $skip_serialseq,
         $itemtype,        $previousitemtype,
+        $copyright,
         $subscriptionid
     );
     my $rows = $sth->rows;
@@ -1409,7 +1412,8 @@ sub NewSubscription {
     $innerloop3, $status, $notes, $letter, $firstacquidate, $irregularity,
     $numberpattern, $locale, $callnumber, $manualhistory, $internalnotes,
     $serialsadditems, $staffdisplaycount, $opacdisplaycount, $graceperiod,
-    $location, $enddate, $skip_serialseq, $itemtype, $previousitemtype
+    $location, $enddate, $skip_serialseq, $itemtype, $previousitemtype,
+    $copyright
     ) = @_;
     my $dbh = C4::Context->dbh;
 
@@ -1423,8 +1427,8 @@ sub NewSubscription {
             irregularity, numberpattern, locale, callnumber,
             manualhistory, internalnotes, serialsadditems, staffdisplaycount,
             opacdisplaycount, graceperiod, location, enddate, skip_serialseq,
-            itemtype, previousitemtype)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            itemtype, previousitemtype, copyright)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         |;
     my $sth = $dbh->prepare($query);
     $sth->execute(
@@ -1435,7 +1439,7 @@ sub NewSubscription {
         $firstacquidate, $irregularity, $numberpattern, $locale, $callnumber,
         $manualhistory, $internalnotes, $serialsadditems, $staffdisplaycount,
         $opacdisplaycount, $graceperiod, $location, $enddate, $skip_serialseq,
-        $itemtype, $previousitemtype
+        $itemtype, $previousitemtype, $copyright
     );
 
     my $subscriptionid = $dbh->{'mysql_insertid'};
@@ -2065,9 +2069,10 @@ sub getroutinglist {
     my ($subscriptionid) = @_;
     my $dbh              = C4::Context->dbh;
     my $sth              = $dbh->prepare(
-        'SELECT routingid, borrowernumber, ranking, biblionumber
+        'SELECT routingid, subscriptionroutinglist.borrowernumber, ranking, biblionumber, vacation_flag
             FROM subscription 
             JOIN subscriptionroutinglist ON subscription.subscriptionid = subscriptionroutinglist.subscriptionid
+            JOIN borrowers ON subscriptionroutinglist.borrowernumber = borrowers.borrowernumber
             WHERE subscription.subscriptionid = ? ORDER BY ranking ASC'
     );
     $sth->execute($subscriptionid);

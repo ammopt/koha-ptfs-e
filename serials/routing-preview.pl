@@ -37,6 +37,7 @@ use URI::Escape;
 use Koha::Biblios;
 use Koha::Libraries;
 use Koha::Patrons;
+use C4::RoutingSlip::Copyright;
 
 my $query = new CGI;
 my $subscriptionid = $query->param('subscriptionid');
@@ -84,6 +85,9 @@ if($ok){
 		my $notes;
 		my $title = $subs->{'bibliotitle'};
         for my $routing ( @routinglist ) {
+            if ($routing->{vacation_flag}) {
+                next;
+            }
             my $sth = $dbh->prepare('SELECT * FROM reserves WHERE biblionumber = ? AND borrowernumber = ? LIMIT 1');
             $sth->execute($biblionumber,$routing->{borrowernumber});
             my $reserve = $sth->fetchrow_hashref;
@@ -126,12 +130,19 @@ my $memberloop = [];
 for my $routing (@routinglist) {
     my $member = Koha::Patrons->find( $routing->{borrowernumber} )->unblessed;
     $member->{name}           = "$member->{firstname} $member->{surname}";
+    $member->{vacation_flag}  = "$routing->{vacation_flag}";
+    my $branchname = GetBranchName($member->{branchcode});
+    $member->{branchname}     = $branchname;
     push @{$memberloop}, $member;
 }
 
 my $routingnotes = $serials[0]->{'routingnotes'};
 $routingnotes =~ s/\n/\<br \/\>/g;
 
+if ( $subs->{copyright} ) {
+    my $copyright = C4::RoutingSlip::Copyright->new( id => $subs->{copyright} );
+    $template->param( copyright => $copyright );
+}
 $template->param(
     title => $subs->{'bibliotitle'},
     issue => $issue,

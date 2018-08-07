@@ -448,6 +448,12 @@ __PACKAGE__->table("deletedborrowers");
   data_type: 'text'
   is_nullable: 1
 
+=head2 vacation_flag
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -638,6 +644,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 1 },
   "overdrive_auth_token",
   { data_type => "text", is_nullable => 1 },
+  "vacation_flag",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
 );
 
 
