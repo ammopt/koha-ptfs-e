@@ -131,8 +131,10 @@ for my $routing (@routinglist) {
     my $member = Koha::Patrons->find( $routing->{borrowernumber} )->unblessed;
     $member->{name}           = "$member->{firstname} $member->{surname}";
     $member->{vacation_flag}  = "$routing->{vacation_flag}";
-    my $branchname = GetBranchName($member->{branchcode});
-    $member->{branchname}     = $branchname;
+    my $lib = Koha::Libraries->find($member->{branchcode});
+    if ($lib) {
+        $member->{branchname}     = $lib->branchname;
+    }
     push @{$memberloop}, $member;
 }
 

@@ -38,6 +38,7 @@ use C4::Context;
 use C4::Members;
 use C4::Serials;
 use Koha::Patrons;
+use Koha::Libraries;
 
 use URI::Escape;
 
@@ -99,7 +100,10 @@ my $member_loop = [];
 for my $routing ( @routinglist ) {
     my $member = Koha::Patrons->find( $routing->{borrowernumber} )->unblessed;
     $member->{location} = $member->{branchcode};
-    $member->{branchname} = GetBranchName($member->{branchcode});
+    my $lib = Koha::Libraries->find($member->{branchcode});
+    if ($lib) {
+        $member->{branchname}     = $lib->branchname;
+    }
     if ($member->{firstname} ) {
         $member->{name} = $member->{firstname} . q| |;
     }
