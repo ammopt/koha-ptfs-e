@@ -150,7 +150,9 @@ SearchAuthorities will return only authids.
 sub authorities {
     my $self         = shift;
     my $skipmetadata = shift;
-    my ( $results, $total ) = _search( $self, 'match-heading', $skipmetadata );
+    my $maxlength    = shift || undef;
+
+    my ( $results, $total ) = _search( $self, 'match-heading', $skipmetadata, $maxlength );
     return $results;
 }
 
@@ -180,11 +182,14 @@ sub _search {
     my $self         = shift;
     my $index        = shift || undef;
     my $skipmetadata = shift || undef;
+    my $maxlength    = shift || undef;
     my @marclist;
     my @and_or;
     my @excluding = [];
     my @operator;
     my @value;
+
+    $maxlength=20 unless $maxlength;
 
     if ($index) {
         push @marclist, $index;
@@ -203,7 +208,7 @@ sub _search {
     require C4::AuthoritiesMarc;
     return C4::AuthoritiesMarc::SearchAuthorities(
         \@marclist, \@and_or, \@excluding, \@operator,
-        \@value,    0,        20,          $self->{'auth_type'},
+        \@value,    0,        $maxlength,          $self->{'auth_type'},
         'AuthidAsc',         $skipmetadata
     );
 }

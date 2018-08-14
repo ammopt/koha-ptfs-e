@@ -65,6 +65,7 @@ Authorities:
                   Default: Default
                   FirstMatch: "First Match"
                   LastMatch: "Last Match"
+                  BestMatch: "Best Match"
             - linker module for matching headings to authority records.
         -
             - Set the following options for the authority linker

@@ -245,7 +245,7 @@ INSERT INTO systempreferences ( `variable`, `value`, `options`, `explanation`, `
 ('LibraryThingForLibrariesID','','','See:http://librarything.com/forlibraries/','free'),
 ('LibraryThingForLibrariesTabbedView','0','','Put LibraryThingForLibraries Content in Tabs.','YesNo'),
 ('LinkerKeepStale','0',NULL,'If ON the authority linker will keep existing authority links for headings where it is unable to find a match.','YesNo'),
-('LinkerModule','Default','Default|FirstMatch|LastMatch','Chooses which linker module to use (see documentation).','Choice'),
+('LinkerModule','Default','Default|FirstMatch|LastMatch|BestMatch','Chooses which linker module to use (see documentation).','Choice'),
 ('LinkerOptions','','','A pipe-separated list of options for the linker.','free'),
 ('LinkerRelink','1',NULL,'If ON the authority linker will relink headings that have previously been linked every time it runs.','YesNo'),
 ('LoadSearchHistoryToTheFirstLoggedUser', '1', NULL, 'If ON, the next user will automatically get the last searches in his history', 'YesNo'),
