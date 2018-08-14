@@ -31,7 +31,7 @@ sub new {
     my $param = shift;
 
     my $self = $class->SUPER::new($param);
-    $self->{'default_linker'} = C4::Linker::Default->new($param);
+    $self->{default_linker} = C4::Linker::Default->new($param);
     bless $self, $class;
     return $self;
 }
@@ -48,12 +48,12 @@ sub get_link {
 
     # Remove subdivisions - they mess up our search here
     $fieldasstring =~
-s/(generalsubdiv|formsubdiv|chronologicalsubdiv|geographicalsubdiv|\s|,|-|;)//g;
+s/(generalsubdiv|formsubdiv|chronologicalsubdiv|geographicalsubdiv|\s|[,-;])//g;
     $fieldasstring =~ s/&/and/g;    # Normalise to and
 
-    if ( $self->{'cache'}->{$fieldasstring}->{'cached'} ) {
-        $authid = $self->{'cache'}->{$fieldasstring}->{'authid'};
-        $fuzzy  = $self->{'cache'}->{$fieldasstring}->{'fuzzy'};
+    if ( $self->{cache}->{$fieldasstring}->{cached} ) {
+        $authid = $self->{cache}->{$fieldasstring}->{authid};
+        $fuzzy  = $self->{cache}->{$fieldasstring}->{fuzzy};
 
         #warn "Cached result for $fieldasstring as $authid (Fuzzy: $fuzzy)";
     }
@@ -61,49 +61,51 @@ s/(generalsubdiv|formsubdiv|chronologicalsubdiv|geographicalsubdiv|\s|,|-|;)//g;
         #look for matching authorities
         my $authorities =
           $heading->authorities( 1, 9999999 );    # $skipmetadata = true
-        if ( $#{$authorities} >= 0 ) {
+        if ( @{$authorities} ) {
             my %authcodes = (
                 'PERSO_NAME', '100', 'CORPO_NAME', '110', 'MEETI_NAME', '111',
                 'UNIF_TITLE', '130', 'CHRON_TERM', '148', 'TOPIC_TERM', '150',
                 'GEOGR_NAME', '151', 'GENRE/FORM', '155', 'GEN_SUBDIV', '180',
-                'GEO_SUBDIV', '181', 'CHRON_SUBD', '182', 'FORM_SUBD',  '185'
+                'GEO_SUBDIV', '181', 'CHRON_SUBD', '182', 'FORM_SUBD',  '185',
             );
-            for ( my $n = 0 ; $n <= $#{$authorities} ; $n = $n + 1 ) {
-                my $auth = GetAuthority( $authorities->[$n]->{'authid'} );
+
+            #  for ( my $n = 0 ; $n <= $#{$authorities} ; $n = $n + 1 ) {
+            foreach my $a ( @{$authorities} ) {
+                my $auth = GetAuthority( $a->{authid} );
                 my $auth_field =
-                  $auth->field( $authcodes{ $heading->{'auth_type'} } );
+                  $auth->field( $authcodes{ $heading->{auth_type} } );
                 my $authfieldstring =
-                  lc $auth->field( $authcodes{ $heading->{'auth_type'} } )
+                  lc $auth->field( $authcodes{ $heading->{auth_type} } )
                   ->as_string('abcdefghijklmnopqrstuvwxyz');
                 $authfieldstring =~
-s/(generalsubdiv|formsubdiv|chronologicalsubdiv|geographicalsubdiv|\s|,|-|;)//g;
+s/(generalsubdiv|formsubdiv|chronologicalsubdiv|geographicalsubdiv|\s|[,-;])//g;
                 $authfieldstring =~ s/&/and/g;
                 if ( $fieldasstring eq $authfieldstring ) {
-                    $authid = $authorities->[$n]->{'authid'};
-                    $n = $#{$authorities} + 1;    # break out of the loop
+                    $authid = $a->{authid};
+                    last;    # break out of the loop
                 }
             }
             if ( !defined $authid ) {
-                warn "No authority could be perfectly matched for "
+                warn 'No authority could be perfectly matched for '
                   . $heading->field()->as_string('abcdefghijklmnopqrstuvwxyz')
                   . "\n";
                 $fieldasstring =~
-                  s/(\d|\.)//g;    # Try alos removing full-stops and numbers
-                for ( my $n = 0 ; $n <= $#{$authorities} ; $n = $n + 1 ) {
-                    my $auth = GetAuthority( $authorities->[$n]->{'authid'} );
+                  s/([\d\.])//g;    # Try alos removing full-stops and numbers
+                foreach my $a ( @{$authorities} ) {
+                    my $auth = GetAuthority( $a->{authid} );
                     my $auth_field =
-                      $auth->field( $authcodes{ $heading->{'auth_type'} } );
+                      $auth->field( $authcodes{ $heading->{auth_type} } );
                     my $authfieldstring =
-                      lc $auth->field( $authcodes{ $heading->{'auth_type'} } )
+                      lc $auth->field( $authcodes{ $heading->{auth_type} } )
                       ->as_string('abcdefghijklmnopqrstuvwxyz');
                     $authfieldstring =~
-s/(generalsubdiv|formsubdiv|chronologicalsubdiv|geographicalsubdiv|\s|\d|,|-|;|\.)//g;
+s/(generalsubdiv|formsubdiv|chronologicalsubdiv|geographicalsubdiv|\s|\d[,-;\.])//g;
                     if ( $fieldasstring eq $authfieldstring ) {
                         warn
 "Fuzzy matching $fieldasstring with $authfieldstring\n";
-                        $authid = $authorities->[$n]->{'authid'};
+                        $authid = $a->{authid};
                         $fuzzy  = 1;
-                        $n = $#{$authorities} + 1;    # break out of the loop
+                        last;    # break out of the loop
                     }
                 }
             }
@@ -114,9 +116,9 @@ s/(generalsubdiv|formsubdiv|chronologicalsubdiv|geographicalsubdiv|\s|\d|,|-|;|\
         else {
             warn "No match found\n";
         }
-        $self->{'cache'}->{$fieldasstring}->{'cached'} = 1;
-        $self->{'cache'}->{$fieldasstring}->{'authid'} = $authid;
-        $self->{'cache'}->{$fieldasstring}->{'fuzzy'}  = $fuzzy;
+        $self->{cache}->{$fieldasstring}->{cached} = 1;
+        $self->{cache}->{$fieldasstring}->{authid} = $authid;
+        $self->{cache}->{$fieldasstring}->{fuzzy}  = $fuzzy;
     }
 
     return $self->SUPER::_handle_auth_limit($authid), $fuzzy;
@@ -126,14 +128,15 @@ sub update_cache {
     my $self    = shift;
     my $heading = shift;
     my $authid  = shift;
-    $self->{'default_linker'}->update_cache( $heading, $authid );
+    $self->{default_linker}->update_cache( $heading, $authid );
+    return;
 }
 
 sub flip_heading {
     my $self    = shift;
     my $heading = shift;
 
-    return $self->{'default_linker'}->flip($heading);
+    return $self->{default_linker}->flip($heading);
 }
 
 1;
