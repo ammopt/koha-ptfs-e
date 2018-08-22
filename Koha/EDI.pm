@@ -441,35 +441,69 @@ sub receipt_items {
         }
         push @{ $branch_map{$b} }, $item;
     }
-    my $gir_occurrence = 0;
-    while ( $gir_occurrence < $quantity ) {
-        my $branch = $inv_line->girfield( 'branch', $gir_occurrence );
-        my $item = shift @{ $branch_map{$branch} };
-        if ($item) {
-            my $barcode = $inv_line->girfield( 'barcode', $gir_occurrence );
-            if ( $barcode && !$item->barcode ) {
-                my $rs = $schema->resultset('Item')->search(
-                    {
-                        barcode => $barcode,
+    if (keys %branch_map == 1) {
+        my @b = keys %branch_map;
+        my $b = $b[0];
+        my @items = @{$branch_map{$b}};
+
+        my $gir_occurrence = 0;
+        while ( $gir_occurrence < $quantity ) {
+            my $item = shift @items;
+            if ($item) {
+                my $barcode = $inv_line->girfield( 'barcode', $gir_occurrence );
+                if ( $barcode && !$item->barcode ) {
+                    my $rs = $schema->resultset('Item')->search(
+                        {
+                            barcode => $barcode,
+                        }
+                    );
+                    if ( $rs->count > 0 ) {
+                        $logger->warn("Barcode $barcode is a duplicate");
                     }
-                );
-                if ( $rs->count > 0 ) {
-                    $logger->warn("Barcode $barcode is a duplicate");
-                }
-                else {
+                    else {
 
-                    $logger->trace("Adding barcode $barcode");
-                    $item->barcode($barcode);
+                        $logger->trace("Adding barcode $barcode");
+                        $item->barcode($barcode);
+                    }
                 }
+
+                $item->update;
+                push @received_itemnumbers, $item->itemnumber;
             }
+            ++$gir_occurrence;
+        }
+    }
+    else {
+        my $gir_occurrence = 0;
+        while ( $gir_occurrence < $quantity ) {
+            my $branch = $inv_line->girfield( 'branch', $gir_occurrence );
+            my $item = shift @{ $branch_map{$branch} };
+            if ($item) {
+                my $barcode = $inv_line->girfield( 'barcode', $gir_occurrence );
+                if ( $barcode && !$item->barcode ) {
+                    my $rs = $schema->resultset('Item')->search(
+                        {
+                            barcode => $barcode,
+                        }
+                    );
+                    if ( $rs->count > 0 ) {
+                        $logger->warn("Barcode $barcode is a duplicate");
+                    }
+                    else {
 
-            $item->update;
-            push @received_itemnumbers, $item->itemnumber;
+                        $logger->trace("Adding barcode $barcode");
+                        $item->barcode($barcode);
+                    }
+                }
+
+                $item->update;
+                push @received_itemnumbers, $item->itemnumber;
+            }
+            else {
+                $logger->warn("Unmatched item at branch:$branch");
+            }
+            ++$gir_occurrence;
         }
-        else {
-            $logger->warn("Unmatched item at branch:$branch");
-        }
-        ++$gir_occurrence;
     }
     return @received_itemnumbers;
 
