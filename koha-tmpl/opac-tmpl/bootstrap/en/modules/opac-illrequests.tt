@@ -130,7 +130,7 @@
                                     <td>[% request.metadata.Title || 'N/A' %]</td>
                                     <td>[% request.backend %]</td>
                                     <td>[% request.getType %]</td>
-                                    <td>[% request.status_alias ? request.statusalias.authorised_value : request.capabilities.$status.name %]</td>
+                                    <td>[% request.status_alias ? request.statusalias.lib_opac : request.capabilities.$status.name %]</td>
                                     <td>[% request.placed %]</td>
                                     <td>[% request.updated %]</td>
                                     <td>
@@ -168,7 +168,7 @@
                                     </li>
                                     <li>
                                         <label for="status">Status:</label>
-                                        [% request.status_alias ? request.statusalias.authorised_value : request.capabilities.$status.name %]
+                                        [% request.status_alias ? request.statusalias.lib_opac : request.capabilities.$status.name %]
                                     </li>
                                     <li>
                                         <label for="medium">Request type:</label>
