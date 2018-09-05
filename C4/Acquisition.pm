@@ -44,7 +44,7 @@ use MARC::Record;
 
 use Time::localtime;
 
-use vars qw(@ISA @EXPORT @EXPORT_OK);
+use vars qw(@ISA @EXPORT);
 
 BEGIN {
     require Exporter;
@@ -94,9 +94,7 @@ BEGIN {
 
         &FillWithDefaultValues
     );
-        @EXPORT_OK = qw( populate_order_with_prices );
 }
-
 
 
 
