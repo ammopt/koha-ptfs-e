@@ -44,26 +44,79 @@ subtest 'invoice_line add() tests' => sub {
 
     $schema->storage->txn_begin;
 
-    my ( $borrowernumber, $session_id )
-        = create_user_and_session( { authorized => 1 } );
+    # Clean up acq here to give us a clean start to test against.
 
-    # Unauthorized
-    # Authorized
-    ## Bad invoice
-    ## Bad order
-    ## Bad budget
-    ## Success
+    my ( $unauthorized_borrowernumber, $unauthorized_session_id ) =
+      create_user_and_session( { authorized => 0 } );
+    my ( $authorized_borrowernumber, $authorized_session_id ) =
+      create_user_and_session( { authorized => 1 } );
 
-    ## Unauthorized user test
+    my $order_id      = undef;
+    my $invoice_id    = undef;
+    my $budget_id     = undef;
+    my $invoice_lince = {
+        "budget"          => $budget_id,
+        "description"     => "",
+        "discount_amount" => 1,
+        "discount_rate"   => 79,
+        "id"              => undef,
+        "list_price"      => 17.23,
+        "pre_tax_amount"  => 12.38,
+        "quantity"        => 1,
+        "tax_amount"      => 7.23,
+        "tax_rate"        => 4,
+        "total_price"     => 89.73
+    };
 
-    ## Authorized user tests
-    # No vendors, so empty array should be returned
-    my $tx = $t->ua->build_tx( POST => "/api/v1/acquisitions/orders/$order_id/invoices/$invoice_id/lines" );
-    $tx->req->cookies( { name => 'CGISESSID', value => $session_id } );
+    # Unauthorized attempt to add invoice line
+    my $tx =
+      $t->ua->build_tx( POST =>
+          "/api/v1/acquisitions/orders/$order_id/invoices/$invoice_id/lines" =>
+          json => $invoice_line );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $unauthorized_session_id } );
     $tx->req->env( { REMOTE_ADDR => $remote_address } );
-    $t->request_ok($tx)
-      ->status_is(200)
-      ->json_is( [] );
+    $t->request_ok($tx)->status_is(403);
+
+    # Authorized attempt to add invoice lines (with a bad invoice id)
+    $tx =
+      $t->ua->build_tx( POST =>
+          "/api/v1/acquisitions/orders/$order_id/invoices/$invoice_id/lines" =>
+          json => $invoice_line );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $authorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(200)->json_is( [] );
+
+    # Authorized attempt to add invoice lines (with a bad order id)
+    $tx =
+      $t->ua->build_tx( POST =>
+          "/api/v1/acquisitions/orders/$order_id/invoices/$invoice_id/lines" =>
+          json => $invoice_line );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $authorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(200)->json_is( [] );
+
+    # Authorized attempt to add invoice lines (with a bad budget id)
+    $tx =
+      $t->ua->build_tx( POST =>
+          "/api/v1/acquisitions/orders/$order_id/invoices/$invoice_id/lines" =>
+          json => $invoice_line );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $authorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(200)->json_is( [] );
+
+    # Authorized attempt to add invoice lines (success)
+    $tx =
+      $t->ua->build_tx( POST =>
+          "/api/v1/acquisitions/orders/$order_id/invoices/$invoice_id/lines" =>
+          json => $invoice_line );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $authorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(200)->json_is( [] );
 
     $schema->storage->txn_rollback;
 };
@@ -77,7 +130,8 @@ sub create_user_and_session {
     my $dbh = C4::Context->dbh;
 
     my $user = $builder->build(
-        {   source => 'Borrower',
+        {
+            source => 'Borrower',
             value  => { flags => $flags }
         }
     );
