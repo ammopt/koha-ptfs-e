@@ -113,6 +113,63 @@ sub list_invoice_lines {
     };
 }
 
+=head3 update_invoice_line
+
+Controller function that handles updating a Koha::Acquisition::Invoice::Line object
+
+=cut
+
+sub update_invoice_line {
+    my $c = shift->openapi->valid_input or return;
+
+    my $invoice_line;
+
+    return try {
+        $invoice_line = Koha::Acquisition::Invoice::Lines->find(
+            $c->validation->param('line_id') );
+
+        if ( $invoice_line->aqinvoices_invoiceid !=
+            $c->validation->param('invoice_id') )
+        {
+            return $c->render(
+                status  => 400,
+                openapi => {
+                    error =>
+"Identifier invoice line does not belong to identifier invoice"
+                }
+            );
+        }
+        else {
+            $invoice_line->set( _to_model( $c->validation->param('data') ) );
+            $invoice_line->store();
+            return $c->render(
+                status  => 200,
+                openapi => _to_api( $invoice_line->TO_JSON )
+            );
+        }
+    }
+    catch {
+        if ( not defined $invoice_line ) {
+            return $c->render(
+                status  => 404,
+                openapi => { error => "Object not found" }
+            );
+        }
+        elsif ( $_->isa('Koha::Exceptions::Object') ) {
+            return $c->render(
+                status  => 500,
+                openapi => { error => $_->message }
+            );
+        }
+        else {
+            return $c->render(
+                status  => 500,
+                openapi => { error => "Something went wrong, check the logs." }
+            );
+        }
+    };
+}
+
 =head3 _to_api
 
 Helper function that maps unblessed Koha::Account::Lines objects

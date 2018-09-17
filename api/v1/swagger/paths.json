@@ -5,6 +5,9 @@
   "/acquisitions/invoices/{invoice_id}/lines": {
     "$ref": "paths/acquisitions_invoices.json#/~1acquisitions~1invoices~1{invoice_id}~1lines"
   },
+  "/acquisitions/invoices/{invoice_id}/lines/{line_id}": {
+    "$ref": "paths/acquisitions_invoices.json#/~1acquisitions~1invoices~1{invoice_id}~1lines~1{line_id}"
+  },
   "/acquisitions/vendors": {
     "$ref": "paths/acquisitions_vendors.json#/~1acquisitions~1vendors"
   },

@@ -1,5 +1,9 @@
 {
   "type": "object",
+  "required": [
+    "id", "order_id", "budget", "description", "quantity", "list_price", "discount_rate",
+    "discount_amount", "pre_tax_amount", "tax_rate", "tax_amount", "total_price"
+  ],
   "properties": {
     "id": {
       "type": ["integer", "null"],
