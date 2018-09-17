@@ -70,6 +70,49 @@ sub add_invoice_line {
     };
 }
 
+=head3 list_invoice_lines
+
+Method for retrieving Koha::Acquisition::Invoice:Line objects
+
+=cut
+
+sub list_invoice_lines {
+    my $c         = shift->openapi->valid_input or return;
+    my $invoiceID = $c->validation->param('invoice_id');
+    my $orderID   = $c->validation->param('order_id');
+
+    my @invoice_lines;
+    return try {
+        @invoice_lines = Koha::Acquisition::Invoice::Lines->search(
+            {
+                aqinvoices_invoiceid => $invoiceID,
+                (
+                    defined($orderID)
+                    ? ( aqorders_ordernumber => $orderID )
+                    : ()
+                )
+            }
+        )->as_list;
+        @invoice_lines = map { _to_api( $_->TO_JSON ) } @invoice_lines;
+
+        return $c->render( status => 200, openapi => \@invoice_lines );
+    }
+    catch {
+        if ( $_->isa('DBIx::Class::Exception') ) {
+            return $c->render(
+                status  => 500,
+                openapi => { error => $_->{msg} }
+            );
+        }
+        else {
+            return $c->render(
+                status  => 500,
+                openapi => { error => "Something went wrong, check the logs." }
+            );
+        }
+    };
+}
+
 =head3 _to_api
 
 Helper function that maps unblessed Koha::Account::Lines objects
@@ -147,6 +190,7 @@ sub _to_model {
 
 our $to_model_mapping = {
     id              => 'id',
+    order_id        => 'aqorders_ordernumber',
     budget          => 'aqbudgets_budgetid',
     description     => 'description',
     quantity        => 'quantity',

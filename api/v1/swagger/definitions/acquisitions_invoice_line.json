@@ -5,6 +5,10 @@
       "type": ["integer", "null"],
       "description": "Invoice line identifier"
     },
+    "order_id": {
+      "type": "integer",
+      "description": "Order identifier associated with this invoice_line"
+    },
     "budget": {
       "type": ["integer", "null"],
       "description": "Budget identifier associated with this invoice_line"
