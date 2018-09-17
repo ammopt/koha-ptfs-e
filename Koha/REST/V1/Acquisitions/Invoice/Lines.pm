@@ -170,6 +170,63 @@ sub update_invoice_line {
     };
 }
 
+=head3 delete_invoice_line
+
+Controller function that handles deleting a Koha::Acquisition::Invoice::Line object
+
+=cut
+
+sub delete_invoice_line {
+    my $c = shift->openapi->valid_input or return;
+
+    my $invoice_line;
+
+    return try {
+        $invoice_line = Koha::Acquisition::Invoice::Lines->find(
+            $c->validation->param('line_id') );
+
+        if ( $invoice_line->aqinvoices_invoiceid !=
+            $c->validation->param('invoice_id') )
+        {
+            return $c->render(
+                status  => 400,
+                openapi => {
+                    error =>
+"Identifier invoice line does not belong to identifier invoice"
+                }
+            );
+        }
+        else {
+
+            $invoice_line->delete;
+            return $c->render(
+                status  => 204,
+                openapi => {}
+            );
+        }
+    }
+    catch {
+        if ( not defined $invoice_line ) {
+            return $c->render(
+                status  => 404,
+                openapi => { error => "Object not found" }
+            );
+        }
+        elsif ( $_->isa('DBIx::Class::Exception') ) {
+            return $c->render(
+                status  => 500,
+                openapi => { error => $_->msg }
+            );
+        }
+        else {
+            return $c->render(
+                status  => 500,
+                openapi => { error => "Something went wrong, check the logs." }
+            );
+        }
+    };
+}
+
 =head3 _to_api
 
 Helper function that maps unblessed Koha::Account::Lines objects

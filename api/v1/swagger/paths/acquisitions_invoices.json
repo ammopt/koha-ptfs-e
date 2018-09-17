@@ -212,6 +212,74 @@
           "acquisition": "invoices_manage"
         }
       }
+    },
+    "delete": {
+      "x-mojo-to": "Acquisitions::Invoices::Lines#delete_invoice_line",
+      "operationId": "deleteInvoiceLine",
+      "tags": ["acquisitions", "invoices"],
+      "parameters": [{
+        "name": "invoice_id",
+        "in": "path",
+        "description": "ID of associated invoice",
+        "required": true,
+        "type": "integer"
+      }, {
+        "name": "line_id",
+        "in": "path",
+        "description": "ID of invoice line to update",
+        "required": true,
+        "type": "integer"
+      }],
+      "produces": [
+        "application/json"
+      ],
+      "responses": {
+        "204": {
+          "description": "Invoice line deleted"
+        },
+        "400": {
+          "description": "Bad request",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "401": {
+          "description": "Authentication required",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "403": {
+          "description": "Access forbidden",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "404": {
+          "description": "Vendor not found",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "500": {
+          "description": "Internal server error",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "503": {
+          "description": "Under maintenance",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        }
+      },
+      "x-koha-authorization": {
+        "permissions": {
+          "acquisition": "invoices_manage"
+        }
+      }
     }
+
   }
 }
