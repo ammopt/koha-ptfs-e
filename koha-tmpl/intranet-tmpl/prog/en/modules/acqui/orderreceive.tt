@@ -307,7 +307,15 @@
     </fieldset>
 
 </div>
-</div><div class="row"><fieldset class="action">
+</div>
+<div class="row">
+    <fieldset class="rows">
+        <legend>Line items</legend>
+        <div id="react-orderreceive-lineitems"></div>
+        [% Asset.js("js/react-orderreceive-lineitems.js") %]
+    </fieldset>
+</div>
+<div class="row"><fieldset class="action">
         <input type="submit"  value="Save" class="button" accesskey="w" />
         <a class="cancel" href="/cgi-bin/koha/acqui/parcel.pl?invoiceid=[% invoiceid | html %]&sticky_filters=1">Cancel</a>
 </fieldset></div>    </form>

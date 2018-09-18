@@ -4163,6 +4163,18 @@ span {
     }
 }
 
+#react-lineitem-table {
+	margin: 20px 0;
+	width: 100%;
+	.calc-val {
+		margin-left: 10px;
+	}
+}
+
+#react-lineitems-add-new {
+	float: right;
+}
+
 #helper {
     span {
         display: none;
