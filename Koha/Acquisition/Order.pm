@@ -154,6 +154,19 @@ sub invoice {
     return Koha::Acquisition::Invoice->_new_from_dbic( $invoice_rs );
 }
 
+=head3 invoice_lines
+
+    my $invoice = $order->invoice_lines
+
+Returns the invoice lines associated to the order.
+
+=cut
+
+sub invoice_lines {
+    my ( $self )  = @_;
+    return Koha::Acquisition::Invoice::Lines->search( { aqorders_ordernumber => $self->ordernumber } );
+}
+
 =head3 subscription
 
     my $subscription = $order->subscription
