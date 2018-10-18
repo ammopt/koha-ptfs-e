@@ -509,6 +509,12 @@ for my $this_cgi ( split('&',$limit_cgi) ) {
 $template->param ( LIMIT_INPUTS => \@limit_inputs );
 
 ## II. DO THE SEARCH AND GET THE RESULTS
+
+# BDS Cover images
+if (C4::Context->preference('BDSStaffEnable') == 1) {
+    $template->param(DBMCode => C4::Context->preference('DBMCode'));
+}
+
 my $total; # the total results for the whole set
 my $facets; # this object stores the faceted results that display on the left-hand of the results page
 my $results_hashref;

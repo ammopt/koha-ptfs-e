@@ -455,6 +455,11 @@ if ( C4::Context->preference("LocalCoverImages") == 1 ) {
     $template->{VARS}->{localimages} = \@images;
 }
 
+# BDS Cover Images
+if (C4::Context->preference('BDSStaffEnable') == 1) {
+    template->param(DBMCode => C4::context->preference('DBMCode'));
+}
+
 # HTML5 Media
 if ( (C4::Context->preference("HTML5MediaEnabled") eq 'both') or (C4::Context->preference("HTML5MediaEnabled") eq 'staff') ) {
     $template->param( C4::HTML5Media->gethtml5media($record));

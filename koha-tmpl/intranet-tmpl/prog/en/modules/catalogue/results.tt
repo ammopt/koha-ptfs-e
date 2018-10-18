@@ -598,7 +598,9 @@ function holdForPatron() {
                     <!-- TABLE RESULTS START -->
                 <table>
                     <tr>
-                        [% IF ( AmazonCoverImages || LocalCoverImages ) %]<th>&nbsp;</th>[% END %]
+                        [% IF ( AmazonCoverImages || LocalCoverImages || BDSStaffEnable) %]
+                          <th>&nbsp;</th>
+                        [% END %]
                         <th colspan="2">Results</th>
                         <th>Location</th>
                     </tr>
@@ -606,12 +608,17 @@ function holdForPatron() {
                         [% SET MaxSearchResultsItemsPerRecordStatusCheck = Koha.Preference('MaxSearchResultsItemsPerRecordStatusCheck') %]
                         [% FOREACH SEARCH_RESULT IN SEARCH_RESULTS %]
                             <tr>
-                            [% IF ( AmazonCoverImages || LocalCoverImages ) %]
+                            [% IF ( AmazonCoverImages || LocalCoverImages || BDSStaffEnable ) %]
                                 <td>
                                     [% IF ( LocalCoverImages) %]
                                         <a class="p1" href="/cgi-bin/koha/catalogue/[% DetailPage %]?biblionumber=[% SEARCH_RESULT.biblionumber |url %]">
                                         <span title="[% SEARCH_RESULT.biblionumber |url %]" class="[% SEARCH_RESULT.biblionumber %]" id="local-thumbnail[% loop.count %]"></span>
                                         </a>
+                                    [% END %]
+                                    [% IF BDSStaffEnable %]
+                                       <a class="p1" href="/cgi-bin/koha/catalogue/[% DetailPage %]?biblionumber=[% SEARCH_RESULT.biblionumber |url %]">
+                                       <img src="http://www.bibdsl.co.uk/xmla/image-service.asp?ISBN=[% SEARCH_RESULT.normalized_isbn %]&SIZE=s&DBM=[% DBMCode %]" />
+                                       </a>
                                     [% END %]
                                     [% IF ( AmazonCoverImages ) %]
                                         [% IF ( SEARCH_RESULT.normalized_isbn ) %]

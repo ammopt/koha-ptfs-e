@@ -64,7 +64,7 @@
         <span class="Z3988" title="[% ocoins %]"></span>
     [% END %]
 
-    [% IF ( AmazonCoverImages  || LocalCoverImages ) %]
+    [% IF ( AmazonCoverImages  || LocalCoverImages || BDSStaffEnable ) %]
         [% IF ( XSLTDetailsDisplay ) %]
             <div class="yui-gc">
             <div id="catalogue_detail_biblio" class="yui-u first">
@@ -129,10 +129,17 @@
             </span>
         [% END %]
 
-        [% IF ( AmazonCoverImages  || LocalCoverImages ) %]
+        [% IF ( AmazonCoverImages  || LocalCoverImages || BDSStaffEnable ) %]
         </div><div class="yui-u" id="bookcoverimg">
         [% IF ( LocalCoverImages ) %]
             <div title="[% biblionumber |url %]" class="[% biblionumber %]" id="local-thumbnail-preview"></div>
+        [% END %]
+        [% IF BDSStaffEnable %]
+            <span class="bds_resultscovers">
+              <a href="http://www.bibdsl.co.uk/xmla/image-service.asp?ISBN=[% normalized_isbn %]&SIZE=l&DBM=[% DBMCode %]" />
+              <img src="http://www.bibdsl.co.uk/xmla/image-service.asp?ISBN=[% normalized_isbn %]&SIZE=s&DBM=[% DBMCode %]" />
+               </a>
+             </span>
         [% END %]
         [% IF ( AmazonCoverImages ) %]
             <div id="amazon-bookcoverimg">
@@ -203,10 +210,17 @@
         </ul>
         </div>
        
-    [% IF ( AmazonCoverImages  || LocalCoverImages ) %]
+    [% IF ( AmazonCoverImages  || LocalCoverImages || BDSStaffEnable) %]
         <div class="yui-u" id="bookcoverimg">
         [% IF ( LocalCoverImages ) %]
             <div title="[% biblionumber |url %]" class="[% biblionumber %]" id="local-thumbnail-preview"></div>
+        [% END %]
+        [% IF BDSStaffEnable %]
+           <span class="bds_coverimage">
+           <a href="http://www.bibdsl.co.uk/xmla/image-service.asp?ISBN=[% normalized_isbn %]&SIZE=l&DBM=[% DBMCode %] />
+           <img src="http://www.bidsl.co.uk/xmla/image-service.asp?ISBN=[% normalized_isbn %]&SIZE=s&DBM=[% DBMCode %]" />
+            </a>
+            </span>
         [% END %]
         [% IF ( AmazonCoverImages ) %]
             <div id="amazon-bookcoverimg">
@@ -1055,7 +1069,7 @@
 
         });
 
-        [% IF ( AmazonCoverImages || LocalCoverImages ) %]$(window).load(function() {
+        [% IF ( AmazonCoverImages || LocalCoverImages || BDSStaffEnable ) %]$(window).load(function() {
             verify_images();
         });[% END %]
     </script>
