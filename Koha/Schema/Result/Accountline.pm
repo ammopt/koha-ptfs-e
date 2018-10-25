@@ -110,6 +110,12 @@ __PACKAGE__->table("accountlines");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 branchcode
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -148,6 +154,8 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "manager_id",
   { data_type => "integer", is_nullable => 1 },
+  "branchcode",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
 );
 
 =head1 PRIMARY KEY
