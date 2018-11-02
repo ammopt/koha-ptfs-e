@@ -466,7 +466,6 @@ my ( $reused_itemnumber_1, $reused_itemnumber_2 );
             itemnumber     => $item_7->itemnumber,
             borrowernumber => $renewing_borrower->{borrowernumber},
             amount         => $fine,
-            type           => 'FU',
             due            => Koha::DateUtils::output_pref($five_weeks_ago)
         }
     );

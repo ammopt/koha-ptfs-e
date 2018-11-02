@@ -4108,10 +4108,8 @@ sub _CalculateAndUpdateFine {
 
     my $date_returned = $return_date ? dt_from_string($return_date) : dt_from_string();
 
-    my ( $amount, $type, $unitcounttotal ) =
+    my ( $amount, $unitcounttotal, $unitcount  ) =
       C4::Overdues::CalcFine( $item, $borrower->{categorycode}, $control_branchcode, $datedue, $date_returned );
-
-    $type ||= q{};
 
     if ( C4::Context->preference('finesMode') eq 'production' ) {
         if ( $amount > 0 ) {
@@ -4120,7 +4118,6 @@ sub _CalculateAndUpdateFine {
                 itemnumber     => $issue->itemnumber,
                 borrowernumber => $issue->borrowernumber,
                 amount         => $amount,
-                type           => $type,
                 due            => output_pref($datedue),
             });
         }
@@ -4134,7 +4131,6 @@ sub _CalculateAndUpdateFine {
                 itemnumber     => $issue->itemnumber,
                 borrowernumber => $issue->borrowernumber,
                 amount         => 0,
-                type           => $type,
                 due            => output_pref($datedue),
             });
         }
