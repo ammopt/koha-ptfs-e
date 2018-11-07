@@ -51,7 +51,7 @@ $(document).ready(function() {
                     var sel = $('#illfilter_status option:selected').val();
                     if (sel && sel.length > 0) {
                         activeFilters[me] = function() {
-                            table.column(7).search(sel);
+                            table.api().column(13).search(sel);
                         }
                     } else {
                         if (activeFilters.hasOwnProperty(me)) {
@@ -83,7 +83,7 @@ $(document).ready(function() {
                     var sel = $('#illfilter_branchname option:selected').val();
                     if (sel && sel.length > 0) {
                         activeFilters[me] = function() {
-                            table.column(6).search(sel);
+                            table.api().column(12).search(sel);
                         }
                     } else {
                         if (activeFilters.hasOwnProperty(me)) {
@@ -103,7 +103,7 @@ $(document).ready(function() {
                     var val = $('#illfilter_barcode').val();
                     if (val && val.length > 0) {
                         activeFilters[me] = function() {
-                            table.column(4).search(val);
+                            table.api().column(11).search(val);
                         }
                     } else {
                         if (activeFilters.hasOwnProperty(me)) {
@@ -478,7 +478,7 @@ $(document).ready(function() {
     );
 
     var clearSearch = function() {
-        table.search('').columns().search('');
+        table.api().search('').columns().search('');
         activeFilters = {};
         for (var filter in filterable) {
             if (
@@ -488,20 +488,20 @@ $(document).ready(function() {
                 filterable[filter].clear();
             }
         }
-        table.draw();
+        table.api().draw();
     };
 
     // Apply any search filters, or clear any previous
     // ones
     $('#illfilter_form').submit(function(event) {
         event.preventDefault();
-        table.search('').columns().search('');
+        table.api().search('').columns().search('');
         for (var active in activeFilters) {
             if (activeFilters.hasOwnProperty(active)) {
                 activeFilters[active]();
             }
         }
-        table.draw();
+        table.api().draw();
     });
 
     // Clear all filters
