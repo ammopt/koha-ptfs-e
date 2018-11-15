@@ -312,7 +312,6 @@
     <fieldset class="rows">
         <legend>Line items</legend>
         <div id="react-orderreceive-lineitems"></div>
-        [% Asset.js("js/react-orderreceive-lineitems.js") %]
     </fieldset>
 </div>
 <div class="row"><fieldset class="action">
@@ -447,7 +446,12 @@
                 });
             [% END %]
         });
+
+        // Make the necessary properties available to the React app
+        window.invoiceId = [% invoiceid | html %]
+        window.orderNumber = [% ordernumber | html %]
     </script>
+    [% Asset.js("js/react-orderreceive-lineitems.js") | $raw %]
 [% END %]
 
 [% INCLUDE 'intranet-bottom.inc' %]
