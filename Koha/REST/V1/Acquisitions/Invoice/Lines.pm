@@ -40,7 +40,7 @@ Method for adding an invoice line to an invoice
 sub add_invoice_line {
     my $c = shift->openapi->valid_input or return;
 
-    my $invoice_line = _to_model( $c->validation->param('data') );
+    my $invoice_line = _to_model( $c->validation->param('body') );
 
     # Add invoiceid
     $invoice_line->{aqinvoices_invoiceid} = $c->validation->param('invoice_id');
@@ -140,7 +140,7 @@ sub update_invoice_line {
             );
         }
         else {
-            $invoice_line->set( _to_model( $c->validation->param('data') ) );
+            $invoice_line->set( _to_model( $c->validation->param('body') ) );
             $invoice_line->store();
             return $c->render(
                 status  => 200,

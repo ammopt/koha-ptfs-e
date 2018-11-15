@@ -76,7 +76,7 @@ sub add_invoice_line {
     my $c         = shift->openapi->valid_input or return;
     my $invoiceID = $c->param('invoice_id');
     my $orderID   = $c->param('order_id');
-    my $invoice_line = $c->param('data');
+    my $invoice_line = $c->param('body');
     $invoice_line->{aqinvoices_invoiceid} = $invoiceID;
     $invoice_line->{aqinvoices_ordernumber} = $orderID;
 

@@ -11,7 +11,7 @@
         "required": true,
         "type": "integer"
       }, {
-        "name": "data",
+        "name": "body",
         "in": "body",
         "description": "A JSON object representing an invoice line",
         "required": true,
@@ -152,7 +152,7 @@
         "required": true,
         "type": "integer"
       }, {
-        "name": "data",
+        "name": "body",
         "in": "body",
         "description": "A JSON object representing an invoice line",
         "required": true,
