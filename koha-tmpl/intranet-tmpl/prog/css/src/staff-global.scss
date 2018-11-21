@@ -4163,16 +4163,38 @@ span {
     }
 }
 
-#react-lineitem-table {
-	margin: 20px 0;
-	width: 100%;
+#react-acq-lineitems-loading {
+    margin: 10px;
+    font-weight: bold;
+}
+
+#react-acq-lineitems-table {
+	margin: 20px auto;
+	width: 95%;
 	.calc-val {
 		margin-left: 10px;
 	}
+    button:not(:last-child) {
+        margin-right: 5px;
+    }
+    input {
+        width: 7em;
+    }
+    td {
+        vertical-align: middle;
+    }
 }
 
-#react-lineitems-add-new {
+#react-acq-lineitems-button-add-new {
+    margin: 5px 5px 5px 0;
 	float: right;
+}
+
+#react-acq-lineitem-disp-actions,
+#react-acq-lineitem-edit-actions {
+    text-align: right;
+    padding: 0 5px 0 0;
+    white-space: nowrap;
 }
 
 #helper {
