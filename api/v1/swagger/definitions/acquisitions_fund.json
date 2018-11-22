@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "properties": {
+    "fund_code": {
+        "type": ["string","null"],
+        "description": ""
+    },
+    "fund_amount": {
+        "type": "number",
+        "description": ""
+    },
+    "fund_id": {
+        "type": "integer",
+        "description": ""
+    },
+    "fund_branchcode": {
+        "type": ["string","null"],
+        "description": ""
+    },
+    "fund_parent_id": {
+        "type": ["integer","null"],
+        "description": ""
+    },
+    "fund_name": {
+        "type": ["string","null"],
+        "description": ""
+    },
+    "fund_encumb": {
+        "type": ["number","null"],
+        "description": ""
+    },
+    "fund_expend": {
+        "type": ["number","null"],
+        "description": ""
+    },
+    "fund_notes": {
+        "type": ["string","null"],
+        "description": ""
+    },
+    "timestamp": {
+        "type": "string",
+        "description": ""
+    },
+    "fund_period_id": {
+        "type": ["integer","null"],
+        "description": ""
+    },
+    "sort1_authcat": {
+        "type": ["string","null"],
+        "description": ""
+    },
+    "sort2_authcat": {
+        "type": ["string","null"],
+        "description": ""
+    },
+    "fund_owner_id": {
+        "type": ["integer","null"],
+        "description": ""
+    },
+    "fund_permission": {
+        "type": ["integer","null"],
+        "description": ""
+    }
+  }
+}

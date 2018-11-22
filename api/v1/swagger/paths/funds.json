@@ -1,0 +1,43 @@
+{
+  "/funds": {
+    "get": {
+      "x-mojo-to": "Acquisitions::Funds#list",
+      "operationId": "listFunds",
+      "tags": ["acquisitions", "funds"],
+      "parameters": [],
+      "produces": ["application/json"],
+      "responses": {
+        "200": {
+          "description": "A list of funds",
+          "schema": {
+            "$ref": "../definitions.json#/funds"
+          }
+        },
+        "401": {
+          "description": "Authentication required",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "404": {
+          "description": "Fund not found",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "500": {
+          "description": "Internal server error",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+        "503": {
+          "description": "Under maintenance",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        }
+      }
+    }
+  }
+}

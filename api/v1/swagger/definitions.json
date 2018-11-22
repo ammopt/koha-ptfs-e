@@ -34,5 +34,11 @@
   },
   "vendor": {
     "$ref": "definitions/vendor.json"
+  },
+  "fund": {
+    "$ref": "definitions/acquisitions_fund.json"
+  },
+  "funds": {
+    "$ref": "definitions/acquisitions_funds.json"
   }
 }

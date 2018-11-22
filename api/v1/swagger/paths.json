@@ -2,6 +2,9 @@
   "/oauth/token": {
     "$ref": "paths/oauth.json#/~1oauth~1token"
   },
+  "/acquisitions/funds": {
+    "$ref": "paths/funds.json#/~1funds"
+  },
   "/acquisitions/invoices/{invoice_id}/lines": {
     "$ref": "paths/acquisitions_invoices.json#/~1acquisitions~1invoices~1{invoice_id}~1lines"
   },
