@@ -4185,6 +4185,18 @@ span {
     }
 }
 
+#react-acq-lineitem-edit-type,
+#react-acq-lineitem-edit-budget,
+#react-acq-lineitem-edit-list_price,
+#react-acq-lineitem-edit-discount_rate,
+#react-acq-lineitem-edit-pre_tax_amount,
+#react-acq-lineitem-edit-tax_rate,
+#react-acq-lineitem-edit-tax_amount,
+#react-acq-lineitem-edit-total_price,
+#react-acq-lineitem-edit-actions {
+    white-space: nowrap;
+}
+
 #react-acq-lineitems-button-add-new {
     margin: 5px 5px 5px 0;
 	float: right;
