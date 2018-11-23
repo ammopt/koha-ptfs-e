@@ -306,6 +306,7 @@ our $to_model_mapping = {
     id              => 'id',
     order_id        => 'aqorders_ordernumber',
     budget          => 'aqbudgets_budgetid',
+    item_type       => 'item_type',
     description     => 'description',
     quantity        => 'quantity',
     list_price      => 'list_price',

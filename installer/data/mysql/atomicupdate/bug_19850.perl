@@ -5,6 +5,7 @@ if ( CheckVersion($DBversion) ) {
             id int(11) NOT NULL AUTO_INCREMENT,
             aqinvoices_invoiceid int(11) NOT NULL,
             aqorders_ordernumber int(11) NOT NULL,
+            item_type int(11) DEFAULT NULL,
             aqbudgets_budgetid int(11),
             description mediumtext DEFAULT NULL,
             quantity int(11) NOT NULL DEFAULT 1,
@@ -21,9 +22,12 @@ if ( CheckVersion($DBversion) ) {
             CONSTRAINT aqinvoice_lines_fk_orderid FOREIGN KEY(aqorders_ordernumber)
               REFERENCES aqorders(ordernumber) ON DELETE CASCADE ON UPDATE CASCADE,
             CONSTRAINT aqinvoice_lines_fk_budgetid FOREIGN KEY(aqbudgets_budgetid)
-              REFERENCES aqbudgets(budget_id) ON DELETE SET NULL ON UPDATE CASCADE
+              REFERENCES aqbudgets(budget_id) ON DELETE SET NULL ON UPDATE CASCADE,
+            CONSTRAINT aqinvoice_lines_fk_item_type FOREIGN KEY(item_type)
+              REFERENCES authorised_values(id) ON UPDATE CASCADE ON DELETE SET NULL
           )
     " );
+    $dbh->do( "INSERT IGNORE INTO authorised_value_categories SET category_name = 'LINEITEMTYPE'");
 
     # Always end with this (adjust the bug info)
     SetVersion($DBversion);

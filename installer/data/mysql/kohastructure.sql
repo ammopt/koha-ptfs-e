@@ -3176,6 +3176,7 @@ CREATE TABLE IF NOT EXISTS aqinvoice_lines(
     id int(11) NOT NULL AUTO_INCREMENT, -- primary key for line items
     aqinvoices_invoiceid int(11) NOT NULL, -- foreign key to link a line item with an invoice
     aqorders_ordernumber int(11) NOT NULL, -- foreign key to link a line item with an order
+    item_type int(11) DEFAULT NULL, -- foreign key to link a line item with its type
     aqbudgets_budgetid int(11), -- foreign key to link a line item with its associated fund
     description mediumtext DEFAULT NULL, -- Line item descriptive text
     quantity int(11) NOT NULL DEFAULT 1, -- How many items is this line item concerning
@@ -3189,7 +3190,8 @@ CREATE TABLE IF NOT EXISTS aqinvoice_lines(
     PRIMARY KEY(id),
     CONSTRAINT aqinvoice_lines_fk_invoiceid FOREIGN KEY(aqinvoices_invoiceid) REFERENCES aqinvoices(invoiceid) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT aqinvoice_lines_fk_orderid FOREIGN KEY(aqorders_ordernumber) REFERENCES aqorders(ordernumber) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT aqinvoice_lines_fk_budgetid FOREIGN KEY(aqbudgets_budgetid) REFERENCES aqbudgets(budget_id) ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT aqinvoice_lines_fk_budgetid FOREIGN KEY(aqbudgets_budgetid) REFERENCES aqbudgets(budget_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT aqinvoice_lines_fk_type FOREIGN KEY(type) REFERENCES authorised_values(id) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
