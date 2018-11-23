@@ -455,21 +455,6 @@ __PACKAGE__->set_primary_key("ordernumber");
 
 =head1 RELATIONS
 
-=head2 aqinvoice_lines
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::AqinvoiceLine>
-
-=cut
-
-__PACKAGE__->has_many(
-  "aqinvoice_lines",
-  "Koha::Schema::Result::AqinvoiceLine",
-  { "foreign.aqorders_ordernumber" => "self.ordernumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 aqorder_users
 
 Type: has_many
