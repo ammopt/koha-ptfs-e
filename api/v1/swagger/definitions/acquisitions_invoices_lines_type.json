@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+        "type": "integer",
+        "description": ""
+    },
+    "category": {
+        "type": "string",
+        "description": ""
+    },
+    "authorised_value": {
+        "type": "string",
+        "description": ""
+    },
+    "lib": {
+        "type": ["string","null"],
+        "description": ""
+    },
+    "lib_opac": {
+        "type": ["string","null"],
+        "description": ""
+    },
+    "imageurl": {
+        "type": ["string","null"],
+        "description": ""
+    }
+  }
+}

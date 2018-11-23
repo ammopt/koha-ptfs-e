@@ -8,6 +8,12 @@
   "acquisitions_invoice_line": {
     "$ref": "definitions/acquisitions_invoice_line.json"
   },
+  "acquisitions_invoices_lines_type": {
+    "$ref": "definitions/acquisitions_invoices_lines_type.json"
+  },
+  "acquisitions_invoices_lines_types": {
+    "$ref": "definitions/acquisitions_invoices_lines_types.json"
+  },
   "city": {
     "$ref": "definitions/city.json"
   },
