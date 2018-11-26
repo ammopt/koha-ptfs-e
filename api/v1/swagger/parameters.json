@@ -15,7 +15,7 @@
     "$ref": "parameters/library.json#/library_id_pp"
   },
   "order_id_pp": {
-    "$ref": "parameters/city.json#/city_id_pp"
+    "$ref": "parameters/order.json#/order_id_pp"
   },
   },
   "vendoridPathParam": {
