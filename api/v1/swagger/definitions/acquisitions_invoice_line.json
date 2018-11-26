@@ -1,7 +1,7 @@
 {
   "type": "object",
   "required": [
-    "id", "order_id", "budget", "description", "quantity", "list_price", "discount_rate",
+    "id", "order_id", "budget", "item_type", "description", "quantity", "list_price", "discount_rate",
     "discount_amount", "pre_tax_amount", "tax_rate", "tax_amount", "total_price"
   ],
   "properties": {
@@ -16,6 +16,10 @@
     "budget": {
       "type": ["integer", "null"],
       "description": "Budget identifier associated with this invoice_line"
+    },
+    "item_type": {
+      "type": ["integer", "null"],
+      "description": "Line item type identifier associated with this invoice_line"
     },
     "description": {
       "type": "string",
