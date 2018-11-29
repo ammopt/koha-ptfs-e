@@ -197,7 +197,6 @@ sub delete_invoice_line {
             );
         }
         else {
-
             $invoice_line->delete;
             return $c->render(
                 status  => 204,
@@ -216,6 +215,12 @@ sub delete_invoice_line {
             return $c->render(
                 status  => 500,
                 openapi => { error => $_->msg }
+            );
+        }
+        elsif ( $_->isa('Mojo::Exception') ) {
+            return $c->render(
+                status  => 500,
+                openapi => { error => $_->message }
             );
         }
         else {
