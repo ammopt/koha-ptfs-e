@@ -20,6 +20,7 @@ use Modern::Perl;
 use Carp;
 
 use Koha::Database;
+use Koha::Acquisition::Order;
 
 use base qw(Koha::Object);
 
