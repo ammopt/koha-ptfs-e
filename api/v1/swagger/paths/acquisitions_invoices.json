@@ -136,7 +136,7 @@
   },
   "/acquisitions/invoices/{invoice_id}/lines/{line_id}": {
     "put": {
-      "x-mojo-to": "Acquisitions::Invoices::Lines#update_invoice_line",
+      "x-mojo-to": "Acquisitions::Invoice::Lines#update_invoice_line",
       "operationId": "updateInvoiceLine",
       "tags": ["acquisitions", "invoices"],
       "parameters": [{
@@ -214,7 +214,7 @@
       }
     },
     "delete": {
-      "x-mojo-to": "Acquisitions::Invoices::Lines#delete_invoice_line",
+      "x-mojo-to": "Acquisitions::Invoice::Lines#delete_invoice_line",
       "operationId": "deleteInvoiceLine",
       "tags": ["acquisitions", "invoices"],
       "parameters": [{
