@@ -59,20 +59,12 @@ sub store {
         sub {
 
             if ( $self->aqorders_ordernumber ) {
-                my $order = $self->order;
-
-                # Check order present
-                unless ( $order->in_storage ) {
-                    Koha::Exceptions::Object::FKConstraint->throw(
-                        broken_fk => 'ordernumber',
-                        value     => $self->aqorders_ordernumber,
-                    );
-                }
 
                 # Store invoice line
                 $self = $self->SUPER::store;
 
                 # Update order line
+                my $order = $self->order;
                 if ( $self->pre_tax_price || $self->total_price ) {
                     my $total_pre_tax =
                       $order->_result->aqinvoice_lines->get_column(
@@ -114,20 +106,12 @@ sub delete {
     $self->_result->result_source->schema->txn_do(
         sub {
             if ( $self->aqorders_ordernumber ) {
-                my $order = $self->order;
-
-                # Check order present
-                unless ( $order->in_storage ) {
-                    Koha::Exceptions::Object::FKConstraint->throw(
-                        broken_fk => 'ordernumber',
-                        value     => $self->aqorders_ordernumber,
-                    );
-                }
 
                 # Delete the invoice line
                 $deleted = $self->SUPER::delete;
 
                 # Update the order line
+                my $order = $self->order;
                 if ( $self->pre_tax_price || $self->total_price ) {
                     my $total_pre_tax =
                       $order->_result->aqinvoice_lines->get_column(

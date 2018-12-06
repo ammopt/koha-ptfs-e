@@ -40,7 +40,7 @@ my $t              = Test::Mojo->new('Koha::REST::V1');
 
 subtest 'invoice_line add() tests' => sub {
 
-    plan tests => 0;
+    plan tests => 14;
 
     $schema->storage->txn_begin;
 
@@ -51,10 +51,36 @@ subtest 'invoice_line add() tests' => sub {
     my ( $authorized_borrowernumber, $authorized_session_id ) =
       create_user_and_session( { authorized => 1 } );
 
-    my $order_id      = undef;
-    my $invoice_id    = undef;
-    my $budget_id     = undef;
-    my $invoice_lince = {
+    # Add Order to test against
+    my $basket = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Baskets'
+        }
+    )->store;
+    $basket->discard_changes;
+    my $order = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Orders',
+            value => { basketno => $basket->basketno }
+        }
+    )->store;
+    $order->discard_changes;
+    my $order_id = $order->ordernumber;
+
+    # Add Invoice to test against
+    my $invoice = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Invoices',
+        },
+    );
+    $invoice->discard_changes;
+    $order->invoiceid( $invoice->invoiceid )->store;
+    $order->discard_changes;
+    $invoice->discard_changes;
+    my $invoice_id   = $invoice->invoiceid;
+    my $budget_id    = undef;
+    my $invoice_line = {
+        "order_id"        => $order_id,
         "budget"          => $budget_id,
         "description"     => "",
         "discount_amount" => 1,
@@ -65,13 +91,22 @@ subtest 'invoice_line add() tests' => sub {
         "quantity"        => 1,
         "tax_amount"      => 7.23,
         "tax_rate"        => 4,
-        "total_price"     => 89.73
+        "total_price"     => 89.73,
+        "item_type"       => undef,
     };
 
-    # Unauthorized attempt to add invoice line
+    # Unauthenticated attempt to add invoice line
     my $tx =
-      $t->ua->build_tx( POST =>
-          "/api/v1/acquisitions/orders/$order_id/invoices/$invoice_id/lines" =>
+      $t->ua->build_tx(
+        POST   => "/api/v1/acquisitions/invoices/$invoice_id/lines" =>
+          json => $invoice_line );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(401);
+
+    # Unauthorized attempt to add invoice line
+    $tx =
+      $t->ua->build_tx(
+        POST   => "/api/v1/acquisitions/invoices/$invoice_id/lines" =>
           json => $invoice_line );
     $tx->req->cookies(
         { name => 'CGISESSID', value => $unauthorized_session_id } );
@@ -80,43 +115,52 @@ subtest 'invoice_line add() tests' => sub {
 
     # Authorized attempt to add invoice lines (with a bad invoice id)
     $tx =
-      $t->ua->build_tx( POST =>
-          "/api/v1/acquisitions/orders/$order_id/invoices/$invoice_id/lines" =>
+      $t->ua->build_tx( POST => "/api/v1/acquisitions/invoices/1/lines" =>
           json => $invoice_line );
     $tx->req->cookies(
         { name => 'CGISESSID', value => $authorized_session_id } );
     $tx->req->env( { REMOTE_ADDR => $remote_address } );
-    $t->request_ok($tx)->status_is(200)->json_is( [] );
+    $t->request_ok($tx)->status_is( 404, "Invoice Not Found" );
 
     # Authorized attempt to add invoice lines (with a bad order id)
+    $invoice_line->{order_id} = 54321;
     $tx =
-      $t->ua->build_tx( POST =>
-          "/api/v1/acquisitions/orders/$order_id/invoices/$invoice_id/lines" =>
+      $t->ua->build_tx(
+        POST   => "/api/v1/acquisitions/invoices/$invoice_id/lines" =>
           json => $invoice_line );
     $tx->req->cookies(
         { name => 'CGISESSID', value => $authorized_session_id } );
     $tx->req->env( { REMOTE_ADDR => $remote_address } );
-    $t->request_ok($tx)->status_is(200)->json_is( [] );
+    $t->request_ok($tx)->status_is(400)->json_is(
+        '/error' => 'Referenced order not found',
+        'Referenced order not found'
+    );
+    $invoice_line->{order_id} = $order_id;
 
     # Authorized attempt to add invoice lines (with a bad budget id)
+    $invoice_line->{budget} = 12345;
     $tx =
-      $t->ua->build_tx( POST =>
-          "/api/v1/acquisitions/orders/$order_id/invoices/$invoice_id/lines" =>
+      $t->ua->build_tx(
+        POST   => "/api/v1/acquisitions/invoices/$invoice_id/lines" =>
           json => $invoice_line );
     $tx->req->cookies(
         { name => 'CGISESSID', value => $authorized_session_id } );
     $tx->req->env( { REMOTE_ADDR => $remote_address } );
-    $t->request_ok($tx)->status_is(200)->json_is( [] );
+    $t->request_ok($tx)->status_is(400)->json_is(
+        '/error' => 'Referenced budget not found',
+        'Referenced budget not found'
+    );
+    $invoice_line->{budget} = undef;
 
     # Authorized attempt to add invoice lines (success)
     $tx =
-      $t->ua->build_tx( POST =>
-          "/api/v1/acquisitions/orders/$order_id/invoices/$invoice_id/lines" =>
+      $t->ua->build_tx(
+        POST   => "/api/v1/acquisitions/invoices/$invoice_id/lines" =>
           json => $invoice_line );
     $tx->req->cookies(
         { name => 'CGISESSID', value => $authorized_session_id } );
     $tx->req->env( { REMOTE_ADDR => $remote_address } );
-    $t->request_ok($tx)->status_is(200)->json_is( [] );
+    $t->request_ok($tx)->status_is(200);
 
     $schema->storage->txn_rollback;
 };

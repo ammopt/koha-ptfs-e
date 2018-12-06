@@ -45,6 +45,16 @@ sub add_invoice_line {
     # Add invoiceid
     $invoice_line->{aqinvoices_invoiceid} = $c->validation->param('invoice_id');
 
+    # Check invoice existance
+    my $invoice = Koha::Acquisition::Invoices->find(
+        $invoice_line->{aqinvoices_invoiceid} );
+    unless ($invoice) {
+        return $c->render(
+            status  => 404,
+            openapi => { error => "Invoice not found" }
+        );
+    }
+
     my $insert = Koha::Acquisition::Invoice::Line->new($invoice_line);
 
     return try {
@@ -55,7 +65,27 @@ sub add_invoice_line {
         );
     }
     catch {
-        if ( $_->isa('DBIx::Class::Exception') ) {
+        if ( $_->isa('Koha::Exceptions::Object::FKConstraint') ) {
+            if ( $_->broken_fk eq 'aqorders_ordernumber' ) {
+                return $c->render(
+                    status  => 400,
+                    openapi => { error => "Referenced order not found" }
+                );
+            }
+            elsif ( $_->broken_fk eq 'aqbudgets_budgetid' ) {
+                return $c->render(
+                    status  => 400,
+                    openapi => { error => "Referenced budget not found" }
+                );
+            }
+            else {
+                return $c->render(
+                    status  => 400,
+                    openapi => { error => $_->message }
+                );
+            }
+        }
+        elsif ( $_->isa('DBIx::Class::Exception') ) {
             return $c->render(
                 status  => 500,
                 openapi => { error => $_->msg }

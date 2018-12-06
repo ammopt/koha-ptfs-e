@@ -29,6 +29,13 @@
             "$ref": "../definitions.json#/acquisitions_invoice_line"
           }
         },
+        "400": {
+          "description": "Request error found",
+          "schema": {
+            "$ref": "../definitions.json#/error"
+          }
+        },
+
         "401": {
           "description": "Authentication required",
           "schema": {
