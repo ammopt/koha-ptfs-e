@@ -111,11 +111,18 @@ sub list_invoice_lines {
     my $invoiceID = $c->validation->param('invoice_id');
     my $orderID   = $c->validation->param('order_id');
 
-    my @invoice_lines;
+    # Check invoice existance
+    my $invoice = Koha::Acquisition::Invoices->find($invoiceID);
+    unless ($invoice) {
+        return $c->render(
+            status  => 404,
+            openapi => { error => "Invoice not found" }
+        );
+    }
+
     return try {
-        @invoice_lines = Koha::Acquisition::Invoice::Lines->search(
+        my @invoice_lines = $invoice->lines->search(
             {
-                aqinvoices_invoiceid => $invoiceID,
                 (
                     defined($orderID)
                     ? ( aqorders_ordernumber => $orderID )

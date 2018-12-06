@@ -26,6 +26,11 @@ use t::lib::Mocks;
 
 use C4::Auth;
 use Koha::Acquisition::Booksellers;
+use Koha::Acquisition::Baskets;
+use Koha::Acquisition::Orders;
+use Koha::Acquisition::Invoices;
+use Koha::Acquisition::Budgets;
+
 use Koha::Database;
 
 my $schema  = Koha::Database->new->schema;
@@ -45,6 +50,12 @@ subtest 'invoice_line add() tests' => sub {
     $schema->storage->txn_begin;
 
     # Clean up acq here to give us a clean start to test against.
+    $schema->resultset('VendorEdiAccount')->search->delete;
+    Koha::Acquisition::Baskets->search->delete;
+    Koha::Acquisition::Booksellers->search->delete;
+    Koha::Acquisition::Orders->search->delete;
+    Koha::Acquisition::Invoices->search->delete;
+    Koha::Acquisition::Budgets->search->delete;
 
     my ( $unauthorized_borrowernumber, $unauthorized_session_id ) =
       create_user_and_session( { authorized => 0 } );
@@ -164,6 +175,58 @@ subtest 'invoice_line add() tests' => sub {
 
     $schema->storage->txn_rollback;
 };
+
+#subtest 'invoice_line list() tests' => sub {
+#
+#    plan tests => 14;
+#
+#    $schema->storage->txn_begin;
+#
+#    # Clean up acq here to give us a clean start to test against.
+#    $schema->resultset('VendorEdiAccount')->search->delete;
+#    Koha::Acquisition::Baskets->search->delete;
+#    Koha::Acquisition::Booksellers->search->delete;
+#    Koha::Acquisition::Orders->search->delete;
+#    Koha::Acquisition::Invoices->search->delete;
+#    Koha::Acquisition::Budgets->search->delete;
+#
+#    my ( $unauthorized_borrowernumber, $unauthorized_session_id ) =
+#      create_user_and_session( { authorized => 0 } );
+#    my ( $authorized_borrowernumber, $authorized_session_id ) =
+#      create_user_and_session( { authorized => 1 } );
+#
+#    # Add Order to test against
+#    my $basket = $builder->build_object(
+#        {
+#            class => 'Koha::Acquisition::Baskets'
+#        }
+#    )->store;
+#    $basket->discard_changes;
+#    my $order = $builder->build_object(
+#        {
+#            class => 'Koha::Acquisition::Orders',
+#            value => { basketno => $basket->basketno }
+#        }
+#    )->store;
+#    $order->discard_changes;
+#    my $order_id = $order->ordernumber;
+#
+#    # Add Invoice to test against
+#    my $invoice = $builder->build_object(
+#        {
+#            class => 'Koha::Acquisition::Invoices',
+#        },
+#    );
+#    $invoice->discard_changes;
+#    $order->invoiceid( $invoice->invoiceid )->store;
+#    $order->discard_changes;
+#    $invoice->discard_changes;
+#    my $invoice_id   = $invoice->invoiceid;
+#
+#
+#
+#    $schema->storage->txn_rollback;
+#};
 
 sub create_user_and_session {
 

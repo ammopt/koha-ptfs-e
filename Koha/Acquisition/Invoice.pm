@@ -29,7 +29,20 @@ Koha::Acquisition::Invoice Object class
 
 =head2 Class methods
 
+=head3 lines
+
+    my $invoice   = Koha::Acquisition::Invoices->find( $id );
+    my @lines = $invoice->lines();
+
+Returns the list of invoice lines for the invoice
+
 =cut
+
+sub lines {
+    my ($self) = @_;
+    return Koha::Acquisition::Invoice::Lines->search(
+        { aqinvoices_invoiceid => $self->invoiceid } );
+}
 
 =head2 Internal methods
 
