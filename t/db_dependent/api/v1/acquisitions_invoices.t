@@ -50,6 +50,7 @@ subtest 'invoice_line add() tests' => sub {
     $schema->storage->txn_begin;
 
     # Clean up acq here to give us a clean start to test against.
+    $schema->resultset('EdifactMessage')->search->delete;
     $schema->resultset('VendorEdiAccount')->search->delete;
     Koha::Acquisition::Baskets->search->delete;
     Koha::Acquisition::Booksellers->search->delete;
@@ -183,6 +184,7 @@ subtest 'invoice_line add() tests' => sub {
 #    $schema->storage->txn_begin;
 #
 #    # Clean up acq here to give us a clean start to test against.
+#    $schema->resultset('EdifactMessage')->search->delete;
 #    $schema->resultset('VendorEdiAccount')->search->delete;
 #    Koha::Acquisition::Baskets->search->delete;
 #    Koha::Acquisition::Booksellers->search->delete;
