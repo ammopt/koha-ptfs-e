@@ -68,14 +68,14 @@ subtest 'invoice_line add() tests' => sub {
         {
             class => 'Koha::Acquisition::Baskets'
         }
-    )->store;
+    );
     $basket->discard_changes;
     my $order = $builder->build_object(
         {
             class => 'Koha::Acquisition::Orders',
             value => { basketno => $basket->basketno }
         }
-    )->store;
+    );
     $order->discard_changes;
     my $order_id = $order->ordernumber;
 
@@ -177,58 +177,85 @@ subtest 'invoice_line add() tests' => sub {
     $schema->storage->txn_rollback;
 };
 
-#subtest 'invoice_line list() tests' => sub {
-#
-#    plan tests => 14;
-#
-#    $schema->storage->txn_begin;
-#
-#    # Clean up acq here to give us a clean start to test against.
-#    $schema->resultset('EdifactMessage')->search->delete;
-#    $schema->resultset('VendorEdiAccount')->search->delete;
-#    Koha::Acquisition::Baskets->search->delete;
-#    Koha::Acquisition::Booksellers->search->delete;
-#    Koha::Acquisition::Orders->search->delete;
-#    Koha::Acquisition::Invoices->search->delete;
-#    Koha::Acquisition::Budgets->search->delete;
-#
-#    my ( $unauthorized_borrowernumber, $unauthorized_session_id ) =
-#      create_user_and_session( { authorized => 0 } );
-#    my ( $authorized_borrowernumber, $authorized_session_id ) =
-#      create_user_and_session( { authorized => 1 } );
-#
-#    # Add Order to test against
-#    my $basket = $builder->build_object(
-#        {
-#            class => 'Koha::Acquisition::Baskets'
-#        }
-#    )->store;
-#    $basket->discard_changes;
-#    my $order = $builder->build_object(
-#        {
-#            class => 'Koha::Acquisition::Orders',
-#            value => { basketno => $basket->basketno }
-#        }
-#    )->store;
-#    $order->discard_changes;
-#    my $order_id = $order->ordernumber;
-#
-#    # Add Invoice to test against
-#    my $invoice = $builder->build_object(
-#        {
-#            class => 'Koha::Acquisition::Invoices',
-#        },
-#    );
-#    $invoice->discard_changes;
-#    $order->invoiceid( $invoice->invoiceid )->store;
-#    $order->discard_changes;
-#    $invoice->discard_changes;
-#    my $invoice_id   = $invoice->invoiceid;
-#
-#
-#
-#    $schema->storage->txn_rollback;
-#};
+subtest 'invoice_line list() tests' => sub {
+
+    plan tests => 6;
+
+    $schema->storage->txn_begin;
+
+    # Clean up acq here to give us a clean start to test against.
+    $schema->resultset('EdifactMessage')->search->delete;
+    $schema->resultset('VendorEdiAccount')->search->delete;
+    Koha::Acquisition::Baskets->search->delete;
+    Koha::Acquisition::Booksellers->search->delete;
+    Koha::Acquisition::Orders->search->delete;
+    Koha::Acquisition::Invoices->search->delete;
+    Koha::Acquisition::Budgets->search->delete;
+
+    my ( $unauthorized_borrowernumber, $unauthorized_session_id ) =
+      create_user_and_session( { authorized => 0 } );
+    my ( $authorized_borrowernumber, $authorized_session_id ) =
+      create_user_and_session( { authorized => 1 } );
+
+    # Add Order to test against
+    my $basket = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Baskets'
+        }
+    );
+    $basket->discard_changes;
+    my $order = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Orders',
+            value => {
+                basketno => $basket->basketno,
+            }
+        }
+    );
+    $order->discard_changes;
+    my $order_id = $order->ordernumber;
+
+    # Add Invoice to test against
+    warn "Creating invoice\n";
+    my $invoice = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Invoices',
+        },
+    );
+    $invoice->discard_changes;
+    warn "Attaching invoice to order\n";
+    $order->invoiceid( $invoice->invoiceid )->store;
+    $order->discard_changes;
+    $invoice->discard_changes;
+    my $invoice_id = $invoice->invoiceid;
+
+    # Unauthenticated attempt to fetch invoice lines
+    my $tx =
+      $t->ua->build_tx(
+        GET => "/api/v1/acquisitions/invoices/$invoice_id/lines" );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(401);
+
+    # Unauthorized attempt to fetch invoice lines
+    $tx =
+      $t->ua->build_tx(
+        GET => "/api/v1/acquisitions/invoices/$invoice_id/lines" );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $unauthorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(403);
+
+    # Authorized attempt to fetch invoice lines
+    $tx =
+      $t->ua->build_tx(
+        GET => "/api/v1/acquisitions/invoices/$invoice_id/lines" );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $authorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(200);
+
+    $schema->storage->txn_rollback;
+};
 
 sub create_user_and_session {
 
