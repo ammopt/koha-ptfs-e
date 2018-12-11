@@ -17,7 +17,7 @@
 
 use Modern::Perl;
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 use Test::Mojo;
 use Test::Warn;
 
@@ -273,6 +273,7 @@ sub create_user_and_session {
     );
 
     # Create a session for the authorized user
+    C4::Context->_new_userenv('DUMMY SESSION');
     my $session = C4::Auth::get_session('');
     $session->param( 'number',   $user->{borrowernumber} );
     $session->param( 'id',       $user->{userid} );
