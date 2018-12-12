@@ -134,6 +134,8 @@ Patrons:
          - pref: SMSSendUsername
          - "and a password"
          - pref: SMSSendPassword
+         - "Define a number from which SMS messages will be sent"
+         - pref: SMSSendFrom
      -
          - pref: uppercasesurnames
            choices:
