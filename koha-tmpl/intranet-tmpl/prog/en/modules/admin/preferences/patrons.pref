@@ -134,8 +134,10 @@ Patrons:
          - pref: SMSSendUsername
          - "and a password"
          - pref: SMSSendPassword
-         - "Define a number from which SMS messages will be sent"
-         - pref: SMSSendFrom
+         - "Provide additional parameters to be passed to the SMS provider (as a JSON object)"
+         - pref: SMSSendParams
+           type: textarea
+           class: code
      -
          - pref: uppercasesurnames
            choices:
