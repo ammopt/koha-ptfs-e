@@ -43,6 +43,7 @@ t::lib::Mocks::mock_preference( 'SessionStorage', 'tmp' );
 my $remote_address = '127.0.0.1';
 my $t              = Test::Mojo->new('Koha::REST::V1');
 
+# Invoice Line Tests
 subtest 'invoice_line add() tests' => sub {
 
     plan tests => 14;
@@ -179,7 +180,7 @@ subtest 'invoice_line add() tests' => sub {
 
 subtest 'invoice_line list() tests' => sub {
 
-    plan tests => 6;
+    plan tests => 12;
 
     $schema->storage->txn_begin;
 
@@ -197,37 +198,35 @@ subtest 'invoice_line list() tests' => sub {
     my ( $authorized_borrowernumber, $authorized_session_id ) =
       create_user_and_session( { authorized => 1 } );
 
-    # Add Order to test against
-    my $basket = $builder->build_object(
+    # Add Invoice to test against
+    my $invoice = $builder->build_object(
         {
-            class => 'Koha::Acquisition::Baskets'
+            class => 'Koha::Acquisition::Invoices',
         }
     );
-    $basket->discard_changes;
+    my $invoice_id = $invoice->invoiceid;
+
+    # Add Order to test against
     my $order = $builder->build_object(
         {
             class => 'Koha::Acquisition::Orders',
             value => {
-                basketno => $basket->basketno,
+                invoiceid => $invoice_id,
             }
         }
     );
-    $order->discard_changes;
     my $order_id = $order->ordernumber;
 
-    # Add Invoice to test against
-    warn "Creating invoice\n";
-    my $invoice = $builder->build_object(
+    # Add Invoice Line to test for
+    my $invoice_line = $builder->build_object(
         {
-            class => 'Koha::Acquisition::Invoices',
-        },
+            class => 'Koha::Acquisition::Invoice::Lines',
+            value => {
+                aqinvoices_invoiceid => $invoice_id,
+                aqorders_ordernumber => $order_id,
+            }
+        }
     );
-    $invoice->discard_changes;
-    warn "Attaching invoice to order\n";
-    $order->invoiceid( $invoice->invoiceid )->store;
-    $order->discard_changes;
-    $invoice->discard_changes;
-    my $invoice_id = $invoice->invoiceid;
 
     # Unauthenticated attempt to fetch invoice lines
     my $tx =
@@ -253,6 +252,25 @@ subtest 'invoice_line list() tests' => sub {
         { name => 'CGISESSID', value => $authorized_session_id } );
     $tx->req->env( { REMOTE_ADDR => $remote_address } );
     $t->request_ok($tx)->status_is(200);
+
+    # Authorized attempt to fetch invoice lines filtered by order_id (no lines)
+    $tx =
+      $t->ua->build_tx( GET =>
+          "/api/v1/acquisitions/invoices/$invoice_id/lines?order_id=12345" );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $authorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(200)->json_is( '/' => [] );
+
+    # Authorized attempt to fetch invoice lines filtered by order_id (one line)
+    $tx =
+      $t->ua->build_tx( GET =>
+          "/api/v1/acquisitions/invoices/$invoice_id/lines?order_id=$order_id"
+      );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $authorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(200)->json_has('/0');
 
     $schema->storage->txn_rollback;
 };
