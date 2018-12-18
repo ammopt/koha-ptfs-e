@@ -4169,11 +4169,14 @@ span {
 }
 
 #react-acq-lineitems-table {
-	margin: 20px auto;
-	width: 95%;
-	.calc-val {
-		margin-left: 10px;
-	}
+    margin: 20px auto;
+    width: 95%;
+    .calc-val {
+        margin-left: 10px;
+    }
+    .calc-right {
+        float: right;
+    }
     button:not(:last-child) {
         margin-right: 5px;
     }
@@ -4199,7 +4202,7 @@ span {
 
 #react-acq-lineitems-button-add-new {
     margin: 5px 5px 5px 0;
-	float: right;
+    float: right;
 }
 
 #react-acq-lineitem-disp-actions,
