@@ -17,7 +17,7 @@
 
 use Modern::Perl;
 
-use Test::More tests => 2;
+use Test::More tests => 4;
 use Test::Mojo;
 use Test::Warn;
 
@@ -64,33 +64,26 @@ subtest 'invoice_line add() tests' => sub {
     my ( $authorized_borrowernumber, $authorized_session_id ) =
       create_user_and_session( { authorized => 1 } );
 
-    # Add Order to test against
-    my $basket = $builder->build_object(
-        {
-            class => 'Koha::Acquisition::Baskets'
-        }
-    );
-    $basket->discard_changes;
-    my $order = $builder->build_object(
-        {
-            class => 'Koha::Acquisition::Orders',
-            value => { basketno => $basket->basketno }
-        }
-    );
-    $order->discard_changes;
-    my $order_id = $order->ordernumber;
-
     # Add Invoice to test against
     my $invoice = $builder->build_object(
         {
             class => 'Koha::Acquisition::Invoices',
-        },
+        }
     );
-    $invoice->discard_changes;
-    $order->invoiceid( $invoice->invoiceid )->store;
-    $order->discard_changes;
-    $invoice->discard_changes;
-    my $invoice_id   = $invoice->invoiceid;
+    my $invoice_id = $invoice->invoiceid;
+
+    # Add Order to test against
+    my $order = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Orders',
+            value => {
+                invoiceid => $invoice_id,
+            }
+        }
+    );
+    my $order_id = $order->ordernumber;
+
+    # Build invoice line for POST
     my $budget_id    = undef;
     my $invoice_line = {
         "order_id"        => $order_id,
@@ -180,6 +173,111 @@ subtest 'invoice_line add() tests' => sub {
 
 subtest 'invoice_line list() tests' => sub {
 
+    plan tests => 14;
+
+    $schema->storage->txn_begin;
+
+    # Clean up acq here to give us a clean start to test against.
+    $schema->resultset('EdifactMessage')->search->delete;
+    $schema->resultset('VendorEdiAccount')->search->delete;
+    Koha::Acquisition::Baskets->search->delete;
+    Koha::Acquisition::Booksellers->search->delete;
+    Koha::Acquisition::Orders->search->delete;
+    Koha::Acquisition::Invoices->search->delete;
+    Koha::Acquisition::Budgets->search->delete;
+
+    my ( $unauthorized_borrowernumber, $unauthorized_session_id ) =
+      create_user_and_session( { authorized => 0 } );
+    my ( $authorized_borrowernumber, $authorized_session_id ) =
+      create_user_and_session( { authorized => 1 } );
+
+    # Add Invoice to test against
+    my $invoice = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Invoices',
+        }
+    );
+    my $invoice_id = $invoice->invoiceid;
+
+    # Add Order to test against
+    my $order = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Orders',
+            value => {
+                invoiceid => $invoice_id,
+            }
+        }
+    );
+    my $order_id = $order->ordernumber;
+
+    # Add Invoice Lines to test for
+    my $invoice_line1 = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Invoice::Lines',
+            value => {
+                aqinvoices_invoiceid => $invoice_id,
+                aqorders_ordernumber => $order_id,
+            }
+        }
+    );
+    my $invoice_line2 = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Invoice::Lines',
+            value => {
+                aqinvoices_invoiceid => $invoice_id,
+            }
+        }
+    );
+
+    # Unauthenticated attempt to fetch invoice lines
+    my $tx =
+      $t->ua->build_tx(
+        GET => "/api/v1/acquisitions/invoices/$invoice_id/lines" );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(401);
+
+    # Unauthorized attempt to fetch invoice lines
+    $tx =
+      $t->ua->build_tx(
+        GET => "/api/v1/acquisitions/invoices/$invoice_id/lines" );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $unauthorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(403);
+
+    # Authorized attempt to fetch invoice lines
+    $tx =
+      $t->ua->build_tx(
+        GET => "/api/v1/acquisitions/invoices/$invoice_id/lines" );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $authorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(200)->json_hasnt('/2');
+
+    # Authorized attempt to fetch invoice lines filtered by order_id (no lines)
+    $tx =
+      $t->ua->build_tx( GET =>
+          "/api/v1/acquisitions/invoices/$invoice_id/lines?order_id=12345" );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $authorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    my $result = $t->request_ok($tx)->status_is(200)->json_is( '' => [] );
+
+    # Authorized attempt to fetch invoice lines filtered by order_id (one line)
+    $tx =
+      $t->ua->build_tx( GET =>
+          "/api/v1/acquisitions/invoices/$invoice_id/lines?order_id=$order_id"
+      );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $authorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(200)->json_has('/0')->json_hasnt('/1');
+
+    $schema->storage->txn_rollback;
+};
+
+subtest 'invoice_line update() tests' => sub {
+
     plan tests => 12;
 
     $schema->storage->txn_begin;
@@ -217,7 +315,7 @@ subtest 'invoice_line list() tests' => sub {
     );
     my $order_id = $order->ordernumber;
 
-    # Add Invoice Line to test for
+    # Add Invoice Line to test update
     my $invoice_line = $builder->build_object(
         {
             class => 'Koha::Acquisition::Invoice::Lines',
@@ -227,50 +325,156 @@ subtest 'invoice_line list() tests' => sub {
             }
         }
     );
+    my $line_id = $invoice_line->id;
 
-    # Unauthenticated attempt to fetch invoice lines
+    # Updated invoice line values
+    my $invoice_line_data = {
+        "order_id"        => $order_id,
+        "budget"          => undef,
+        "description"     => "",
+        "discount_amount" => 1,
+        "discount_rate"   => 79,
+        "id"              => $line_id,
+        "list_price"      => 17.23,
+        "pre_tax_amount"  => 12.38,
+        "quantity"        => 1,
+        "tax_amount"      => 7.23,
+        "tax_rate"        => 4,
+        "total_price"     => 89.73,
+        "item_type"       => undef,
+    };
+
+    # Unauthenticated attempt to update invoice line
     my $tx =
       $t->ua->build_tx(
-        GET => "/api/v1/acquisitions/invoices/$invoice_id/lines" );
+        PUT    => "/api/v1/acquisitions/invoices/$invoice_id/lines/$line_id" =>
+          json => $invoice_line_data );
     $tx->req->env( { REMOTE_ADDR => $remote_address } );
-    $t->request_ok($tx)->status_is(401);
+    $t->request_ok($tx)->status_is(401)
+      ->content_type_like(qr|application/json|);
 
-    # Unauthorized attempt to fetch invoice lines
+    # Unauthorized attempt to update invoice line
     $tx =
       $t->ua->build_tx(
-        GET => "/api/v1/acquisitions/invoices/$invoice_id/lines" );
+        PUT    => "/api/v1/acquisitions/invoices/$invoice_id/lines/$line_id" =>
+          json => $invoice_line_data );
     $tx->req->cookies(
         { name => 'CGISESSID', value => $unauthorized_session_id } );
     $tx->req->env( { REMOTE_ADDR => $remote_address } );
-    $t->request_ok($tx)->status_is(403);
+    $t->request_ok($tx)->status_is(403)
+      ->content_type_like(qr|application/json|);
 
-    # Authorized attempt to fetch invoice lines
+    # Authorized attempt to update invoice line (invoice mismatch)
     $tx =
       $t->ua->build_tx(
-        GET => "/api/v1/acquisitions/invoices/$invoice_id/lines" );
+        PUT    => "/api/v1/acquisitions/invoices/12345/lines/$line_id" =>
+          json => $invoice_line_data );
     $tx->req->cookies(
         { name => 'CGISESSID', value => $authorized_session_id } );
     $tx->req->env( { REMOTE_ADDR => $remote_address } );
-    $t->request_ok($tx)->status_is(200);
+    $t->request_ok($tx)->status_is(400)
+      ->content_type_like(qr|application/json|);
 
-    # Authorized attempt to fetch invoice lines filtered by order_id (no lines)
+    # Authorized attempt to update invoice line
     $tx =
-      $t->ua->build_tx( GET =>
-          "/api/v1/acquisitions/invoices/$invoice_id/lines?order_id=12345" );
+      $t->ua->build_tx(
+        PUT    => "/api/v1/acquisitions/invoices/$invoice_id/lines/$line_id" =>
+          json => $invoice_line_data );
     $tx->req->cookies(
         { name => 'CGISESSID', value => $authorized_session_id } );
     $tx->req->env( { REMOTE_ADDR => $remote_address } );
-    $t->request_ok($tx)->status_is(200)->json_is( '/' => [] );
+    $t->request_ok($tx)->status_is(200)->json_is('/total_price' => 89.73);
 
-    # Authorized attempt to fetch invoice lines filtered by order_id (one line)
+    $schema->storage->txn_rollback;
+};
+
+subtest 'invoice_line delete() tests' => sub {
+
+    plan tests => 11;
+
+    $schema->storage->txn_begin;
+
+    # Clean up acq here to give us a clean start to test against.
+    $schema->resultset('EdifactMessage')->search->delete;
+    $schema->resultset('VendorEdiAccount')->search->delete;
+    Koha::Acquisition::Baskets->search->delete;
+    Koha::Acquisition::Booksellers->search->delete;
+    Koha::Acquisition::Orders->search->delete;
+    Koha::Acquisition::Invoices->search->delete;
+    Koha::Acquisition::Budgets->search->delete;
+
+    my ( $unauthorized_borrowernumber, $unauthorized_session_id ) =
+      create_user_and_session( { authorized => 0 } );
+    my ( $authorized_borrowernumber, $authorized_session_id ) =
+      create_user_and_session( { authorized => 1 } );
+
+    # Add Invoice to test against
+    my $invoice = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Invoices',
+        }
+    );
+    my $invoice_id = $invoice->invoiceid;
+
+    # Add Order to test against
+    my $order = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Orders',
+            value => {
+                invoiceid => $invoice_id,
+            }
+        }
+    );
+    my $order_id = $order->ordernumber;
+
+    # Add Invoice Line to test update
+    my $invoice_line = $builder->build_object(
+        {
+            class => 'Koha::Acquisition::Invoice::Lines',
+            value => {
+                aqinvoices_invoiceid => $invoice_id,
+                aqorders_ordernumber => $order_id,
+            }
+        }
+    );
+    my $line_id = $invoice_line->id;
+
+    # Unauthenticated attempt to delete invoice line
+    my $tx =
+      $t->ua->build_tx(
+        DELETE    => "/api/v1/acquisitions/invoices/$invoice_id/lines/$line_id" );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(401)
+      ->content_type_like(qr|application/json|);
+
+    # Unauthorized attempt to delete invoice line
     $tx =
-      $t->ua->build_tx( GET =>
-          "/api/v1/acquisitions/invoices/$invoice_id/lines?order_id=$order_id"
-      );
+      $t->ua->build_tx(
+        DELETE    => "/api/v1/acquisitions/invoices/$invoice_id/lines/$line_id");
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $unauthorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(403)
+      ->content_type_like(qr|application/json|);
+
+    # Authorized attempt to delete invoice line (invoice mismatch)
+    $tx =
+      $t->ua->build_tx(
+        DELETE    => "/api/v1/acquisitions/invoices/12345/lines/$line_id" );
     $tx->req->cookies(
         { name => 'CGISESSID', value => $authorized_session_id } );
     $tx->req->env( { REMOTE_ADDR => $remote_address } );
-    $t->request_ok($tx)->status_is(200)->json_has('/0');
+    $t->request_ok($tx)->status_is(400)
+      ->content_type_like(qr|application/json|);
+
+    # Authorized attempt to delete invoice line
+    $tx =
+      $t->ua->build_tx(
+        DELETE    => "/api/v1/acquisitions/invoices/$invoice_id/lines/$line_id" );
+    $tx->req->cookies(
+        { name => 'CGISESSID', value => $authorized_session_id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    $t->request_ok($tx)->status_is(204);
 
     $schema->storage->txn_rollback;
 };
