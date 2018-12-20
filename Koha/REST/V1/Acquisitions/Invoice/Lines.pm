@@ -157,42 +157,42 @@ Controller function that handles updating a Koha::Acquisition::Invoice::Line obj
 =cut
 
 sub update_invoice_line {
-    my $c = shift->openapi->valid_input or return;
+    my $c         = shift->openapi->valid_input or return;
+    my $invoiceID = $c->validation->param('invoice_id');
+    my $lineID    = $c->validation->param('line_id');
 
-    my $invoice_line;
+    # Check invoice_line existance
+    my $invoice_line = Koha::Acquisition::Invoice::Lines->find($lineID);
+    unless ($invoice_line) {
+        return $c->render(
+            status  => 404,
+            openapi => { error => "Object not found" }
+        );
+    }
 
     return try {
-        $invoice_line = Koha::Acquisition::Invoice::Lines->find(
-            $c->validation->param('line_id') );
 
-        if ( $invoice_line->aqinvoices_invoiceid !=
-            $c->validation->param('invoice_id') )
-        {
+        # Check invoice_line identified belongs to identified invoice.
+        unless ( $invoice_line->aqinvoices_invoiceid == $invoiceID ) {
             return $c->render(
                 status  => 400,
                 openapi => {
                     error =>
-"Identifier invoice line does not belong to identifier invoice"
+"Identified invoice line does not belong to identified invoice"
                 }
             );
         }
-        else {
-            $invoice_line->set( _to_model( $c->validation->param('body') ) );
-            $invoice_line->store();
-            return $c->render(
-                status  => 200,
-                openapi => _to_api( $invoice_line->TO_JSON )
-            );
-        }
+
+        # Update invoice line
+        $invoice_line->set( _to_model( $c->validation->param('body') ) );
+        $invoice_line->store();
+        return $c->render(
+            status  => 200,
+            openapi => _to_api( $invoice_line->TO_JSON )
+        );
     }
     catch {
-        if ( not defined $invoice_line ) {
-            return $c->render(
-                status  => 404,
-                openapi => { error => "Object not found" }
-            );
-        }
-        elsif ( $_->isa('Koha::Exceptions::Object') ) {
+        if ( $_->isa('Koha::Exceptions::Object') ) {
             return $c->render(
                 status  => 500,
                 openapi => { error => $_->message }
@@ -214,50 +214,44 @@ Controller function that handles deleting a Koha::Acquisition::Invoice::Line obj
 =cut
 
 sub delete_invoice_line {
-    my $c = shift->openapi->valid_input or return;
+    my $c         = shift->openapi->valid_input or return;
+    my $invoiceID = $c->validation->param('invoice_id');
+    my $lineID    = $c->validation->param('line_id');
 
-    my $invoice_line;
+    # Check invoice_line existance
+    my $invoice_line = Koha::Acquisition::Invoice::Lines->find($lineID);
+    unless ($invoice_line) {
+        return $c->render(
+            status  => 404,
+            openapi => { error => "Object not found" }
+        );
+    }
 
     return try {
-        $invoice_line = Koha::Acquisition::Invoice::Lines->find(
-            $c->validation->param('line_id') );
 
-        if ( $invoice_line->aqinvoices_invoiceid !=
-            $c->validation->param('invoice_id') )
-        {
+        # Check invoice_line identified belongs to identified invoice.
+        unless ( $invoice_line->aqinvoices_invoiceid == $invoiceID ) {
             return $c->render(
                 status  => 400,
                 openapi => {
                     error =>
-"Identifier invoice line does not belong to identifier invoice"
+"Identified invoice line does not belong to identified invoice"
                 }
             );
         }
-        else {
-            $invoice_line->delete;
-            return $c->render(
-                status  => 204,
-                openapi => {}
-            );
-        }
+
+        # Delete invoice line
+        $invoice_line->delete;
+        return $c->render(
+            status  => 204,
+            openapi => {}
+        );
     }
     catch {
-        if ( not defined $invoice_line ) {
-            return $c->render(
-                status  => 404,
-                openapi => { error => "Object not found" }
-            );
-        }
-        elsif ( $_->isa('DBIx::Class::Exception') ) {
+        if ( $_->isa('DBIx::Class::Exception') ) {
             return $c->render(
                 status  => 500,
                 openapi => { error => $_->msg }
-            );
-        }
-        elsif ( $_->isa('Mojo::Exception') ) {
-            return $c->render(
-                status  => 500,
-                openapi => { error => $_->message }
             );
         }
         else {
