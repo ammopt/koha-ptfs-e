@@ -53,7 +53,10 @@ sub _to_api {
     my $fund_hash = $fund->unblessed;
 
     my %out;
-    @out{ map { s/budget/fund/; $_ } keys %{$fund_hash} } = values %{$fund_hash};
+    while (my ($key, $value) = each %{$fund_hash}) {
+        $key=~s/budget/fund/g;
+        $out{$key} = $value;
+    }
 
     return \%out;
 }
