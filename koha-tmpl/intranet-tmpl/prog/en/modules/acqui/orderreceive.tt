@@ -452,6 +452,11 @@
         window.orderNumber = [% ordernumber | html %]
     </script>
     [% Asset.js("js/react-orderreceive-lineitems.js") | $raw %]
+    <script>
+        $(document).ready(function() {
+            window.initReact([% invoiceid | html %], [% ordernumber | html %], false);
+        });
+    </script>
 [% END %]
 
 [% INCLUDE 'intranet-bottom.inc' %]
