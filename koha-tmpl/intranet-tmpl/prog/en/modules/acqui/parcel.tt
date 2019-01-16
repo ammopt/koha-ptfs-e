@@ -457,6 +457,8 @@
     [% INCLUDE 'datatables.inc' %]
     [% Asset.js("lib/jquery/plugins/jquery.dataTables.columnFilter.js") | $raw %]
     [% Asset.js("lib/jquery/plugins/jquery.cookie.min.js") | $raw %]
+    [% Asset.js("js/add-remove-lineitems.js") | $raw %]
+    [% Asset.js("js/react-orderreceive-lineitems.js") | $raw %]
     <style>#dataPreview { width : 80%; } @media (max-width: 767px) { #dataPreview { margin: 0; width : auto; } }</style>
     <script>
         dt_overwrite_html_sorting_localeCompare();
@@ -536,36 +538,7 @@
             }));
 
             // Addition and removal of line items
-            var removeRow = function(tr) {
-                var row = receivedt.api().row(tr);
-                row.child.hide();
-                tr.removeClass('shown');
-                $(tr).find('.hide-order-details').hide();
-                $(tr).find('.show-order-details').show();
-            };
-            $('.hide-order-details').hide();
-            $('.show-order-details').on('click', function(e) {
-                e.preventDefault();
-                // First remove any existing details rows
-                // being displayed
-                window.killReact();
-                $('tr.shown').each(function() {
-                    removeRow($(this));
-                });
-                // Now display the requested details
-                var tr = $(this).closest('tr');
-                var row = receivedt.api().row(tr);
-                row.child('<div id="react-orderreceive-lineitems"></div>').show();
-                tr.addClass('shown');
-                $(tr).find('.show-order-details').hide();
-                $(tr).find('.hide-order-details').show();
-                window.initReact($(this).data('invoiceid'), $(this).data('ordernumber'), true);
-            });
-            $('.hide-order-details').on('click', function(e) {
-                e.preventDefault();
-                window.killReact();
-                removeRow($(this).closest('tr'));
-            });
+            addRemoveLineitems(receivedt);
 
           }
 
@@ -615,7 +588,6 @@
                 window.open(url, 'TransferOrder');
          }
     </script>
-    [% Asset.js("js/react-orderreceive-lineitems.js") | $raw %]
 [% END %]
 
 [% INCLUDE 'intranet-bottom.inc' %]
