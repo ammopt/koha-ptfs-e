@@ -672,7 +672,7 @@ my ( $reused_itemnumber_1, $reused_itemnumber_2 );
                 item_id     => $item_to_auto_renew->{itemnumber},
                 description => "Some fines"
             }
-        )->accounttype->('F')->store;
+        )->accounttype('F')->store;
         ( $renewokay, $error ) =
           CanBookBeRenewed( $renewing_borrowernumber, $item_to_auto_renew->{itemnumber} );
         is( $renewokay, 0, 'Do not renew, renewal is automatic' );
@@ -685,7 +685,7 @@ my ( $reused_itemnumber_1, $reused_itemnumber_2 );
                 item_id     => $item_to_auto_renew->{itemnumber},
                 description => "Some fines"
             }
-        )->accounttype->('F')->store;
+        )->accounttype('F')->store;
         ( $renewokay, $error ) =
           CanBookBeRenewed( $renewing_borrowernumber, $item_to_auto_renew->{itemnumber} );
         is( $renewokay, 0, 'Do not renew, renewal is automatic' );
@@ -698,7 +698,7 @@ my ( $reused_itemnumber_1, $reused_itemnumber_2 );
                 item_id     => $item_to_auto_renew->{itemnumber},
                 description => "Some fines"
             }
-        )->accounttype->('F')->store;
+        )->accounttype('F')->store;
         ( $renewokay, $error ) =
           CanBookBeRenewed( $renewing_borrowernumber, $item_to_auto_renew->{itemnumber} );
         is( $renewokay, 0, 'Do not renew, renewal is automatic' );
