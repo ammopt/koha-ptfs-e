@@ -2411,7 +2411,7 @@ sub _FixAccountForLostAndReturned {
             accounttype => { -in => [ 'L', 'Rep', 'W' ] },
         },
         {
-            order_by => { -desc => [ 'date' ] }
+            order_by => { -desc => [ 'date', 'accountlines_id' ] }
         }
     );
 
