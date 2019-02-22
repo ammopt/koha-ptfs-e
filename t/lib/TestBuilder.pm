@@ -560,9 +560,6 @@ sub _gen_default_values {
         AuthHeader => {
             marcxml => '',
         },
-        Accountline => {
-            accountno => 0,
-        },
     };
 }
 
