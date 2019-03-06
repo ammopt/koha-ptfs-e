@@ -284,7 +284,7 @@ subtest 'Keep account info when related patron, staff or item is deleted' => sub
     my $item = $builder->build_object({ class => 'Koha::Items' });
     my $issue = $builder->build_object(
         {
-            class => 'Koha::Checkout',
+            class => 'Koha::Checkouts',
             value => { itemnumber => $item->itemnumber }
         }
     );
@@ -297,6 +297,7 @@ subtest 'Keep account info when related patron, staff or item is deleted' => sub
         amount         => 10,
     })->store;
 
+    $issue->delete;
     $item->delete;
     $line = $line->get_from_storage;
     is( $line->itemnumber, undef, "The account line should not be deleted when the related item is delete");
