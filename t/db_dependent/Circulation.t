@@ -1648,8 +1648,7 @@ subtest 'AddReturn + CumulativeRestrictionPeriods' => sub {
       ;    # Add another overdue
 
     t::lib::Mocks::mock_preference( 'CumulativeRestrictionPeriods', '0' );
-    AddReturn( $item_1->{barcode}, $library->{branchcode},
-        undef, undef, dt_from_string );
+    AddReturn( $item_1->{barcode}, $library->{branchcode}, undef, dt_from_string );
     my $debarments = Koha::Patron::Debarments::GetDebarments(
         { borrowernumber => $patron->{borrowernumber}, type => 'SUSPENSION' } );
     is( scalar(@$debarments), 1 );
@@ -1665,8 +1664,7 @@ subtest 'AddReturn + CumulativeRestrictionPeriods' => sub {
     );
     is( $debarments->[0]->{expiration}, $expected_expiration );
 
-    AddReturn( $item_2->{barcode}, $library->{branchcode},
-        undef, undef, dt_from_string );
+    AddReturn( $item_2->{barcode}, $library->{branchcode}, undef, dt_from_string );
     $debarments = Koha::Patron::Debarments::GetDebarments(
         { borrowernumber => $patron->{borrowernumber}, type => 'SUSPENSION' } );
     is( scalar(@$debarments), 1 );
@@ -1686,8 +1684,7 @@ subtest 'AddReturn + CumulativeRestrictionPeriods' => sub {
     AddIssue( $patron, $item_1->{barcode}, $five_days_ago );    # Add an overdue
     AddIssue( $patron, $item_2->{barcode}, $ten_days_ago )
       ;    # Add another overdue
-    AddReturn( $item_1->{barcode}, $library->{branchcode},
-        undef, undef, dt_from_string );
+    AddReturn( $item_1->{barcode}, $library->{branchcode}, undef, dt_from_string );
     $debarments = Koha::Patron::Debarments::GetDebarments(
         { borrowernumber => $patron->{borrowernumber}, type => 'SUSPENSION' } );
     is( scalar(@$debarments), 1 );
@@ -1700,8 +1697,7 @@ subtest 'AddReturn + CumulativeRestrictionPeriods' => sub {
     );
     is( $debarments->[0]->{expiration}, $expected_expiration );
 
-    AddReturn( $item_2->{barcode}, $library->{branchcode},
-        undef, undef, dt_from_string );
+    AddReturn( $item_2->{barcode}, $library->{branchcode}, undef, dt_from_string );
     $debarments = Koha::Patron::Debarments::GetDebarments(
         { borrowernumber => $patron->{borrowernumber}, type => 'SUSPENSION' } );
     is( scalar(@$debarments), 1 );
@@ -1932,25 +1928,25 @@ subtest 'AddReturn | is_overdue' => sub {
 
     # specify return date 5 days before => no overdue
     AddIssue( $patron->unblessed, $item->{barcode}, $five_days_ago ); # date due was 5d ago
-    AddReturn( $item->{barcode}, $library->{branchcode}, undef, undef, $ten_days_ago );
+    AddReturn( $item->{barcode}, $library->{branchcode}, undef, $ten_days_ago );
     is( int($patron->account->balance()), 0, 'AddReturn: pass return_date => no overdue' );
     Koha::Account::Lines->search({ borrowernumber => $patron->borrowernumber })->delete;
 
     # specify return date 5 days later => overdue
     AddIssue( $patron->unblessed, $item->{barcode}, $ten_days_ago ); # date due was 10d ago
-    AddReturn( $item->{barcode}, $library->{branchcode}, undef, undef, $five_days_ago );
+    AddReturn( $item->{barcode}, $library->{branchcode}, undef, $five_days_ago );
     is( int($patron->account->balance()), 5, 'AddReturn: pass return_date => overdue' );
     Koha::Account::Lines->search({ borrowernumber => $patron->borrowernumber })->delete;
 
     # specify dropbox date 5 days before => no overdue
     AddIssue( $patron->unblessed, $item->{barcode}, $five_days_ago ); # date due was 5d ago
-    AddReturn( $item->{barcode}, $library->{branchcode}, undef, 1, undef, $ten_days_ago );
+    AddReturn( $item->{barcode}, $library->{branchcode}, $ten_days_ago );
     is( int($patron->account->balance()), 0, 'AddReturn: pass return_date => no overdue' );
     Koha::Account::Lines->search({ borrowernumber => $patron->borrowernumber })->delete;
 
     # specify dropbox date 5 days later => overdue, or... not
     AddIssue( $patron->unblessed, $item->{barcode}, $ten_days_ago ); # date due was 10d ago
-    AddReturn( $item->{barcode}, $library->{branchcode}, undef, 1, undef, $five_days_ago );
+    AddReturn( $item->{barcode}, $library->{branchcode}, $five_days_ago );
     is( int($patron->account->balance()), 0, 'AddReturn: pass return_date => no overdue in dropbox mode' ); # FIXME? This is weird, the FU fine is created ( _CalculateAndUpdateFine > C4::Overdues::UpdateFine ) then remove later (in _FixOverduesOnReturn). Looks like it is a feature
     Koha::Account::Lines->search({ borrowernumber => $patron->borrowernumber })->delete;
 };
@@ -2330,7 +2326,7 @@ subtest '_FixAccountForLostAndReturned' => sub {
 };
 
 subtest '_FixOverduesOnReturn' => sub {
-    plan tests => 10;
+    plan tests => 6;
 
     my $biblio = $builder->build_sample_biblio({ author => 'Hall, Kylie' });
 
@@ -2384,24 +2380,6 @@ subtest '_FixOverduesOnReturn' => sub {
     is( $accountline->accounttype, 'FFOR', 'Open fine ( account type FU ) has been set to fine forgiven ( account type FFOR )');
     is( ref $offset, "Koha::Account::Offset", "Found matching offset for fine reduction via forgiveness" );
     is( $offset->amount, '-99.000000', "Amount of offset is correct" );
-
-    ## Run again, with dropbox mode enabled
-    $accountline->set(
-        {
-            accounttype    => 'FU',
-            amountoutstanding => 99.00,
-        }
-    )->store();
-
-    C4::Circulation::_FixOverduesOnReturn( $patron->{borrowernumber}, $item->itemnumber, 0, 1 );
-
-    $accountline->_result()->discard_changes();
-    $offset = Koha::Account::Offsets->search({ debit_id => $accountline->id, type => 'Dropbox' })->next();
-
-    is( $accountline->amountoutstanding + 0, 90, 'Fine has been reduced to 90' );
-    is( $accountline->accounttype, 'F', 'Open fine ( account type FU ) has been closed out ( account type F )');
-    is( ref $offset, "Koha::Account::Offset", "Found matching offset for fine reduction via dropbox" );
-    is( $offset->amount, '-9.000000', "Amount of offset is correct" );
 };
 
 subtest 'Set waiting flag' => sub {
@@ -2944,8 +2922,7 @@ sub test_debarment_on_checkout {
     my $line_number = $caller[2];
     AddIssue( $patron, $item->{barcode}, $due_date );
 
-    my ( undef, $message ) = AddReturn( $item->{barcode}, $library->{branchcode},
-        undef, undef, $return_date );
+    my ( undef, $message ) = AddReturn( $item->{barcode}, $library->{branchcode}, undef, $return_date );
     is( $message->{WasReturned} && exists $message->{Debarred}, 1, 'AddReturn must have debarred the patron' )
         or diag('AddReturn returned message ' . Dumper $message );
     my $debarments = Koha::Patron::Debarments::GetDebarments(
