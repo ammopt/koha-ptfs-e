@@ -56,7 +56,8 @@ subtest 'item() tests' => sub {
     {
         borrowernumber => $patron->{borrowernumber},
         itemnumber     => $item->itemnumber,
-        accounttype    => "F",
+        accounttype    => "OVERDUE",
+        status         => "RETURNED",
         amount         => 10,
         interface      => 'commandline',
     })->store;
@@ -84,7 +85,8 @@ subtest 'total_outstanding() tests' => sub {
 
     my $debit_1 = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
-            accounttype       => "F",
+            accounttype       => "OVERDUE",
+            status            => "RETURNED",
             amount            => 10,
             amountoutstanding => 10,
             interface         => 'commandline',
@@ -93,7 +95,8 @@ subtest 'total_outstanding() tests' => sub {
 
     my $debit_2 = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
-            accounttype       => "F",
+            accounttype       => "OVERDUE",
+            status            => "RETURNED",
             amount            => 10,
             amountoutstanding => 10,
             interface         => 'commandline',
@@ -105,7 +108,8 @@ subtest 'total_outstanding() tests' => sub {
 
     my $credit_1 = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
-            accounttype       => "F",
+            accounttype       => "OVERDUE",
+            status            => "RETURNED",
             amount            => -10,
             amountoutstanding => -10,
             interface         => 'commandline',
@@ -117,7 +121,8 @@ subtest 'total_outstanding() tests' => sub {
 
     my $credit_2 = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
-            accounttype       => "F",
+            accounttype       => "OVERDUE",
+            status            => "RETURNED",
             amount            => -10,
             amountoutstanding => -10,
             interface         => 'commandline',
@@ -129,7 +134,8 @@ subtest 'total_outstanding() tests' => sub {
 
     my $credit_3 = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
-            accounttype       => "F",
+            accounttype       => "OVERDUE",
+            status            => "RETURNED",
             amount            => -100,
             amountoutstanding => -100,
             interface         => 'commandline',
@@ -159,7 +165,8 @@ subtest 'is_credit() and is_debit() tests' => sub {
     my $debit = Koha::Account::Line->new(
     {
         borrowernumber => $patron->id,
-        accounttype    => "F",
+        accounttype    => "OVERDUE",
+        status         => "RETURNED",
         amount         => 10,
         interface      => 'commandline',
     })->store;
@@ -183,7 +190,8 @@ subtest 'apply() tests' => sub {
 
     my $debit_1 = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
-            accounttype       => "F",
+            accounttype       => "OVERDUE",
+            status            => "RETURNED",
             amount            => 10,
             amountoutstanding => 10,
             interface         => 'commandline',
@@ -192,7 +200,8 @@ subtest 'apply() tests' => sub {
 
     my $debit_2 = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
-            accounttype       => "F",
+            accounttype       => "OVERDUE",
+            status            => "RETURNED",
             amount            => 100,
             amountoutstanding => 100,
             interface         => 'commandline',
@@ -254,7 +263,8 @@ subtest 'apply() tests' => sub {
     my $credit_2 = $account->add_credit({ amount => 20, interface => 'commandline' });
     my $debit_3  = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
-            accounttype       => "F",
+            accounttype       => "OVERDUE",
+            status            => "RETURNED",
             amount            => 100,
             amountoutstanding => 100,
             interface         => 'commandline',
@@ -303,7 +313,8 @@ subtest 'Keep account info when related patron, staff or item is deleted' => sub
         borrowernumber => $patron->borrowernumber,
         manager_id     => $staff->borrowernumber,
         itemnumber     => $item->itemnumber,
-        accounttype    => "F",
+        accounttype    => "OVERDUE",
+        status         => "RETURNED",
         amount         => 10,
         interface      => 'commandline',
     })->store;
@@ -341,7 +352,8 @@ subtest 'adjust() tests' => sub {
 
     my $debit_1 = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
-            accounttype       => "F",
+            accounttype       => "OVERDUE",
+            status            => "RETURNED",
             amount            => 10,
             amountoutstanding => 10,
             interface         => 'commandline',
@@ -350,7 +362,8 @@ subtest 'adjust() tests' => sub {
 
     my $debit_2 = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
-            accounttype       => "FU",
+            accounttype       => "OVERDUE",
+            status            => "UNRETURNED",
             amount            => 100,
             amountoutstanding => 100,
             interface         => 'commandline'
@@ -362,12 +375,12 @@ subtest 'adjust() tests' => sub {
     throws_ok { $debit_1->adjust( { amount => 50, type => 'bad', interface => 'commandline' } ) }
     qr/Update type not recognised/, 'Exception thrown for unrecognised type';
 
-    throws_ok { $debit_1->adjust( { amount => 50, type => 'fine_update', interface => 'commandline' } ) }
+    throws_ok { $debit_1->adjust( { amount => 50, type => 'overdue_update', interface => 'commandline' } ) }
     qr/Update type not allowed on this accounttype/,
       'Exception thrown for type conflict';
 
     # Increment an unpaid fine
-    $debit_2->adjust( { amount => 150, type => 'fine_update', interface => 'commandline' } )->discard_changes;
+    $debit_2->adjust( { amount => 150, type => 'overdue_update', interface => 'commandline' } )->discard_changes;
 
     is( $debit_2->amount * 1, 150, 'Fine amount was updated in full' );
     is( $debit_2->amountoutstanding * 1, 150, 'Fine amountoutstanding was update in full' );
@@ -377,7 +390,7 @@ subtest 'adjust() tests' => sub {
     is( $offsets->count, 1, 'An offset is generated for the increment' );
     my $THIS_offset = $offsets->next;
     is( $THIS_offset->amount * 1, 50, 'Amount was calculated correctly (increment by 50)' );
-    is( $THIS_offset->type, 'fine_increase', 'Adjust type stored correctly' );
+    is( $THIS_offset->type, 'OVERDUE_INCREASE', 'Adjust type stored correctly' );
 
     is( $schema->resultset('ActionLog')->count(), $action_logs + 0, 'No log was added' );
 
@@ -393,7 +406,7 @@ subtest 'adjust() tests' => sub {
     t::lib::Mocks::mock_preference( 'FinesLog', 1 );
 
     # Increment the partially paid fine
-    $debit_2->adjust( { amount => 160, type => 'fine_update', interface => 'commandline' } )->discard_changes;
+    $debit_2->adjust( { amount => 160, type => 'overdue_update', interface => 'commandline' } )->discard_changes;
 
     is( $debit_2->amount * 1, 160, 'Fine amount was updated in full' );
     is( $debit_2->amountoutstanding * 1, 120, 'Fine amountoutstanding was updated by difference' );
@@ -402,12 +415,12 @@ subtest 'adjust() tests' => sub {
     is( $offsets->count, 3, 'An offset is generated for the increment' );
     $THIS_offset = $offsets->last;
     is( $THIS_offset->amount * 1, 10, 'Amount was calculated correctly (increment by 10)' );
-    is( $THIS_offset->type, 'fine_increase', 'Adjust type stored correctly' );
+    is( $THIS_offset->type, 'OVERDUE_INCREASE', 'Adjust type stored correctly' );
 
     is( $schema->resultset('ActionLog')->count(), $action_logs + 1, 'Log was added' );
 
     # Decrement the partially paid fine, less than what was paid
-    $debit_2->adjust( { amount => 50, type => 'fine_update', interface => 'commandline' } )->discard_changes;
+    $debit_2->adjust( { amount => 50, type => 'overdue_update', interface => 'commandline' } )->discard_changes;
 
     is( $debit_2->amount * 1, 50, 'Fine amount was updated in full' );
     is( $debit_2->amountoutstanding * 1, 10, 'Fine amountoutstanding was updated by difference' );
@@ -416,10 +429,10 @@ subtest 'adjust() tests' => sub {
     is( $offsets->count, 4, 'An offset is generated for the decrement' );
     $THIS_offset = $offsets->last;
     is( $THIS_offset->amount * 1, -110, 'Amount was calculated correctly (decrement by 110)' );
-    is( $THIS_offset->type, 'fine_decrease', 'Adjust type stored correctly' );
+    is( $THIS_offset->type, 'OVERDUE_DECREASE', 'Adjust type stored correctly' );
 
     # Decrement the partially paid fine, more than what was paid
-    $debit_2->adjust( { amount => 30, type => 'fine_update', interface => 'commandline' } )->discard_changes;
+    $debit_2->adjust( { amount => 30, type => 'overdue_update', interface => 'commandline' } )->discard_changes;
     is( $debit_2->amount * 1, 30, 'Fine amount was updated in full' );
     is( $debit_2->amountoutstanding * 1, 0, 'Fine amountoutstanding was zeroed (payment was 40)' );
 
@@ -427,7 +440,7 @@ subtest 'adjust() tests' => sub {
     is( $offsets->count, 5, 'An offset is generated for the decrement' );
     $THIS_offset = $offsets->last;
     is( $THIS_offset->amount * 1, -20, 'Amount was calculated correctly (decrement by 20)' );
-    is( $THIS_offset->type, 'fine_decrease', 'Adjust type stored correctly' );
+    is( $THIS_offset->type, 'OVERDUE_DECREASE', 'Adjust type stored correctly' );
 
     my $overpayment_refund = $account->lines->last;
     is( $overpayment_refund->amount * 1, -10, 'A new credit has been added' );
@@ -454,7 +467,7 @@ subtest 'checkout() tests' => sub {
         interface => 'commandline',
         item_id   => $item->itemnumber,
         issue_id  => $checkout->issue_id,
-        type      => 'fine',
+        type      => 'overdue',
     });
 
     my $line_checkout = $line->checkout;

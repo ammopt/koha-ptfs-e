@@ -669,7 +669,7 @@ my ( $reused_itemnumber_1, $reused_itemnumber_2 );
             {
                 amount      => $fines_amount,
                 interface   => 'test',
-                type        => 'fine',
+                type        => 'overdue',
                 item_id     => $item_to_auto_renew->{itemnumber},
                 description => "Some fines"
             }
@@ -683,7 +683,7 @@ my ( $reused_itemnumber_1, $reused_itemnumber_2 );
             {
                 amount      => $fines_amount,
                 interface   => 'test',
-                type        => 'fine',
+                type        => 'overdue',
                 item_id     => $item_to_auto_renew->{itemnumber},
                 description => "Some fines"
             }
@@ -697,7 +697,7 @@ my ( $reused_itemnumber_1, $reused_itemnumber_2 );
             {
                 amount      => $fines_amount,
                 interface   => 'test',
-                type        => 'fine',
+                type        => 'overdue',
                 item_id     => $item_to_auto_renew->{itemnumber},
                 description => "Some fines"
             }
@@ -842,7 +842,7 @@ my ( $reused_itemnumber_1, $reused_itemnumber_2 );
     is( $line->issue_id, $issue->id, 'Account line issue id matches' );
 
     my $offset = Koha::Account::Offsets->search({ debit_id => $line->id })->next();
-    is( $offset->type, 'Fine', 'Account offset type is Fine' );
+    is( $offset->type, 'OVERDUE', 'Account offset type is Fine' );
     is( $offset->amount, '15.000000', 'Account offset amount is 15.00' );
 
     t::lib::Mocks::mock_preference('WhenLostForgiveFine','0');
@@ -2330,7 +2330,7 @@ subtest '_FixAccountForLostAndReturned' => sub {
         );
 
         my $manual_debit_amount = 80;
-        $account->add_debit( { amount => $manual_debit_amount, type => 'fine', interface =>'test' } );
+        $account->add_debit( { amount => $manual_debit_amount, type => 'overdue', interface =>'test' } );
 
         is( $account->balance, $manual_debit_amount + $replacement_amount - $payment_amount, 'Manual debit applied' );
 
