@@ -1980,7 +1980,7 @@ subtest '_FixAccountForLostAndReturned' => sub {
         plan tests => 10;
 
         my $patron = $builder->build_object( { class => 'Koha::Patrons' } );
-        my manager = $builder->build_object({ class => "Koha::Patrons" });
+        my $manager = $builder->build_object({ class => "Koha::Patrons" });
         t::lib::Mocks::mock_userenv({ patron => $manager,branchcode => $manager->branchcode });
 
         my $item = $builder->build_sample_item(
