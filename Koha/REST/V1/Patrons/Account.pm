@@ -112,7 +112,9 @@ sub add_credit {
                 payment_type => $payment_type,
                 description  => $description,
                 note         => $note,
-                user_id      => $user->id
+                user_id      => $user->id,
+                interface    => 'api',
+                library_id   => $library_id
             }
         );
         $credit->discard_changes;

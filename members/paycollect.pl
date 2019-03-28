@@ -127,6 +127,7 @@ if ( $total_paid and $total_paid ne '0.00' ) {
                     amount       => $total_paid,
                     library_id   => $branch,
                     note         => $payment_note,
+                    interface    => C4::Context->interface,
                     payment_type => $payment_type,
                 }
             );
@@ -159,6 +160,7 @@ if ( $total_paid and $total_paid ne '0.00' ) {
                         amount       => $total_paid,
                         lines        => \@lines,
                         note         => $note,
+                        interface    => C4::Context->interface,
                         payment_type => $payment_type,
                     }
                   );
@@ -170,6 +172,7 @@ if ( $total_paid and $total_paid ne '0.00' ) {
                         amount       => $total_paid,
                         note         => $note,
                         payment_type => $payment_type,
+                        interface    => C4::Context->interface
                     }
                 );
             }

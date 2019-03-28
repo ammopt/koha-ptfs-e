@@ -214,8 +214,9 @@ This method allows updating a debit or credit on a patron's account
 
     $account_line->adjust(
         {
-            amount => $amount,
-            type   => $update_type,
+            amount    => $amount,
+            type      => $update_type,
+            interface => $interface
         }
     );
 
@@ -235,6 +236,7 @@ sub adjust {
 
     my $amount       = $params->{amount};
     my $update_type  = $params->{type};
+    my $interface    = $params->{interface};
 
     unless ( exists($Koha::Account::Line::allowed_update->{$update_type}) ) {
         Koha::Exceptions::Account::UnrecognisedType->throw(
@@ -271,6 +273,7 @@ sub adjust {
                         amount      => $new_outstanding * -1,
                         description => 'Overpayment refund',
                         type        => 'credit',
+                        interface   => $interface,
                         ( $update_type eq 'fine_update' ? ( item_id => $self->itemnumber ) : ()),
                     }
                 );
