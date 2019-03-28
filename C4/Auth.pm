@@ -1153,6 +1153,7 @@ sub checkauth {
                     $session->param( 'emailaddress', $emailaddress );
                     $session->param( 'ip',           $session->remote_addr() );
                     $session->param( 'lasttime',     time() );
+                    $session->param( 'interface',    $type);
                     $session->param( 'shibboleth',   $shibSuccess );
                     $debug and printf STDERR "AUTH_4: (%s)\t%s %s - %s\n", map { $session->param($_) } qw(cardnumber firstname surname branch);
                 }
@@ -1178,6 +1179,7 @@ sub checkauth {
                 $session->param( 'lasttime', time() );
                 $session->param( 'ip',       $session->remote_addr() );
                 $session->param( 'sessiontype', 'anon' );
+                $session->param( 'interface', $type);
             }
         }    # END if ( $q_userid
         elsif ( $type eq "opac" ) {
@@ -1190,6 +1192,7 @@ sub checkauth {
             $session->param( 'ip',          $session->remote_addr() );
             $session->param( 'lasttime',    time() );
             $session->param( 'sessiontype', 'anon' );
+            $session->param( 'interface', $type);
         }
     }    # END unless ($userid)
 
@@ -1425,6 +1428,7 @@ sub check_api_auth {
         my $session = get_session($sessionID);
         C4::Context->_new_userenv($sessionID);
         if ($session) {
+            C4::Context->interface($session->param('interface'));
             C4::Context->set_userenv(
                 $session->param('number'),       $session->param('id'),
                 $session->param('cardnumber'),   $session->param('firstname'),
@@ -1583,6 +1587,7 @@ sub check_api_auth {
                 $session->param( 'emailaddress', $emailaddress );
                 $session->param( 'ip',           $session->remote_addr() );
                 $session->param( 'lasttime',     time() );
+                $session->param( 'interface',    'api'  );
             }
             $session->param( 'cas_ticket', $cas_ticket);
             C4::Context->set_userenv(
@@ -1668,6 +1673,7 @@ sub check_cookie_auth {
     my $session   = get_session($sessionID);
     C4::Context->_new_userenv($sessionID);
     if ($session) {
+        C4::Context->interface($session->param('interface'));
         C4::Context->set_userenv(
             $session->param('number'),       $session->param('id'),
             $session->param('cardnumber'),   $session->param('firstname'),
