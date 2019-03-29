@@ -2292,7 +2292,8 @@ sub _FixOverduesOnReturn {
         {
             borrowernumber => $borrowernumber,
             itemnumber     => $item,
-            accounttype    => 'FU'
+            accounttype    => 'OVERDUE',
+            status         => 'UNRETURNED'
         }
     )->next();
     return 0 unless $accountline;    # no warning, there's just nothing to fix
@@ -2300,7 +2301,7 @@ sub _FixOverduesOnReturn {
     if ($exemptfine) {
         my $amountoutstanding = $accountline->amountoutstanding;
 
-        $accountline->accounttype('FFOR');
+        $accountline->status('FORGIVEN');
         $accountline->amountoutstanding(0);
 
         Koha::Account::Offset->new(
@@ -2315,7 +2316,7 @@ sub _FixOverduesOnReturn {
             &logaction("FINES", 'MODIFY',$borrowernumber,"Overdue forgiven: item $item");
         }
     } else {
-        $accountline->accounttype('F');
+        $accountline->status('RETURNED');
     }
 
     return $accountline->store();
