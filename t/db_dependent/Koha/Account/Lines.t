@@ -58,6 +58,7 @@ subtest 'item() tests' => sub {
         itemnumber     => $item->itemnumber,
         accounttype    => "F",
         amount         => 10,
+        interface      => 'commandline',
     })->store;
 
     my $account_line_item = $line->item;
@@ -85,7 +86,8 @@ subtest 'total_outstanding() tests' => sub {
         {   borrowernumber    => $patron->id,
             accounttype       => "F",
             amount            => 10,
-            amountoutstanding => 10
+            amountoutstanding => 10,
+            interface         => 'commandline',
         }
     )->store;
 
@@ -93,7 +95,8 @@ subtest 'total_outstanding() tests' => sub {
         {   borrowernumber    => $patron->id,
             accounttype       => "F",
             amount            => 10,
-            amountoutstanding => 10
+            amountoutstanding => 10,
+            interface         => 'commandline',
         }
     )->store;
 
@@ -104,7 +107,8 @@ subtest 'total_outstanding() tests' => sub {
         {   borrowernumber    => $patron->id,
             accounttype       => "F",
             amount            => -10,
-            amountoutstanding => -10
+            amountoutstanding => -10,
+            interface         => 'commandline',
         }
     )->store;
 
@@ -115,7 +119,8 @@ subtest 'total_outstanding() tests' => sub {
         {   borrowernumber    => $patron->id,
             accounttype       => "F",
             amount            => -10,
-            amountoutstanding => -10
+            amountoutstanding => -10,
+            interface         => 'commandline',
         }
     )->store;
 
@@ -126,7 +131,8 @@ subtest 'total_outstanding() tests' => sub {
         {   borrowernumber    => $patron->id,
             accounttype       => "F",
             amount            => -100,
-            amountoutstanding => -100
+            amountoutstanding => -100,
+            interface         => 'commandline',
         }
     )->store;
 
@@ -145,7 +151,7 @@ subtest 'is_credit() and is_debit() tests' => sub {
     my $patron  = $builder->build_object({ class => 'Koha::Patrons' });
     my $account = $patron->account;
 
-    my $credit = $account->add_credit({ amount => 100, user_id => $patron->id });
+    my $credit = $account->add_credit({ amount => 100, user_id => $patron->id, interface => 'commandline' });
 
     ok( $credit->is_credit, 'is_credit detects credits' );
     ok( !$credit->is_debit, 'is_debit detects credits' );
@@ -155,6 +161,7 @@ subtest 'is_credit() and is_debit() tests' => sub {
         borrowernumber => $patron->id,
         accounttype    => "F",
         amount         => 10,
+        interface      => 'commandline',
     })->store;
 
     ok( !$debit->is_credit, 'is_credit detects debits' );
@@ -172,13 +179,14 @@ subtest 'apply() tests' => sub {
     my $patron  = $builder->build_object( { class => 'Koha::Patrons' } );
     my $account = $patron->account;
 
-    my $credit = $account->add_credit( { amount => 100, user_id => $patron->id } );
+    my $credit = $account->add_credit( { amount => 100, user_id => $patron->id, interface => 'commandline' } );
 
     my $debit_1 = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
             accounttype       => "F",
             amount            => 10,
-            amountoutstanding => 10
+            amountoutstanding => 10,
+            interface         => 'commandline',
         }
     )->store;
 
@@ -186,7 +194,8 @@ subtest 'apply() tests' => sub {
         {   borrowernumber    => $patron->id,
             accounttype       => "F",
             amount            => 100,
-            amountoutstanding => 100
+            amountoutstanding => 100,
+            interface         => 'commandline',
         }
     )->store;
 
@@ -236,18 +245,19 @@ subtest 'apply() tests' => sub {
         '->apply() can only be used with credits';
 
     $debits = Koha::Account::Lines->search({ accountlines_id => $credit->id });
-    my $credit_3 = $account->add_credit({ amount => 1 });
+    my $credit_3 = $account->add_credit({ amount => 1, interface => 'commandline' });
     throws_ok
         { $credit_3->apply({ debits => $debits }); }
         'Koha::Exceptions::Account::IsNotDebit',
         '->apply() can only be applied to credits';
 
-    my $credit_2 = $account->add_credit({ amount => 20 });
+    my $credit_2 = $account->add_credit({ amount => 20, interface => 'commandline' });
     my $debit_3  = Koha::Account::Line->new(
         {   borrowernumber    => $patron->id,
             accounttype       => "F",
             amount            => 100,
-            amountoutstanding => 100
+            amountoutstanding => 100,
+            interface         => 'commandline',
         }
     )->store;
 
@@ -295,6 +305,7 @@ subtest 'Keep account info when related patron, staff or item is deleted' => sub
         itemnumber     => $item->itemnumber,
         accounttype    => "F",
         amount         => 10,
+        interface      => 'commandline',
     })->store;
 
     $issue->delete;
@@ -332,7 +343,8 @@ subtest 'adjust() tests' => sub {
         {   borrowernumber    => $patron->id,
             accounttype       => "F",
             amount            => 10,
-            amountoutstanding => 10
+            amountoutstanding => 10,
+            interface         => 'commandline',
         }
     )->store;
 
@@ -340,21 +352,22 @@ subtest 'adjust() tests' => sub {
         {   borrowernumber    => $patron->id,
             accounttype       => "FU",
             amount            => 100,
-            amountoutstanding => 100
+            amountoutstanding => 100,
+            interface         => 'commandline'
         }
     )->store;
 
-    my $credit = $account->add_credit( { amount => 40, user_id => $patron->id } );
+    my $credit = $account->add_credit( { amount => 40, user_id => $patron->id, interface => 'commandline' } );
 
-    throws_ok { $debit_1->adjust( { amount => 50, type => 'bad' } ) }
+    throws_ok { $debit_1->adjust( { amount => 50, type => 'bad', interface => 'commandline' } ) }
     qr/Update type not recognised/, 'Exception thrown for unrecognised type';
 
-    throws_ok { $debit_1->adjust( { amount => 50, type => 'fine_update' } ) }
+    throws_ok { $debit_1->adjust( { amount => 50, type => 'fine_update', interface => 'commandline' } ) }
     qr/Update type not allowed on this accounttype/,
       'Exception thrown for type conflict';
 
     # Increment an unpaid fine
-    $debit_2->adjust( { amount => 150, type => 'fine_update' } )->discard_changes;
+    $debit_2->adjust( { amount => 150, type => 'fine_update', interface => 'commandline' } )->discard_changes;
 
     is( $debit_2->amount * 1, 150, 'Fine amount was updated in full' );
     is( $debit_2->amountoutstanding * 1, 150, 'Fine amountoutstanding was update in full' );
@@ -380,7 +393,7 @@ subtest 'adjust() tests' => sub {
     t::lib::Mocks::mock_preference( 'FinesLog', 1 );
 
     # Increment the partially paid fine
-    $debit_2->adjust( { amount => 160, type => 'fine_update' } )->discard_changes;
+    $debit_2->adjust( { amount => 160, type => 'fine_update', interface => 'commandline' } )->discard_changes;
 
     is( $debit_2->amount * 1, 160, 'Fine amount was updated in full' );
     is( $debit_2->amountoutstanding * 1, 120, 'Fine amountoutstanding was updated by difference' );
@@ -394,7 +407,7 @@ subtest 'adjust() tests' => sub {
     is( $schema->resultset('ActionLog')->count(), $action_logs + 1, 'Log was added' );
 
     # Decrement the partially paid fine, less than what was paid
-    $debit_2->adjust( { amount => 50, type => 'fine_update' } )->discard_changes;
+    $debit_2->adjust( { amount => 50, type => 'fine_update', interface => 'commandline' } )->discard_changes;
 
     is( $debit_2->amount * 1, 50, 'Fine amount was updated in full' );
     is( $debit_2->amountoutstanding * 1, 10, 'Fine amountoutstanding was updated by difference' );
@@ -406,7 +419,7 @@ subtest 'adjust() tests' => sub {
     is( $THIS_offset->type, 'fine_decrease', 'Adjust type stored correctly' );
 
     # Decrement the partially paid fine, more than what was paid
-    $debit_2->adjust( { amount => 30, type => 'fine_update' } )->discard_changes;
+    $debit_2->adjust( { amount => 30, type => 'fine_update', interface => 'commandline' } )->discard_changes;
     is( $debit_2->amount * 1, 30, 'Fine amount was updated in full' );
     is( $debit_2->amountoutstanding * 1, 0, 'Fine amountoutstanding was zeroed (payment was 40)' );
 
@@ -419,6 +432,45 @@ subtest 'adjust() tests' => sub {
     my $overpayment_refund = $account->lines->last;
     is( $overpayment_refund->amount * 1, -10, 'A new credit has been added' );
     is( $overpayment_refund->description, 'Overpayment refund', 'Credit generated with the expected description' );
+
+    $schema->storage->txn_rollback;
+};
+
+subtest 'checkout() tests' => sub {
+    plan tests => 6;
+
+    $schema->storage->txn_begin;
+
+    my $library = $builder->build_object( { class => 'Koha::Libraries' } );
+    my $patron = $builder->build_object( { class => 'Koha::Patrons' } );
+    my $item = $builder->build_sample_item;
+    my $account = $patron->account;
+
+    t::lib::Mocks::mock_userenv({ branchcode => $library->branchcode });
+    my $checkout = AddIssue( $patron->unblessed, $item->barcode );
+
+    my $line = $account->add_debit({
+        amount    => 10,
+        interface => 'commandline',
+        item_id   => $item->itemnumber,
+        issue_id  => $checkout->issue_id,
+        type      => 'fine',
+    });
+
+    my $line_checkout = $line->checkout;
+    is( ref($line_checkout), 'Koha::Checkout', 'Result type is correct' );
+    is( $line_checkout->issue_id, $checkout->issue_id, 'Koha::Account::Line->checkout should return the correct checkout');
+
+    my ( $returned, undef, $old_checkout) = C4::Circulation::AddReturn( $item->barcode, $library->branchcode );
+    is( $returned, 1, 'The item should have been returned' );
+
+    $line = $line->get_from_storage;
+    my $old_line_checkout = $line->checkout;
+    is( ref($old_line_checkout), 'Koha::Old::Checkout', 'Result type is correct' );
+    is( $old_line_checkout->issue_id, $old_checkout->issue_id, 'Koha::Account::Line->checkout should return the correct old_checkout' );
+
+    $line->issue_id(undef)->store;
+    is( $line->checkout, undef, 'Koha::Account::Line->checkout should return undef if no checkout linked' );
 
     $schema->storage->txn_rollback;
 };

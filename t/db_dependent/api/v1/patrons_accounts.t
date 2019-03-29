@@ -67,6 +67,8 @@ subtest 'get_balance() tests' => sub {
             accounttype       => "N", # New card
             amountoutstanding => 50,
             manager_id        => $patron->borrowernumber,
+            branchcode        => $library->id,
+            interface         => 'test',
         }
     )->store();
     $account_line_1->discard_changes;
@@ -80,6 +82,8 @@ subtest 'get_balance() tests' => sub {
             accounttype       => "N", # New card
             amountoutstanding => 50.01,
             manager_id        => $patron->borrowernumber,
+            branchcode        => $library->id,
+            interface         => 'test',
         }
     )->store();
     $account_line_2->discard_changes;
@@ -124,7 +128,8 @@ subtest 'get_balance() tests' => sub {
     );
 
     # add a credit
-    my $credit_line = $account->add_credit({ amount => 10, user_id => $patron->id });
+    my $credit_line = $account->add_credit(
+        { amount => 10, user_id => $patron->id, library_id => $library->id, interface => 'test' } );
     # re-read from the DB
     $credit_line->discard_changes;
     $tx = $t->ua->build_tx( GET => "/api/v1/patrons/$patron_id/account" );
@@ -179,6 +184,7 @@ subtest 'add_credit() tests' => sub {
             accounttype       => "N",                       # New card
             amountoutstanding => 10,
             manager_id        => $patron->borrowernumber,
+            interface         => 'test',
         }
     )->store();
     my $debit_2 = Koha::Account::Line->new(
@@ -189,6 +195,7 @@ subtest 'add_credit() tests' => sub {
             accounttype       => "N",                       # New card
             amountoutstanding => 15,
             manager_id        => $patron->borrowernumber,
+            interface         => 'test',
         }
     )->store();
 
@@ -210,6 +217,7 @@ subtest 'add_credit() tests' => sub {
             accounttype       => "N",                       # New card
             amountoutstanding => 100,
             manager_id        => $patron->borrowernumber,
+            interface         => 'test',
         }
     )->store();
 

@@ -668,6 +668,7 @@ my ( $reused_itemnumber_1, $reused_itemnumber_2 );
         $account->add_debit(
             {
                 amount      => $fines_amount,
+                interface   => 'test',
                 type        => 'fine',
                 item_id     => $item_to_auto_renew->{itemnumber},
                 description => "Some fines"
@@ -681,6 +682,7 @@ my ( $reused_itemnumber_1, $reused_itemnumber_2 );
         $account->add_debit(
             {
                 amount      => $fines_amount,
+                interface   => 'test',
                 type        => 'fine',
                 item_id     => $item_to_auto_renew->{itemnumber},
                 description => "Some fines"
@@ -694,6 +696,7 @@ my ( $reused_itemnumber_1, $reused_itemnumber_2 );
         $account->add_debit(
             {
                 amount      => $fines_amount,
+                interface   => 'test',
                 type        => 'fine',
                 item_id     => $item_to_auto_renew->{itemnumber},
                 description => "Some fines"
@@ -2021,7 +2024,8 @@ subtest '_FixAccountForLostAndReturned' => sub {
         # Write off the debt
         my $credit = $account->add_credit(
             {   amount => $account->balance,
-                type   => 'writeoff'
+                type   => 'writeoff',
+                interface => 'test',
             }
         );
         $credit->apply( { debits => $debts, offset_type => 'Writeoff' } );
@@ -2081,7 +2085,8 @@ subtest '_FixAccountForLostAndReturned' => sub {
         # Write off the debt
         my $credit = $account->add_credit(
             {   amount => $account->balance,
-                type   => 'payment'
+                type   => 'payment',
+                interface => 'test',
             }
         );
         $credit->apply( { debits => $debts, offset_type => 'Payment' } );
@@ -2201,7 +2206,8 @@ subtest '_FixAccountForLostAndReturned' => sub {
         my $payment_amount = 27;
         my $payment        = $account->add_credit(
             {   amount => $payment_amount,
-                type   => 'payment'
+                type   => 'payment',
+                interface => 'test',
             }
         );
 
@@ -2211,7 +2217,8 @@ subtest '_FixAccountForLostAndReturned' => sub {
         my $write_off_amount = 25;
         my $write_off        = $account->add_credit(
             {   amount => $write_off_amount,
-                type   => 'writeoff'
+                type   => 'writeoff',
+                interface => 'test',
             }
         );
         $write_off->apply( { debits => $lost_fee_lines->reset, offset_type => 'Writeoff' } );
@@ -2301,7 +2308,8 @@ subtest '_FixAccountForLostAndReturned' => sub {
         my $payment_amount = 27;
         my $payment        = $account->add_credit(
             {   amount => $payment_amount,
-                type   => 'payment'
+                type   => 'payment',
+                interface => 'test',
             }
         );
         $payment->apply({ debits => $lost_fee_lines->reset, offset_type => 'Payment' });
@@ -2312,7 +2320,7 @@ subtest '_FixAccountForLostAndReturned' => sub {
         );
 
         my $manual_debit_amount = 80;
-        $account->add_debit( { amount => $manual_debit_amount, type => 'fine' } );
+        $account->add_debit( { amount => $manual_debit_amount, type => 'fine', interface =>'test' } );
 
         is( $account->balance, $manual_debit_amount + $replacement_amount - $payment_amount, 'Manual debit applied' );
 
@@ -2354,6 +2362,7 @@ subtest '_FixOverduesOnReturn' => sub {
             itemnumber     => $item->itemnumber,
             amount => 99.00,
             amountoutstanding => 99.00,
+            interface => 'test',
         }
     )->store();
 
