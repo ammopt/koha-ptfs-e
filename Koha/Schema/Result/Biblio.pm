@@ -137,66 +137,6 @@ __PACKAGE__->set_primary_key("biblionumber");
 
 =head1 RELATIONS
 
-=head2 aqorders
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Aqorder>
-
-=cut
-
-__PACKAGE__->has_many(
-  "aqorders",
-  "Koha::Schema::Result::Aqorder",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 article_requests
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::ArticleRequest>
-
-=cut
-
-__PACKAGE__->has_many(
-  "article_requests",
-  "Koha::Schema::Result::ArticleRequest",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 biblio_metadatas
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::BiblioMetadata>
-
-=cut
-
-__PACKAGE__->has_many(
-  "biblio_metadatas",
-  "Koha::Schema::Result::BiblioMetadata",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 biblioimages
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Biblioimage>
-
-=cut
-
-__PACKAGE__->has_many(
-  "biblioimages",
-  "Koha::Schema::Result::Biblioimage",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 biblioitems
 
 Type: has_many
@@ -208,21 +148,6 @@ Related object: L<Koha::Schema::Result::Biblioitem>
 __PACKAGE__->has_many(
   "biblioitems",
   "Koha::Schema::Result::Biblioitem",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 hold_fill_targets
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::HoldFillTarget>
-
-=cut
-
-__PACKAGE__->has_many(
-  "hold_fill_targets",
-  "Koha::Schema::Result::HoldFillTarget",
   { "foreign.biblionumber" => "self.biblionumber" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -253,21 +178,6 @@ Related object: L<Koha::Schema::Result::OldReserve>
 __PACKAGE__->has_many(
   "old_reserves",
   "Koha::Schema::Result::OldReserve",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 ratings
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Rating>
-
-=cut
-
-__PACKAGE__->has_many(
-  "ratings",
-  "Koha::Schema::Result::Rating",
   { "foreign.biblionumber" => "self.biblionumber" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -348,7 +258,7 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-12-10 10:47:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lSmtVOKTgJDCDr7mvun7mw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v6vo6FqcBYRlHlQyTqVKIQ
 
 1;

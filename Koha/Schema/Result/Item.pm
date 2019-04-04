@@ -451,21 +451,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 article_requests
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::ArticleRequest>
-
-=cut
-
-__PACKAGE__->has_many(
-  "article_requests",
-  "Koha::Schema::Result::ArticleRequest",
-  { "foreign.itemnumber" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 biblioitemnumber
 
 Type: belongs_to
@@ -511,21 +496,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 course_item
-
-Type: might_have
-
-Related object: L<Koha::Schema::Result::CourseItem>
-
-=cut
-
-__PACKAGE__->might_have(
-  "course_item",
-  "Koha::Schema::Result::CourseItem",
-  { "foreign.itemnumber" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 creator_batches
 
 Type: has_many
@@ -538,21 +508,6 @@ __PACKAGE__->has_many(
   "creator_batches",
   "Koha::Schema::Result::CreatorBatch",
   { "foreign.item_number" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 hold_fill_target
-
-Type: might_have
-
-Related object: L<Koha::Schema::Result::HoldFillTarget>
-
-=cut
-
-__PACKAGE__->might_have(
-  "hold_fill_target",
-  "Koha::Schema::Result::HoldFillTarget",
-  { "foreign.itemnumber" => "self.itemnumber" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -686,24 +641,9 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 stockrotationitem
 
-Type: might_have
-
-Related object: L<Koha::Schema::Result::Stockrotationitem>
-
-=cut
-
-__PACKAGE__->might_have(
-  "stockrotationitem",
-  "Koha::Schema::Result::Stockrotationitem",
-  { "foreign.itemnumber_id" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-12-10 10:47:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/PMp54+DzDdDvzMA0pNp0w
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FjNC8tjKeIEskKkgSXgKLg
 
 __PACKAGE__->belongs_to( biblioitem => "Koha::Schema::Result::Biblioitem", "biblioitemnumber" );
 

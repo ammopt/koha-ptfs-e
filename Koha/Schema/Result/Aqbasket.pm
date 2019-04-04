@@ -193,21 +193,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 aqorders
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Aqorder>
-
-=cut
-
-__PACKAGE__->has_many(
-  "aqorders",
-  "Koha::Schema::Result::Aqorder",
-  { "foreign.basketno" => "self.basketno" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 basketgroupid
 
 Type: belongs_to
@@ -309,8 +294,8 @@ Composing rels: L</aqbasketusers> -> borrowernumber
 __PACKAGE__->many_to_many("borrowernumbers", "aqbasketusers", "borrowernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-12-10 10:47:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FoONKTl7g7jAEPBW/FQfXQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4hkpw2aOINDJVCxUE+tfdw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

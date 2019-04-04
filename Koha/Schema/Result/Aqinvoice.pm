@@ -128,21 +128,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 aqorders
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Aqorder>
-
-=cut
-
-__PACKAGE__->has_many(
-  "aqorders",
-  "Koha::Schema::Result::Aqorder",
-  { "foreign.invoiceid" => "self.invoiceid" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 booksellerid
 
 Type: belongs_to
@@ -199,8 +184,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-12-10 10:47:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+4STaSLkNVS7PjPtD/arfA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Dq72QAirvi0A98MjK1pNeQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

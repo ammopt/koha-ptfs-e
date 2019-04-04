@@ -242,21 +242,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 aqorders
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Aqorder>
-
-=cut
-
-__PACKAGE__->has_many(
-  "aqorders",
-  "Koha::Schema::Result::Aqorder",
-  { "foreign.budget_id" => "self.budget_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 suggestions
 
 Type: has_many
@@ -298,8 +283,8 @@ Composing rels: L</aqbudgetborrowers> -> borrowernumber
 __PACKAGE__->many_to_many("borrowernumbers", "aqbudgetborrowers", "borrowernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-12-10 10:47:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TI5kmdkr2b7E1C3PslYnwg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Uueb3Ebgy5dcjcbdzjPGFw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

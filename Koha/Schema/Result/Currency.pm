@@ -142,24 +142,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 aqorders
 
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Aqorder>
-
-=cut
-
-__PACKAGE__->has_many(
-  "aqorders",
-  "Koha::Schema::Result::Aqorder",
-  { "foreign.currency" => "self.currency" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-02-01 14:23:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PnJEcCgrM1Edf99phWFdyQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+cUjTc6Rn4vBsscD0FqtrQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -374,21 +374,6 @@ __PACKAGE__->set_primary_key("subscriptionid");
 
 =head1 RELATIONS
 
-=head2 aqorders
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Aqorder>
-
-=cut
-
-__PACKAGE__->has_many(
-  "aqorders",
-  "Koha::Schema::Result::Aqorder",
-  { "foreign.subscriptionid" => "self.subscriptionid" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 numberpattern
 
 Type: belongs_to
@@ -445,8 +430,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-12-10 10:47:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Yv9w+aCY3lL+SH/NQUFZ6Q
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3vCegZyd0bUTpwATznpqvQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
