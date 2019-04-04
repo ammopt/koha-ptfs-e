@@ -45,6 +45,7 @@
     <thead>
       <tr>
           <th class="title-string">Date</th>
+          <th>Account type</th>
           <th>Description of charges</th>
           <th>Home library</th>
           <th>Note</th>
@@ -59,10 +60,10 @@
 
    <tr>
    <td><span title="[% account.date | html %]">[% account.date |$KohaDates %]</span></td>
+        <td>[% PROCESS account_type_description account=account %]</td>
       <td>
-        [% PROCESS account_type_description account=account %]
-        [%- IF account.payment_type %], [% AuthorisedValues.GetByCode('PAYMENT_TYPE', account.payment_type) | html %][% END %]
-        [%- IF account.description %], [% account.description | html %][% END %]
+        [%- IF account.payment_type %][% AuthorisedValues.GetByCode('PAYMENT_TYPE', account.payment_type) | html %][% END %]
+        [%- IF account.description %][% account.description | html %][% END %]
         &nbsp;[% IF ( account.itemnumber ) %]<a href="/cgi-bin/koha/catalogue/moredetail.pl?biblionumber=[% account.item.biblionumber | uri %]&amp;itemnumber=[% account.itemnumber | uri %]">[% account.item.biblio.title | html %]</a>[% END %]</td>
       <td>[% IF account.itemnumber %][% Branches.GetName( account.item.homebranch ) | html %][% END %]</td>
       <td>[% account.note | html_line_break %]</td>
@@ -84,7 +85,7 @@
   [% END %]
 <tfoot>
   <tr>
-    <td colspan="5">Total due</td>
+    <td colspan="9">Total due</td>
     [% IF ( totalcredit ) %]
         <td class="credit" style="text-align: right;">[% total | $Price %]</td>
     [% ELSE %]
