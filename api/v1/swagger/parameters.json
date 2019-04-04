@@ -17,7 +17,6 @@
   "order_id_pp": {
     "$ref": "parameters/order.json#/order_id_pp"
   },
-  },
   "vendoridPathParam": {
     "$ref": "parameters/vendor.json#/vendoridPathParam"
   },
