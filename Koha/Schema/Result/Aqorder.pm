@@ -455,6 +455,21 @@ __PACKAGE__->set_primary_key("ordernumber");
 
 =head1 RELATIONS
 
+=head2 aqinvoice_lines
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::AqinvoiceLine>
+
+=cut
+
+__PACKAGE__->has_many(
+  "aqinvoice_lines",
+  "Koha::Schema::Result::AqinvoiceLine",
+  { "foreign.aqorders_ordernumber" => "self.ordernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 aqorder_users
 
 Type: has_many
@@ -661,8 +676,8 @@ Composing rels: L</aqorder_users> -> borrowernumber
 __PACKAGE__->many_to_many("borrowernumbers", "aqorder_users", "borrowernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-12-10 10:47:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WpRIuyKg7YgsLD9BPzoVnw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:26:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZabSlKqkpfrCtIqMdzxXQQ
 
 sub koha_objects_class {
     'Koha::Acquisition::Orders';

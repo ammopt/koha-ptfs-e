@@ -66,6 +66,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 items_search_fields
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::ItemsSearchField>
+
+=cut
+
+__PACKAGE__->has_many(
+  "items_search_fields",
+  "Koha::Schema::Result::ItemsSearchField",
+  { "foreign.authorised_values_category" => "self.category_name" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 marc_subfield_structures
 
 Type: has_many
@@ -82,8 +97,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uDuDBXzGEBiEjO9eGNRilA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:26:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dV+GcyJeqi+Gsm7HQHhv3Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

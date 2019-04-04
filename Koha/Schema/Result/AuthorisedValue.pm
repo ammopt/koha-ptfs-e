@@ -99,6 +99,36 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 aqinvoice_lines
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::AqinvoiceLine>
+
+=cut
+
+__PACKAGE__->has_many(
+  "aqinvoice_lines",
+  "Koha::Schema::Result::AqinvoiceLine",
+  { "foreign.item_type" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 authorised_values_branches
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::AuthorisedValuesBranch>
+
+=cut
+
+__PACKAGE__->has_many(
+  "authorised_values_branches",
+  "Koha::Schema::Result::AuthorisedValuesBranch",
+  { "foreign.av_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 category
 
 Type: belongs_to
@@ -114,9 +144,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 illrequests
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UemWG3p+FHuujxY2WyuBdA
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Illrequest>
+
+=cut
+
+__PACKAGE__->has_many(
+  "illrequests",
+  "Koha::Schema::Result::Illrequest",
+  { "foreign.status_alias" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:26:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:z/3404WNBBENB2by+wJ86Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

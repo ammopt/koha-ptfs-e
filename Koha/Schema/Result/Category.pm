@@ -236,6 +236,36 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 categories_branches
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::CategoriesBranch>
+
+=cut
+
+__PACKAGE__->has_many(
+  "categories_branches",
+  "Koha::Schema::Result::CategoriesBranch",
+  { "foreign.categorycode" => "self.categorycode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 circulation_rules
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::CirculationRule>
+
+=cut
+
+__PACKAGE__->has_many(
+  "circulation_rules",
+  "Koha::Schema::Result::CirculationRule",
+  { "foreign.categorycode" => "self.categorycode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 default_borrower_circ_rule
 
 Type: might_have
@@ -252,8 +282,8 @@ __PACKAGE__->might_have(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RGPnXmhV9utNgVc3ECprmg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:26:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fMapJ/rznTm1rwhD1p3isw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

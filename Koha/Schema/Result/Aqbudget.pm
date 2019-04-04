@@ -227,6 +227,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 aqinvoice_lines
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::AqinvoiceLine>
+
+=cut
+
+__PACKAGE__->has_many(
+  "aqinvoice_lines",
+  "Koha::Schema::Result::AqinvoiceLine",
+  { "foreign.aqbudgets_budgetid" => "self.budget_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 aqinvoices
 
 Type: has_many
@@ -239,6 +254,21 @@ __PACKAGE__->has_many(
   "aqinvoices",
   "Koha::Schema::Result::Aqinvoice",
   { "foreign.shipmentcost_budgetid" => "self.budget_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 aqorders
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Aqorder>
+
+=cut
+
+__PACKAGE__->has_many(
+  "aqorders",
+  "Koha::Schema::Result::Aqorder",
+  { "foreign.budget_id" => "self.budget_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -283,8 +313,8 @@ Composing rels: L</aqbudgetborrowers> -> borrowernumber
 __PACKAGE__->many_to_many("borrowernumbers", "aqbudgetborrowers", "borrowernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Uueb3Ebgy5dcjcbdzjPGFw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:26:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cRwtCWuDzFhea3FSxonvqg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

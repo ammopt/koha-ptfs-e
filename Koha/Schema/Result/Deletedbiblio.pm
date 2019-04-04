@@ -135,9 +135,26 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("biblionumber");
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:W2IyN8QPnfGOrYNQuj5oug
+=head2 deletedbiblio_metadatas
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::DeletedbiblioMetadata>
+
+=cut
+
+__PACKAGE__->has_many(
+  "deletedbiblio_metadatas",
+  "Koha::Schema::Result::DeletedbiblioMetadata",
+  { "foreign.biblionumber" => "self.biblionumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:26:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zzgTqT4CjozFz66GO4e8zQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

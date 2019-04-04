@@ -226,6 +226,51 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 article_requests
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::ArticleRequest>
+
+=cut
+
+__PACKAGE__->has_many(
+  "article_requests",
+  "Koha::Schema::Result::ArticleRequest",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 authorised_values_branches
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::AuthorisedValuesBranch>
+
+=cut
+
+__PACKAGE__->has_many(
+  "authorised_values_branches",
+  "Koha::Schema::Result::AuthorisedValuesBranch",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 borrower_attribute_types_branches
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::BorrowerAttributeTypesBranch>
+
+=cut
+
+__PACKAGE__->has_many(
+  "borrower_attribute_types_branches",
+  "Koha::Schema::Result::BorrowerAttributeTypesBranch",
+  { "foreign.b_branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 borrowers
 
 Type: has_many
@@ -316,6 +361,81 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 categories_branches
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::CategoriesBranch>
+
+=cut
+
+__PACKAGE__->has_many(
+  "categories_branches",
+  "Koha::Schema::Result::CategoriesBranch",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 circulation_rules
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::CirculationRule>
+
+=cut
+
+__PACKAGE__->has_many(
+  "circulation_rules",
+  "Koha::Schema::Result::CirculationRule",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 club_enrollments
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::ClubEnrollment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "club_enrollments",
+  "Koha::Schema::Result::ClubEnrollment",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 club_templates
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::ClubTemplate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "club_templates",
+  "Koha::Schema::Result::ClubTemplate",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 clubs
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Club>
+
+=cut
+
+__PACKAGE__->has_many(
+  "clubs",
+  "Koha::Schema::Result::Club",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 collections
 
 Type: has_many
@@ -328,6 +448,21 @@ __PACKAGE__->has_many(
   "collections",
   "Koha::Schema::Result::Collection",
   { "foreign.colBranchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 course_items
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::CourseItem>
+
+=cut
+
+__PACKAGE__->has_many(
+  "course_items",
+  "Koha::Schema::Result::CourseItem",
+  { "foreign.holdingbranch" => "self.branchcode" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -357,6 +492,51 @@ Related object: L<Koha::Schema::Result::DefaultBranchCircRule>
 __PACKAGE__->might_have(
   "default_branch_circ_rule",
   "Koha::Schema::Result::DefaultBranchCircRule",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 edifact_eans
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::EdifactEan>
+
+=cut
+
+__PACKAGE__->has_many(
+  "edifact_eans",
+  "Koha::Schema::Result::EdifactEan",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 hold_fill_targets
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::HoldFillTarget>
+
+=cut
+
+__PACKAGE__->has_many(
+  "hold_fill_targets",
+  "Koha::Schema::Result::HoldFillTarget",
+  { "foreign.source_branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 illrequests
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Illrequest>
+
+=cut
+
+__PACKAGE__->has_many(
+  "illrequests",
+  "Koha::Schema::Result::Illrequest",
   { "foreign.branchcode" => "self.branchcode" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -391,6 +571,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 library_groups
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::LibraryGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "library_groups",
+  "Koha::Schema::Result::LibraryGroup",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 opac_news
 
 Type: has_many
@@ -421,9 +616,54 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 stockrotationstages
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OuADNfbawDGfvfb7iPla2w
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Stockrotationstage>
+
+=cut
+
+__PACKAGE__->has_many(
+  "stockrotationstages",
+  "Koha::Schema::Result::Stockrotationstage",
+  { "foreign.branchcode_id" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 transport_cost_frombranches
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::TransportCost>
+
+=cut
+
+__PACKAGE__->has_many(
+  "transport_cost_frombranches",
+  "Koha::Schema::Result::TransportCost",
+  { "foreign.frombranch" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 transport_cost_tobranches
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::TransportCost>
+
+=cut
+
+__PACKAGE__->has_many(
+  "transport_cost_tobranches",
+  "Koha::Schema::Result::TransportCost",
+  { "foreign.tobranch" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:26:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QkK2s6FiwqJ15jigYJOsYg
 
 __PACKAGE__->add_columns(
     '+pickup_location' => { is_boolean => 1 }

@@ -755,6 +755,51 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 aqorder_users
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::AqorderUser>
+
+=cut
+
+__PACKAGE__->has_many(
+  "aqorder_users",
+  "Koha::Schema::Result::AqorderUser",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 aqorders
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Aqorder>
+
+=cut
+
+__PACKAGE__->has_many(
+  "aqorders",
+  "Koha::Schema::Result::Aqorder",
+  { "foreign.created_by" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 article_requests
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::ArticleRequest>
+
+=cut
+
+__PACKAGE__->has_many(
+  "article_requests",
+  "Koha::Schema::Result::ArticleRequest",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 borrower_attributes
 
 Type: has_many
@@ -845,6 +890,36 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
 
+=head2 club_enrollments
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::ClubEnrollment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "club_enrollments",
+  "Koha::Schema::Result::ClubEnrollment",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 course_instructors
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::CourseInstructor>
+
+=cut
+
+__PACKAGE__->has_many(
+  "course_instructors",
+  "Koha::Schema::Result::CourseInstructor",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 creator_batches
 
 Type: has_many
@@ -857,6 +932,126 @@ __PACKAGE__->has_many(
   "creator_batches",
   "Koha::Schema::Result::CreatorBatch",
   { "foreign.borrower_number" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 discharges
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Discharge>
+
+=cut
+
+__PACKAGE__->has_many(
+  "discharges",
+  "Koha::Schema::Result::Discharge",
+  { "foreign.borrower" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 hold_fill_targets
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::HoldFillTarget>
+
+=cut
+
+__PACKAGE__->has_many(
+  "hold_fill_targets",
+  "Koha::Schema::Result::HoldFillTarget",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 housebound_profile
+
+Type: might_have
+
+Related object: L<Koha::Schema::Result::HouseboundProfile>
+
+=cut
+
+__PACKAGE__->might_have(
+  "housebound_profile",
+  "Koha::Schema::Result::HouseboundProfile",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 housebound_role
+
+Type: might_have
+
+Related object: L<Koha::Schema::Result::HouseboundRole>
+
+=cut
+
+__PACKAGE__->might_have(
+  "housebound_role",
+  "Koha::Schema::Result::HouseboundRole",
+  { "foreign.borrowernumber_id" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 housebound_visit_chooser_brwnumbers
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::HouseboundVisit>
+
+=cut
+
+__PACKAGE__->has_many(
+  "housebound_visit_chooser_brwnumbers",
+  "Koha::Schema::Result::HouseboundVisit",
+  { "foreign.chooser_brwnumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 housebound_visit_deliverer_brwnumbers
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::HouseboundVisit>
+
+=cut
+
+__PACKAGE__->has_many(
+  "housebound_visit_deliverer_brwnumbers",
+  "Koha::Schema::Result::HouseboundVisit",
+  { "foreign.deliverer_brwnumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 illcomments
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Illcomment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "illcomments",
+  "Koha::Schema::Result::Illcomment",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 illrequests
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Illrequest>
+
+=cut
+
+__PACKAGE__->has_many(
+  "illrequests",
+  "Koha::Schema::Result::Illrequest",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -980,6 +1175,51 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 patron_consents
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::PatronConsent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "patron_consents",
+  "Koha::Schema::Result::PatronConsent",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 patron_list_patrons
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::PatronListPatron>
+
+=cut
+
+__PACKAGE__->has_many(
+  "patron_list_patrons",
+  "Koha::Schema::Result::PatronListPatron",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 patron_lists
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::PatronList>
+
+=cut
+
+__PACKAGE__->has_many(
+  "patron_lists",
+  "Koha::Schema::Result::PatronList",
+  { "foreign.owner" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 patronimage
 
 Type: might_have
@@ -991,6 +1231,21 @@ Related object: L<Koha::Schema::Result::Patronimage>
 __PACKAGE__->might_have(
   "patronimage",
   "Koha::Schema::Result::Patronimage",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 ratings
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Rating>
+
+=cut
+
+__PACKAGE__->has_many(
+  "ratings",
+  "Koha::Schema::Result::Rating",
   { "foreign.borrowernumber" => "self.borrowernumber" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -1170,9 +1425,29 @@ Composing rels: L</aqbudgetborrowers> -> budget
 
 __PACKAGE__->many_to_many("budgets", "aqbudgetborrowers", "budget");
 
+=head2 courses
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:12:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6ZWrC8uc7uss7H/LL5hSvw
+Type: many_to_many
+
+Composing rels: L</course_instructors> -> course
+
+=cut
+
+__PACKAGE__->many_to_many("courses", "course_instructors", "course");
+
+=head2 ordernumbers
+
+Type: many_to_many
+
+Composing rels: L</aqorder_users> -> ordernumber
+
+=cut
+
+__PACKAGE__->many_to_many("ordernumbers", "aqorder_users", "ordernumber");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-04 11:26:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y1y1nVlkOXVUDaQVErfIrQ
 
 __PACKAGE__->belongs_to(
     "guarantor",
