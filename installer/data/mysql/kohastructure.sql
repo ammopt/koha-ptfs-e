@@ -3191,7 +3191,7 @@ CREATE TABLE IF NOT EXISTS aqinvoice_lines(
     CONSTRAINT aqinvoice_lines_fk_invoiceid FOREIGN KEY(aqinvoices_invoiceid) REFERENCES aqinvoices(invoiceid) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT aqinvoice_lines_fk_orderid FOREIGN KEY(aqorders_ordernumber) REFERENCES aqorders(ordernumber) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT aqinvoice_lines_fk_budgetid FOREIGN KEY(aqbudgets_budgetid) REFERENCES aqbudgets(budget_id) ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT aqinvoice_lines_fk_type FOREIGN KEY(type) REFERENCES authorised_values(id) ON UPDATE CASCADE ON DELETE SET NULL
+    CONSTRAINT aqinvoice_lines_fk_item_type FOREIGN KEY(item_type) REFERENCES authorised_values(id) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
