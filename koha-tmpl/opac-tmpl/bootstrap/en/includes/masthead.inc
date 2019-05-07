@@ -70,6 +70,8 @@
                                         [% IF Koha.Preference('casAuthentication') %]
                                             [%# CAS authentication is too complicated for modal window %]
                                             <li role="presentation"><a href="/cgi-bin/koha/opac-user.pl" tabindex="-1" class="menu-inactive" role="menuitem">Log in to create your own lists</a></li>
+                                        [% ELSIF shibbolethAuthentication && Koha.Preference('opacShibOnly') %]
+                                            <li role="presentation"><a href="/cgi-bin/koha/opac-user.pl" tabindex="-1" class="menu-inactive" role="menuitem">Log in to create your own lists</a></li>
                                         [% ELSE %]
                                             <li role="presentation"><a href="/cgi-bin/koha/opac-user.pl" tabindex="-1" class="menu-inactive loginModal-trigger" role="menuitem">Log in to create your own lists</a></li>
                                         [% END %]
@@ -94,6 +96,8 @@
                                             <li><a class="login-link" href="/cgi-bin/koha/opac-user.pl">Log in to your account</a></li>
                                         [% ELSIF ( Koha.Preference('GoogleOpenIDConnect') == 1 ) %]
                                             <li><a class="login-link" href="/cgi-bin/koha/svc/auth/googleopenidconnect" role="button" data-toggle="modal">Log in to your account</a></li>
+                                        [% ELSIF shibbolethAuthentication && Koha.Preference('opacShibOnly') %]
+                                            <li><a class="login-link" href="/cgi-bin/koha/opac-user.pl">Log in to your account</a></li>
                                         [% ELSE %]
                                             <li><a href="/cgi-bin/koha/opac-user.pl" class="login-link loginModal-trigger" role="button" data-toggle="modal">Log in to your account</a></li>
                                         [% END %]
