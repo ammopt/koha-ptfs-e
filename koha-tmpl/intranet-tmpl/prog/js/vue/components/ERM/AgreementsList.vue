@@ -131,12 +131,13 @@ export default {
                     "data": function (row, type, val, meta) {
                         return '<div class="actions" data-agreement_id="' + row.agreement_id + '"></div>'
                     },
+                    "className": "actions noExport",
                     "searchable": false,
                     "orderable": false
                 }
             ],
             drawCallback: function (settings) {
-                $.each($(this).find(".actions"), function (index, e) {
+                $.each($(this).find("td .actions"), function (index, e) {
                     let agreement_id = $(e).data('agreement_id')
                     let editButton = createVNode(AgreementsButtonEdit, {
                         onClick: () => {
@@ -148,7 +149,7 @@ export default {
                             delete_agreement(agreement_id)
                         }
                     })
-                    let n = createVNode('span', {}, [editButton, deleteButton])
+                    let n = createVNode('span', {}, [editButton, " ", deleteButton])
                     render(n, e)
                 })
             },
