@@ -29,6 +29,7 @@ export default {
             )
     },
     updated() {
+        let show_agreement = this.show_agreement
         let edit_agreement = this.edit_agreement
         let delete_agreement = this.delete_agreement
         window['av_vendors'] = this.vendors.map(e => {
@@ -89,9 +90,7 @@ export default {
                     "data": ["me.agreement_id", "me.name"],
                     "searchable": true,
                     "orderable": true,
-                    "render": function (data, type, row, meta) {
-                        return escape_str(`${row.name} (#${row.agreement_id})`)
-                    }
+                    // Rendering done in drawCallback
                 },
                 {
                     "title": __("Vendor"),
@@ -147,7 +146,7 @@ export default {
                 {
                     "title": __("Actions"),
                     "data": function (row, type, val, meta) {
-                        return '<div class="actions" data-agreement_id="' + row.agreement_id + '"></div>'
+                        return '<div class="actions"></div>'
                     },
                     "className": "actions noExport",
                     "searchable": false,
@@ -155,8 +154,11 @@ export default {
                 }
             ],
             drawCallback: function (settings) {
+
+                var api = new $.fn.dataTable.Api(settings)
+
                 $.each($(this).find("td .actions"), function (index, e) {
-                    let agreement_id = $(e).data('agreement_id')
+                    let agreement_id = api.row(index).data().agreement_id
                     let editButton = createVNode(AgreementsButtonEdit, {
                         onClick: () => {
                             edit_agreement(agreement_id)
@@ -168,6 +170,19 @@ export default {
                         }
                     })
                     let n = createVNode('span', {}, [editButton, " ", deleteButton])
+                    render(n, e)
+                })
+
+                $.each($(this).find("tr td:eq(0)"), function (index, e) {
+                    let row = api.row(index).data()
+                    let n = createVNode("a", {
+                        role: "button",
+                        onClick: () => {
+                            show_agreement(row.agreement_id)
+                        }
+                    },
+                        escape_str(`${row.name} (#${row.agreement_id})`)
+                    )
                     render(n, e)
                 })
             },
@@ -194,6 +209,10 @@ export default {
         }
     },
     methods: {
+        show_agreement: function (agreement_id) {
+            this.$emit('set-current-agreement-id', agreement_id)
+            this.$emit('switch-view', 'show')
+        },
         edit_agreement: function (agreement_id) {
             this.$emit('set-current-agreement-id', agreement_id)
             this.$emit('switch-view', 'add-form')
