@@ -179,7 +179,7 @@
                 <a
                     role="button"
                     class="cancel"
-                    @click="$emit('switch-view', 'list')"
+                    @click="this.setCurrentView('list')"
                     >Cancel</a
                 >
             </fieldset>
@@ -193,6 +193,7 @@ import AgreementUserRoles from './AgreementUserRoles.vue'
 import AgreementLicenses from './AgreementLicenses.vue'
 import { useVendorStore } from "../../stores/vendors"
 import { useAVStore } from "../../stores/authorised_values"
+import { useMainStore } from "../../stores/main"
 import { storeToRefs } from "pinia"
 
 export default {
@@ -209,6 +210,9 @@ export default {
             av_agreement_license_location,
         } = storeToRefs(AVStore)
 
+        const mainStore = useMainStore()
+        const { setMessage, setError, resetMessages, setCurrentView } = mainStore
+
         return {
             vendors,
             av_agreement_statuses,
@@ -217,6 +221,7 @@ export default {
             av_agreement_user_roles,
             av_agreement_license_statuses,
             av_agreement_license_location,
+            setMessage, setError, resetMessages, setCurrentView,
         }
     },
     data() {
@@ -252,7 +257,7 @@ export default {
                     this.agreement = result
                 },
                 (error) => {
-                    this.$emit('set-error', error)
+                    this.setError(error)
                 }
             )
     },
@@ -295,14 +300,16 @@ export default {
             fetch(apiUrl, options)
                 .then(response => {
                     if (response.status == 200) {
-                        this.$emit('agreement-updated')
+                        this.setCurrentView('list')
+                        this.setMessage('Agreement updated')
                     } else if (response.status == 201) {
-                        this.$emit('agreement-created')
+                        this.setCurrentView('list')
+                        this.setMessage('Agreement created')
                     } else {
-                        this.$emit('set-error', response.message || response.statusText)
+                        this.setError(response.message || response.statusText)
                     }
                 }, (error) => {
-                    this.$emit('set-error', error)
+                    this.setError(error)
                 }).catch(e => { console.log(e) })
         },
         onStatusChange(event) {
@@ -311,7 +318,6 @@ export default {
             }
         }
     },
-    emits: ['agreement-created', 'agreement-updated', 'set-error', 'switch-view'],
     props: {
         agreement_id: Number,
     },
