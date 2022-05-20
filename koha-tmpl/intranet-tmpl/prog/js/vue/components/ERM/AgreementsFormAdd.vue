@@ -341,9 +341,6 @@ export default {
             }
         }
     },
-    props: {
-        agreement_id: Number,
-    },
     components: {
         AgreementPeriods,
         AgreementUserRoles,
