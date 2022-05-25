@@ -260,6 +260,15 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-10-21 09:22:27
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kcqp9+4v43BsF5TARpij+A
 
+__PACKAGE__->add_columns(
+    '+is_perpetual' => { is_boolean => 1 }
+);
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub koha_object_class {
+    'Koha::ERM::Agreement';
+}
+sub koha_objects_class {
+    'Koha::ERM::Agreements';
+}
+
 1;
