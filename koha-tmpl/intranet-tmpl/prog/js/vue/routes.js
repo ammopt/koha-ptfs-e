@@ -1,4 +1,5 @@
 import { h } from "vue";
+import { defineAsyncComponent } from "vue";
 import { RouterView } from "vue-router";
 import ERMHome from "./components/ERM/ERMHome.vue";
 import AgreementsList from "./components/ERM/AgreementsList.vue";
@@ -6,7 +7,6 @@ import AgreementsShow from "./components/ERM/AgreementsShow.vue";
 import AgreementsFormAdd from "./components/ERM/AgreementsFormAdd.vue";
 import AgreementsFormConfirmDelete from "./components/ERM/AgreementsFormConfirmDelete.vue";
 import EHoldingsMain from "./components/ERM/EHoldingsMain.vue";
-import EHoldingsPackagesList from "./components/ERM/EHoldingsPackagesList.vue";
 import EHoldingsPackagesShow from "./components/ERM/EHoldingsPackagesShow.vue";
 import EHoldingsPackagesFormAdd from "./components/ERM/EHoldingsPackagesFormAdd.vue";
 import EHoldingsPackagesFormConfirmDelete from "./components/ERM/EHoldingsPackagesFormConfirmDelete.vue";
@@ -19,6 +19,8 @@ import LicensesList from "./components/ERM/LicensesList.vue";
 import LicensesShow from "./components/ERM/LicensesShow.vue";
 import LicensesFormAdd from "./components/ERM/LicensesFormAdd.vue";
 import LicensesFormConfirmDelete from "./components/ERM/LicensesFormConfirmDelete.vue";
+
+const module_provider = erm_provider == "manual" ? "Manual" : "EBSCO";
 
 const breadcrumbs = {
     home: {
@@ -135,7 +137,7 @@ export const routes = [
                     breadcrumb: () =>
                         build_breadcrumb(
                             breadcrumb_paths.agreements,
-                            "Edit agreement" // $t("Edit agreemetn")
+                            "Edit agreement" // $t("Edit agreement")
                         ),
                 },
             },
@@ -158,7 +160,13 @@ export const routes = [
                 children: [
                     {
                         path: "",
-                        component: EHoldingsPackagesList,
+                        component: function () {
+                            return import(
+                                "./components/ERM/EHoldingsPackagesList" +
+                                    module_provider +
+                                    ".vue"
+                            );
+                        },
                         meta: {
                             breadcrumb: () =>
                                 build_breadcrumb([
