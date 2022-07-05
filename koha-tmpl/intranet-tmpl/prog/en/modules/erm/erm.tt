@@ -52,6 +52,8 @@
         const ERMProviders = "[% Koha.Preference('ERMProviders') %]";
         const erm_providers = ERMProviders.split(',');
 
+        const ERMModule = [% Koha.Preference('ERMModule') ? 'true' : 'false' %];
+
     </script>
 
     [% Asset.js("js/vue/dist/main.js") %]
