@@ -299,6 +299,7 @@
                 tableContent.data = tableContent.data.map(function (row) {
                     if (row.value === identifier) {
                         row.requestId = data.illrequest_id;
+                        row.requestStatus = data.status;
                     }
                     return row;
                 });
@@ -893,6 +894,10 @@
         return data.requestId || '-';
     }
 
+    function createRequestStatus(x, y, data) {
+        return data.requestStatus || '-';
+    }
+
     function buildTable(identifiers) {
         table = KohaTable('identifier-table', {
             processing: true,
@@ -918,8 +923,13 @@
                 },
                 {
                     data: 'requestId',
-                    width: '13%',
+                    width: '6.5%',
                     render: createRequestId
+                },
+                {
+                    data: 'requestStatus',
+                    width: '6.5%',
+                    render: createRequestStatus
                 },
                 {
                     width: '18%',
