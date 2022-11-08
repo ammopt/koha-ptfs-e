@@ -74,6 +74,7 @@
                                 <th scope="col">Identifier value</th>
                                 <th scope="col">Metadata</th>
                                 <th scope="col">Request ID</th>
+                                <th scope="col">Request Status</th>
                                 <th scope="col"></th>
                             </tr>
                         </thead>
