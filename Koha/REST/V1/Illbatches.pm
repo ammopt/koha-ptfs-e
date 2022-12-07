@@ -156,6 +156,8 @@ sub add {
             requests_count   => 0
         };
 
+        $batch->backend_create_batch;
+
         return $c->render(
             status  => 201,
             openapi => $ret
