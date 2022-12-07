@@ -20,6 +20,7 @@ package Koha::Illbatch;
 use Modern::Perl;
 use Koha::Database;
 use Koha::Illrequest::Logger;
+use Koha::Exceptions::Ill;
 use Koha::IllbatchStatus;
 use JSON qw( to_json );
 use base qw(Koha::Object);
@@ -171,6 +172,69 @@ sub delete_and_log {
     });
 
     $self->delete;
+}
+
+=head3 load_backend
+
+Require "Base.pm" from the relevant ILL backend.
+
+=cut
+
+sub load_backend {
+    my ( $self, $backend_id ) = @_;
+
+    my @raw = qw/Koha Illbackends/; # Base Path
+
+    my $backend_name = $backend_id || $self->backend;
+
+    unless ( defined $backend_name && $backend_name ne '' ) {
+        Koha::Exceptions::Ill::InvalidBackendId->throw(
+            "An invalid backend ID was requested ('')");
+    }
+
+    my $location = join "/", @raw, $backend_name, "Base.pm";    # File to load
+    my $backend_class = join "::", @raw, $backend_name, "Base"; # Package name
+    require $location;
+    $self->{_my_backend} = $backend_class->new({
+        config => Koha::Illrequest::Config->new,
+        logger => Koha::Illrequest::Logger->new
+    });
+    return $self;
+}
+
+
+=head3 _backend
+
+    my $backend = $abstract->_backend($new_backend);
+    my $backend = $abstract->_backend;
+
+Getter/Setter for our API object.
+
+=cut
+
+sub _backend {
+    my ( $self, $backend ) = @_;
+    $self->{_my_backend} = $backend if ( $backend );
+    # Dynamically load our backend object, as late as possible.
+    $self->load_backend unless ( $self->{_my_backend} );
+    return $self->{_my_backend};
+}
+
+=head3 backend_create_batch
+
+    my $create_response = $abstractILLBatch->backend_create($params);
+
+Invoke backend's create_batch method
+
+=cut
+
+sub backend_create_batch {
+    my ( $self ) = @_;
+
+    my $result = $self->_backend->create_batch( { batch => $self } );
+
+    # ...Updating status!
+    $self->status('REQ')->store;
 }
 
 =head2 Internal methods
