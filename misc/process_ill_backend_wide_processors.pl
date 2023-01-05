@@ -19,7 +19,6 @@
 
 use Modern::Perl;
 use Getopt::Long qw( GetOptions );
-use POSIX;
 
 use Koha::Script;
 use Koha::Illrequests;
@@ -76,12 +75,6 @@ my $options_to_pass = {
 
 # Load the backend
 my @raw = qw/Koha Illbackends/; # Base Path
-
-unless ( defined $backend && $backend ne '' ) {
-    Koha::Exceptions::Ill::InvalidBackendId->throw(
-        "An invalid backend ID was requested ('')");
-}
-
 my $location = join "/", @raw, $backend, "Base.pm";    # File to load
 my $backend_class = join "::", @raw, $backend, "Base"; # Package name
 
