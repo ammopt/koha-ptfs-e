@@ -28,6 +28,7 @@ my $get_help = 0;
 my $backend = "";
 my $dry_run = 0;
 my $debug = 0;
+my $env = "dev";
 my $processor = "";
 
 my $options = GetOptions(
@@ -35,6 +36,7 @@ my $options = GetOptions(
     'backend=s'         => \$backend,
     'dry-run'           => \$dry_run,
     'debug'             => \$debug,
+    'env=s'             => \$env,
     'processor:s'       => \$processor
 );
 
@@ -70,7 +72,8 @@ debug_msg($where);
 # Create an options hashref to pass to processors
 my $options_to_pass = {
     dry_run         => $dry_run,
-    debug           => \&debug_msg
+    debug           => \&debug_msg,
+    env             => $env
 };
 
 # Load the backend
@@ -119,7 +122,7 @@ sub get_help {
 $0: Process backend-wide ILL processors
 
 This script will run backend-wide processors provided by the Backend.
-For example, the ReprintsDesk backend provides a processor script
+Example: the ReprintsDesk backend provides a processor script
 that queries the supplier for the most recent 100 orders and acts 
 upon the response.
 
@@ -128,6 +131,7 @@ Parameters:
     --processor                          name of the backend-wide processor to run exclusively
     --dry-run                            only produce a run report, without actually doing anything permanent
     --debug                              print additional debugging info during run
+    --env                                prod/dev - defaults to dev if not specified
 
     --help or -h                         get help
 HELP
