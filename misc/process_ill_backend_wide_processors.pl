@@ -19,16 +19,17 @@
 
 use Modern::Perl;
 use Getopt::Long qw( GetOptions );
+use JSON qw( decode_json );
 
 use Koha::Script;
 use Koha::Illrequests;
+use Koha::Plugin::Com::PTFSEurope::ReprintsDesk;
 
 # Command line option values
 my $get_help = 0;
 my $backend = "";
 my $dry_run = 0;
 my $debug = 0;
-my $env = "dev";
 my $processor = "";
 
 my $options = GetOptions(
@@ -36,7 +37,6 @@ my $options = GetOptions(
     'backend=s'         => \$backend,
     'dry-run'           => \$dry_run,
     'debug'             => \$debug,
-    'env=s'             => \$env,
     'processor:s'       => \$processor
 );
 
@@ -49,6 +49,13 @@ if (!$backend) {
     print "No backend specified\n";
     exit 0;
 }
+
+my $plugin = Koha::Plugin::Com::PTFSEurope::ReprintsDesk->new();
+my $config = $plugin->retrieve_data("reprintsdesk_config") ? decode_json($plugin->retrieve_data("reprintsdesk_config")) : ();
+
+die("ReprintsDesk API Plugin configuration is empty or plugin not installed") if !$config;
+
+my $env = $config->{environment} || 'dev';
 
 # First check we can proceed
 my $cfg = Koha::Illrequest::Config->new;
@@ -66,6 +73,7 @@ my $where = {
     backend => $backend
 };
 
+debug_msg("Environment is: " . $env);
 debug_msg("DBIC WHERE:");
 debug_msg($where);
 
@@ -131,7 +139,6 @@ Parameters:
     --processor                          name of the backend-wide processor to run exclusively
     --dry-run                            only produce a run report, without actually doing anything permanent
     --debug                              print additional debugging info during run
-    --env                                prod/dev - defaults to dev if not specified
 
     --help or -h                         get help
 HELP
