@@ -677,6 +677,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 illbatches
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Illbatch>
+
+=cut
+
+__PACKAGE__->has_many(
+  "illbatches",
+  "Koha::Schema::Result::Illbatch",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 illrequests
 
 Type: has_many
@@ -903,8 +918,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-09-16 13:09:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4nMDSKcOjnGsjUQkkyZtwg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-12-08 08:18:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9V85a9bTj2vVCMMVBRK3yw
 
 __PACKAGE__->add_columns(
     '+pickup_location' => { is_boolean => 1 },
