@@ -17,7 +17,7 @@
 
 use Modern::Perl;
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use Test::MockModule;
 use Test::MockObject;
@@ -144,6 +144,7 @@ subtest 'list() tests' => sub {
             class => 'Koha::Illrequests',
             value => {
                 borrowernumber => $patron->borrowernumber,
+                batch_id       => undef,
                 status         => $request_status->{code},
                 backend        => $backend->name,
                 notesstaff     => '1'
@@ -154,6 +155,7 @@ subtest 'list() tests' => sub {
         {
             class => 'Koha::Illrequests',
             value => {
+                batch_id     => undef,
                 status       => $request_status->{code},
                 backend      => $backend->name,
                 status_alias => $av->authorised_value,
@@ -253,6 +255,119 @@ subtest 'list() tests' => sub {
       ->status_is(404);
 
     #TODO; test complex query on extended_attributes
+
+    $schema->storage->txn_rollback;
+};
+
+subtest 'add() tests' => sub {
+
+    plan tests => 2;
+
+    $schema->storage->txn_begin;
+
+    # create an authorized user
+    my $patron = $builder->build_object({
+        class => 'Koha::Patrons',
+        value => { flags => 2 ** 22 } # 22 => ill
+    });
+    my $password = 'thePassword123';
+    $patron->set_password({ password => $password, skip_validation => 1 });
+    my $userid = $patron->userid;
+
+    my $library  = $builder->build_object( { class => 'Koha::Libraries' } );
+
+    # Create an ILL request
+    my $illrequest = $builder->build_object(
+        {
+            class => 'Koha::Illrequests',
+            value => {
+                backend        => 'Mock',
+                branchcode     => $library->branchcode,
+                borrowernumber => $patron->borrowernumber,
+                status         => 'STATUS1',
+            }
+        }
+    );
+
+    # Mock ILLBackend (as object)
+    my $backend = Test::MockObject->new;
+    $backend->set_isa('Koha::Illbackends::Mock');
+    $backend->set_always('name', 'Mock');
+
+    $backend->mock(
+        'metadata',
+        sub {
+            my ( $self, $rq ) = @_;
+            return {
+                ID => $rq->illrequest_id,
+                Title => $rq->patron->borrowernumber
+            }
+        }
+    );
+    $backend->mock(
+        'status_graph', sub {},
+    );
+
+    # Mock Koha::Illrequest::load_backend (to load Mocked Backend)
+    my $illreqmodule = Test::MockModule->new('Koha::Illrequest');
+    $illreqmodule->mock(
+        'load_backend',
+        sub { my $self = shift; $self->{_my_backend} = $backend; return $self }
+    );
+
+    $illreqmodule->mock(
+        '_backend',
+        sub {
+            my $self = shift;
+            $self->{_my_backend} = $backend if ($backend);
+
+            return $self;
+            }
+    );
+
+    $illreqmodule->mock(
+        'capabilities',
+        sub {
+            my ( $self, $name ) = @_;
+
+            my $capabilities = {
+
+                create_api => sub {
+                    my ($body, $request ) = @_;
+
+                    my $api_req = $builder->build_object(
+                        {
+                            class => 'Koha::Illrequests',
+                            value => {
+                                borrowernumber => $patron->borrowernumber,
+                                batch_id       => undef,
+                                status         => 'NEW',
+                                backend        => $backend->name,
+                            }
+                        }
+                    );
+
+                    return $api_req;
+                }
+            };
+
+            return $capabilities->{$name};
+        }
+    );
+
+    $schema->storage->txn_begin;
+
+    Koha::Illrequests->search->delete;
+
+    my $body = {
+        ill_backend_id => 'Mock',
+        patron_id => $patron->borrowernumber,
+        library_id => $library->branchcode
+    };
+
+    ## Authorized user test
+    $t->post_ok( "//$userid:$password@/api/v1/ill/requests" => json => $body)
+      ->status_is(201);
 
     $schema->storage->txn_rollback;
 };
