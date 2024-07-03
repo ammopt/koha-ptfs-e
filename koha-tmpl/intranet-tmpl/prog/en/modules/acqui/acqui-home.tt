@@ -93,7 +93,7 @@
     <h3>All available funds</h3>
 
     <div id="BudgetsAndFunds">
-        <div class="toolbar btn-toolbar">
+        [% WRAPPER table_toolbar %]
             <span class="actions">
                 <a href="#" id="expand_all">Expand all</a> |
                 <a href="#" id="collapse_all">Collapse all</a> |
@@ -106,7 +106,7 @@
                     [% END %]
                 </select>
             </span>
-        </div>
+        [% END #/ WRAPPER table_toolbar %]
             <table id="accounts">
 
                 <thead>

@@ -518,3 +518,9 @@
         </div> <!-- /.panel-body -->
     </div> <!-- /.panel-collapse -->
 [% END %]
+
+[% BLOCK table_toolbar %]
+    <div class="toolbar btn-toolbar">
+        [% content | $raw %]
+    </div>
+[% END %]
