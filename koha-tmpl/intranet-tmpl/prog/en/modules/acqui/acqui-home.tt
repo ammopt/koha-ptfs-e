@@ -97,7 +97,7 @@
             <span class="actions">
                 <a href="#" id="expand_all">Expand all</a> |
                 <a href="#" id="collapse_all">Collapse all</a> |
-                <a href="#" id="hide_inactive">Hide inactive budgets</a> |
+                [% PROCESS table_toolbar_action type = "hide" link = "#" id = "hide_inactive" text = "inactive budgets"%]
                 <a href="#" id="show_inactive">Show inactive budgets</a> |
                 <select id="library-filter">
                     <option value="">Filter by library</option>

@@ -524,3 +524,12 @@
         [% content | $raw %]
     </div>
 [% END %]
+
+[% BLOCK table_toolbar_action %]
+    <a href="[% link | $raw %]" id="[% id | $raw %]">
+        [% IF ( type == 'hide' ) %]
+            Hide
+        [% END %]
+        [% text | $raw %]
+    </a> |
+[% END %]
